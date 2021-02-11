@@ -8,7 +8,7 @@
       "other-kafka":
         "type": "core-types/kafka-ssl"
         "properties":
-          "local": "yadda"
+          "local": "string"
 
 
     

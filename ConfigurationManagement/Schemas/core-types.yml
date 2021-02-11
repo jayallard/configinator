@@ -6,7 +6,8 @@
       "bootstrap-servers": "string"
   "kafka-ssl":
     "$base": "./kafka"
-    "something": "string"
+    "properties":
+      "something": "string"
   "mssql":
     "properties":
       "user-id": "string"

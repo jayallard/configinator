@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using YamlDotNet.RepresentationModel;
 
@@ -49,21 +51,35 @@ namespace ConfigurationManagement.Code.Schema
             foreach (var pathNode in pathNodes)
             {
                 var path = (string) pathNode.Key;
-                var propertyNodes = (YamlMappingNode) pathNode.Value["properties"];
-                var properties = await GetProperties(propertyNodes, id);
+                var objectNode = (YamlMappingNode) pathNode.Value;
+                var properties = await GetProperties(objectNode, actualId);
                 paths.Add(new PathNode {Path = path, Properties = properties});
             }
 
             return new ConfigurationSchema {Paths = paths.AsReadOnly(), Id = actualId};
         }
 
-        private async Task<List<Property>> GetProperties(YamlMappingNode propertyNodes, string currentSchemaId)
+        private async Task<List<Property>> GetProperties(YamlMappingNode objectNode, string currentSchemaId)
         {
+            var baseType = objectNode.Children.ContainsKey("$base")
+                ? (string) objectNode["$base"]
+                : null;
+
             var properties = new List<Property>();
-            foreach (var propertyNode in propertyNodes)
+            if (baseType != null)
             {
-                var property = await CreateProperty(propertyNode, currentSchemaId);
-                properties.Add(property);
+                var type = await GetSchemaType(baseType, currentSchemaId);
+                properties.AddRange(type.Properties);
+            }
+
+            if (objectNode.Children.ContainsKey("properties"))
+            {
+                var propertiesNode = (YamlMappingNode) objectNode["properties"];
+                foreach (var propertyNode in propertiesNode)
+                {
+                    var property = await CreateProperty(propertyNode, currentSchemaId);
+                    properties.Add(property);
+                }
             }
 
             return properties;
@@ -93,10 +109,17 @@ namespace ConfigurationManagement.Code.Schema
                     ? fullTypeId.Substring(fullTypeId.IndexOf("/") + 1)
                     : fullTypeId;
 
-            if (ownerSchemaId == null)
+            var isPrimitive = ownerSchemaId == null;
+            if (isPrimitive)
             {
-                // todo: primitive
-                return null;
+                var property = relativeTypeName switch
+                {
+                    "string" => new PropertyValue {Name = "todo", IsSecret = false},
+                    _ => throw new InvalidOperationException("unknown primitive type: " + relativeTypeName)
+                };
+
+                var props = new List<Property> {property}.AsReadOnly();
+                return new SchemaType {Properties = props, TypeId = relativeTypeName};
             }
 
             var schemaYaml = await GetSource(ownerSchemaId);
@@ -106,14 +129,13 @@ namespace ConfigurationManagement.Code.Schema
                 throw new InvalidOperationException("Type doesn't exist: " + fullTypeId);
             }
 
-            var typeNode = (YamlMappingNode) typesNode[relativeTypeName];
-            if (typeNode == null)
+            var objectNode = (YamlMappingNode) typesNode[relativeTypeName];
+            if (objectNode == null)
             {
                 throw new InvalidOperationException("Type doesn't exist: " + fullTypeId);
             }
 
-            var propertyNodes = (YamlMappingNode) typeNode["properties"];
-            var properties = await GetProperties(propertyNodes, currentSchemaId);
+            var properties = await GetProperties(objectNode, ownerSchemaId);
             return new SchemaType {Properties = properties.AsReadOnly(), TypeId = fullTypeId};
         }
 
@@ -122,27 +144,27 @@ namespace ConfigurationManagement.Code.Schema
             string currentSchemaId)
         {
             var propertyName = (string) propertyNode.Key;
-            if (propertyNode.Value is YamlMappingNode objectNode)
-            {
-                // handle and object structure.
-                // "name":
-                //    "type": "whatever"
-                //    "properties":         (optional)
-                //       ... additional properties
-                return null;
-            }
+            var isObject = propertyNode.Value is YamlMappingNode;
+            var typeName =
+                isObject
+                    ? (string) ((YamlMappingNode) propertyNode.Value)["type"]
+                    : (string) propertyNode.Value;
 
-            // short hand property
-            // "name": "type"
-            var typeName = (string) propertyNode.Value;
-            switch (typeName)
+            /*switch (typeName)
             {
                 case "string":
                     return new PropertyValue {Name = propertyName, IsSecret = false};
-            }
+            }*/
 
             var type = await GetSchemaType(typeName, currentSchemaId);
-            return new PropertyGroup {Name = propertyName, Properties = type.Properties};
+            var additionalProperties = isObject
+                ? await GetProperties((YamlMappingNode) propertyNode.Value, currentSchemaId)
+                : new List<Property>();
+
+            var props = new List<Property>();
+            props.AddRange(type.Properties);
+            props.AddRange(additionalProperties);
+            return new PropertyGroup {Name = propertyName, Properties = props.AsReadOnly()};
         }
     }
 }
