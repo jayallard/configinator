@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "aw-config-base",
+  "title": "Configuration",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "paths": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "configuration": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "path",
+          "configuration"
+        ]
+      }
+    }
+  },
+  "required": [
+    "paths"
+  ],
+  "definitions": {
+    "kafka": {
+      "type": "object",
+      "required": [
+        "bootstrapServers"
+      ],
+      "properties": {
+        "bootstrapServers": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "additionalItems": false
+    },
+    "mssql": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "server": {
+          "type": "string"
+        },
+        "instance": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "userId",
+        "password",
+        "server"
+      ],
+      "additionalProperties": false,
+      "additionalItems": false
+    }
+  }
+}

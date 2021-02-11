@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Configuration",
+  "description": "",
+  "type": "object",
+  "$id": "test1",
+  "properties": {
+    "path": {
+      "type": "string"
+    },
+    "configuration": {
+      "type": "object",
+      "properties": {
+        "my-kafka": {
+          "$ref": "#/definitions/kafka"
+        },
+        "my-mssql": {
+          "$ref": "#/definitions/mssql"
+        }
+      },
+      "required": [
+        "my-kafka",
+        "my-mssql"
+      ]
+    }
+  },
+  "required": [
+    "path",
+    "configuration"
+  ],
+  "definitions": {
+    "kafka": {
+      "type": "object",
+      "required": [
+        "bootstrapServers"
+      ],
+      "properties": {
+        "bootstrapServers": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "additionalItems": false
+    },
+    "mssql": {
+      "type": "object",
+      "properties": {
+        "server": {
+          "type": "string"
+        },
+        "instance": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string",
+          "issecret": true
+        },
+        "password": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "userId",
+        "password",
+        "server"
+      ],
+      "additionalProperties": false,
+      "additionalItems": false
+    }
+  }
+}

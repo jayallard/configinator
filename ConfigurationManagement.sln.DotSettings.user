@@ -1,0 +1,11 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=c94fdb77_002D9457_002D4fb2_002Db0b4_002D5928cf2b7352/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Test1" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;Or&gt;
+    &lt;TestAncestor&gt;
+      &lt;TestId&gt;xUnit::CBD85853-1B06-465C-AC57-5933DC679316::net5.0::ConfigurationManagementTests.UnitTest1.Test1&lt;/TestId&gt;
+      &lt;TestId&gt;xUnit::CBD85853-1B06-465C-AC57-5933DC679316::net5.0::ConfigurationManagementTests.Unit.Code.Schema.FileSchemaRepositoryTests.GetSchemaWhenFileExists&lt;/TestId&gt;
+      &lt;TestId&gt;xUnit::CBD85853-1B06-465C-AC57-5933DC679316::net5.0::ConfigurationManagementTests.Unit.Code.Schema.FileSchemaRepositoryTests.GetSchemaThrowsFileNotFoundWhenSchemaDoesntExist&lt;/TestId&gt;
+    &lt;/TestAncestor&gt;
+    &lt;ProjectFile&gt;CBD85853-1B06-465C-AC57-5933DC679316/d:Unit/d:Code/d:Schema/f:FileSchemaRepositoryTests.cs&lt;/ProjectFile&gt;
+  &lt;/Or&gt;
+&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
