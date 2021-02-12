@@ -4,7 +4,7 @@
   "/x/y/z":
     "properties":
       "my-kafka": "exhaustive-types/kafka"
-#      "my-sql": "exhaustive-types/mssql"
+      "my-sql": "exhaustive-types/mssql"
 #      "other-kafka":
 #        "type": "exhaustive-types/kafka-ssl"
 #        "properties":

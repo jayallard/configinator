@@ -4,8 +4,17 @@
   "/x/y/z":
     "properties":
       "my-kafka":
-        "type": "kafka"
+        "type": "exhaustive-types/kafka"
         "properties":
           "bootstrap-servers":
-            "type": "string"
+            "type": "$$string"
+      "my-sql":
+        "type": "exhaustive-types/mssql"
+        "properties":
+          "user-id": 
+            "type": "$$string"
+          "password":
+            "type": "$$string"
+          "host":
+            "type": "$$string"
               

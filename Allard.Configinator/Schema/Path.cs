@@ -22,12 +22,14 @@ namespace Allard.Configinator.Schema
     public abstract record Property
     {
         public string Name { get; init; }
+        public SchemaParser.SchemaTypeId TypeId { get; init; }
     }
 
     [DebuggerDisplay("{Name}")]
     public record PropertyGroup : Property
     {
         public ReadOnlyCollection<Property> Properties { get; init; }
+
     }
 
     [DebuggerDisplay("{Name}")]
@@ -35,7 +37,6 @@ namespace Allard.Configinator.Schema
     {
         public bool IsSecret { get; init; }
 
-        public string UnderlyingType { get; init; }
 
         public PropertyPrimitive SetSecret(bool isSecret)
         {

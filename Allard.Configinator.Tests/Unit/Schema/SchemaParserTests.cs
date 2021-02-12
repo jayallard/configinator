@@ -35,10 +35,12 @@ namespace Allard.Configinator.Tests.Unit.Schema
 
                 var expectedPathPropertiesNode = (YamlMappingNode) expectedPathNode.Value["properties"];
                 actualPath.Properties.Count.Should().Be(expectedPathPropertiesNode.Children.Count);
+                
                 foreach (var expectedPropertyNode in expectedPathPropertiesNode)
                 {
-                    var expectedPropertyName = (string) expectedPropertyNode.Value;
+                    var expectedPropertyName = (string) expectedPropertyNode.Key;
                     var actualProperty = actualPath.Properties.Single(p => p.Name == expectedPropertyName);
+                    actualProperty.TypeId.FullId.Should().Be(expectedPropertyNode.Value.StringValue("type"));
                 }
             }
         }

@@ -74,7 +74,7 @@ namespace Allard.Configinator.Schema
                     {
                         Name = (string) p.Key,
                         IsSecret = false,
-                        UnderlyingType = (string) p.Value
+                        TypeId = typeId
                     });
 
                     continue;
@@ -84,7 +84,8 @@ namespace Allard.Configinator.Schema
                 properties.Add(new PropertyGroup
                 {
                     Properties = type.Properties,
-                    Name = (string) p.Key
+                    Name = (string) p.Key,
+                    TypeId = type.SchemaTypeId
                 });
             }
 
@@ -189,7 +190,7 @@ namespace Allard.Configinator.Schema
         }
 
         [DebuggerDisplay("{FullId}")]
-        private record SchemaTypeId
+        public record SchemaTypeId
         {
             public bool IsPrimitive { get; }
             public string SchemaId { get; }
