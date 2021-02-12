@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
 
 namespace ConfigurationManagement.Code.Schema
 {
@@ -12,12 +11,13 @@ namespace ConfigurationManagement.Code.Schema
         public ReadOnlyCollection<PathNode> Paths { get; init; }
     }
 
-    public class PathNode
+    [DebuggerDisplay("{Path}")]
+    public record PathNode
     {
         public string Path { get; init; }
         public List<Property> Properties { get; init; }
     }
-    
+
     [DebuggerDisplay("{Name}")]
     public abstract record Property
     {
@@ -31,20 +31,23 @@ namespace ConfigurationManagement.Code.Schema
     }
 
     [DebuggerDisplay("{Name}")]
-    public record PropertyValue : Property
+    public record PropertyPrimitive : Property
     {
         public bool IsSecret { get; init; }
 
-        public PropertyValue SetSecret(bool isSecret)
+        public string UnderlyingType { get; init; }
+
+        public PropertyPrimitive SetSecret(bool isSecret)
         {
             return this with {IsSecret = isSecret};
         }
     }
 
+    /*
     [DebuggerDisplay("{TypeId}")]
     public record SchemaType
     {
         public string TypeId { get; init; }
         public ReadOnlyCollection<Property> Properties { get; init; }
-    }
+    }*/
 }

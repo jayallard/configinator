@@ -1,10 +1,5 @@
-using System;
-using System.IO;
 using System.Threading.Tasks;
 using ConfigurationManagement.Code.Schema;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Schema;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -25,7 +20,7 @@ namespace ConfigurationManagementTests
             const string schemaFolder =
                 @"/Users/jallard/personal/ConfigurationManagement/ConfigurationManagement/Schemas";
             var repo = new FileSchemaRepository(schemaFolder);
-            var parser = new SchemaParser(repo);
+            var parser = new SchemaParser2(repo);
             var schema = await parser.GetSchema("sample1");
             output.WriteLine("yay");
         }
