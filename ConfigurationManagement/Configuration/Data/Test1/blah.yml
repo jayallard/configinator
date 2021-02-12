@@ -1,9 +1,0 @@
----
-path: "/x/z"
-properties:
-
-types:
-  "kafka":
-    - "bootstrap-servers": "localhost:9092"
-  "mssql":
-    

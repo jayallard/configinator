@@ -1,0 +1,11 @@
+---
+"id": "exhaustive"
+"paths":
+  "/x/y/z":
+    "properties":
+      "my-kafka":
+        "type": "kafka"
+        "properties":
+          "bootstrap-servers":
+            "type": "string"
+              

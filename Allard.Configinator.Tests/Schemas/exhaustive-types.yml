@@ -1,0 +1,16 @@
+---
+"id": "exhaustive-types"
+"types":
+  "kafka":
+    "properties":
+      "bootstrap-servers": "string"
+  "kafka-ssl":
+    "$base": "./kafka"
+    "properties":
+      "something": "string"
+  "mssql":
+    "properties":
+      "user-id": "string"
+      "password": "string"
+      "host": "string"
+    "secrets": [ "user-id", "password" ]    
