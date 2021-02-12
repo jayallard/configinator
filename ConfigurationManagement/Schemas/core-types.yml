@@ -1,6 +1,4 @@
----
-"id": "core-types"
-"types":
+$"types":
   "kafka":
     "properties":
       "bootstrap-servers": "string"
