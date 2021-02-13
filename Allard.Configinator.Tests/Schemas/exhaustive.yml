@@ -5,10 +5,10 @@
     "properties":
       "my-kafka": "exhaustive-types/kafka"
       "my-sql": "exhaustive-types/mssql"
-#      "other-kafka":
-#        "type": "exhaustive-types/kafka-ssl"
-#        "properties":
-#          "local": "string"
+      "other-kafka":
+        "type": "exhaustive-types/kafka-ssl"
+        "properties":
+           "local": "string"
 
 
     

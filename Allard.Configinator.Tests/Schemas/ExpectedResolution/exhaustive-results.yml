@@ -7,14 +7,27 @@
         "type": "exhaustive-types/kafka"
         "properties":
           "bootstrap-servers":
-            "type": "$$string"
+            "type": "primitive-types/string"
       "my-sql":
         "type": "exhaustive-types/mssql"
         "properties":
           "user-id": 
-            "type": "$$string"
+            "type": "primitive-types/string"
           "password":
-            "type": "$$string"
+            "type": "primitive-types/string"
           "host":
-            "type": "$$string"
+            "type": "primitive-types/string"
+      "other-kafka":
+        "type": "exhaustive-types/kafka-ssl"
+        "properties":
+          # from kafka
+          "bootstrap-servers":
+            "type": "primitive-types/string"
+          # from kafka-ssl
+          "something":
+            "type": "primitive-types/string"
+          # from other-kafka
+          "local":
+            "type": "primitive-types/string"
+                      
               

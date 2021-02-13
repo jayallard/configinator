@@ -80,6 +80,7 @@ namespace Allard.Configinator.Schema
                     continue;
                 }
 
+                // get the properties for the type
                 var type = await GetType(typeId);
                 properties.Add(new PropertyGroup
                 {
@@ -87,6 +88,27 @@ namespace Allard.Configinator.Schema
                     Name = (string) p.Key,
                     TypeId = type.SchemaTypeId
                 });
+
+                if (!isObject)
+                {
+                    continue;
+                }
+
+                // get additional properties added
+                // via the schema.
+                //    "property":
+                //      "type": "schema/property"
+                //      "properties":
+                //        ...
+                // This code handles the "properties" node
+                var obj = (YamlMappingNode) p.Value;
+                if (!obj.Children.ContainsKey("properties"))
+                {
+                    continue;
+                }
+
+                var wrapper = new PathYaml(path.Owner, obj.Children);
+                Console.WriteLine();
             }
 
             return properties;
@@ -126,9 +148,19 @@ namespace Allard.Configinator.Schema
         private async Task<ObjectSchemaType> BuildType(SchemaTypeId schemaTypeId)
         {
             var sourceSchema = await GetSource(schemaTypeId.SchemaId);
-            var typeYaml = sourceSchema.Types.SingleOrDefault(t => t.SchemaTypeId == schemaTypeId);
-            var properties = await GetProperties(typeYaml);
-            return new ObjectSchemaType(schemaTypeId, properties);
+            var typeYaml = sourceSchema.Types.Single(t => t.SchemaTypeId == schemaTypeId);
+            var props = new List<Property>();
+
+            // from the base
+            if (typeYaml.BaseType != null)
+            {
+                var baseType = await GetType(typeYaml.BaseType);
+                props.AddRange(baseType.Properties);
+            }
+
+            // from the local type
+            props.AddRange(await GetProperties(typeYaml));
+            return new ObjectSchemaType(schemaTypeId, props);
         }
 
         private async Task<SchemaYaml> GetSource(string schemaId)
@@ -251,18 +283,24 @@ namespace Allard.Configinator.Schema
             public SchemaYaml Owner { get; }
             public ReadOnlyCollection<KeyValuePair<YamlNode, YamlNode>> PropertiesYaml { get; }
             public SchemaTypeId SchemaTypeId { get; }
+            public SchemaTypeId BaseType { get; }
 
             public TypeYaml(SchemaYaml owner, KeyValuePair<YamlNode, YamlNode> typeYaml)
             {
+                var value = (YamlMappingNode) typeYaml.Value;
                 Owner = owner;
-                PropertiesYaml = ((YamlMappingNode) typeYaml.Value["properties"])
+                PropertiesYaml = ((YamlMappingNode) value["properties"])
                     .Children
                     .ToList()
                     .AsReadOnly();
                 SchemaTypeId = new SchemaTypeId(owner.SchemaId + "/" + (string) typeYaml.Key);
+                BaseType = value.Children.ContainsKey("$base")
+                    //? new SchemaTypeId((string) value["$base"])
+                    ? NormalizeTypeId(owner.SchemaId, (string) value["$base"])
+                    : null;
             }
         }
-
+        
         [DebuggerDisplay("{Path}")]
         private record PathYaml : IPropertiesYaml
         {
