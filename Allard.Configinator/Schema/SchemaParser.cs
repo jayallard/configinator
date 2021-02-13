@@ -17,7 +17,7 @@ namespace Allard.Configinator.Schema
 
         public SchemaParser(ISchemaRepository repository)
         {
-            this.repository = repository;
+            this.repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
 
         public async Task<ConfigurationSchema> GetSchema(string id)
@@ -55,8 +55,14 @@ namespace Allard.Configinator.Schema
 
         private async Task<List<Property>> GetProperties(IPropertiesYaml path)
         {
+            return await GetProperties(path.Owner, path.PropertiesYaml);
+        }
+
+        private async Task<List<Property>> GetProperties(SchemaYaml owner,
+            IEnumerable<KeyValuePair<YamlNode, YamlNode>> propertiesYaml)
+        {
             var properties = new List<Property>();
-            foreach (var p in path.PropertiesYaml)
+            foreach (var p in propertiesYaml)
             {
                 //  Type may be specified 2 ways.
                 //       properties:
@@ -67,7 +73,7 @@ namespace Allard.Configinator.Schema
                 var typeIdName = isObject
                     ? (string) ((YamlMappingNode) p.Value)["type"]
                     : (string) p.Value;
-                var typeId = NormalizeTypeId(path.Owner.SchemaId, typeIdName);
+                var typeId = NormalizeTypeId(owner.SchemaId, typeIdName);
                 if (typeId.IsPrimitive)
                 {
                     properties.Add(new PropertyPrimitive
@@ -80,35 +86,28 @@ namespace Allard.Configinator.Schema
                     continue;
                 }
 
-                // get the properties for the type
+                // get the properties for the type.
+                // append additional propertiees added at
+                // the schema leel.
+                var propertiesForType = new List<Property>();
                 var type = await GetType(typeId);
+                propertiesForType.AddRange(type.Properties);
+                if (isObject)
+                {
+                    var obj = (YamlMappingNode) p.Value;
+                    if (obj.Children.ContainsKey("properties"))
+                    {
+                        var propertyYaml = ((YamlMappingNode) obj["properties"]).Children;
+                        propertiesForType.AddRange(await GetProperties(owner, propertyYaml));
+                    }
+                }
+
                 properties.Add(new PropertyGroup
                 {
-                    Properties = type.Properties,
+                    Properties = propertiesForType.AsReadOnly(),
                     Name = (string) p.Key,
                     TypeId = type.SchemaTypeId
                 });
-
-                if (!isObject)
-                {
-                    continue;
-                }
-
-                // get additional properties added
-                // via the schema.
-                //    "property":
-                //      "type": "schema/property"
-                //      "properties":
-                //        ...
-                // This code handles the "properties" node
-                var obj = (YamlMappingNode) p.Value;
-                if (!obj.Children.ContainsKey("properties"))
-                {
-                    continue;
-                }
-
-                var wrapper = new PathYaml(path.Owner, obj.Children);
-                Console.WriteLine();
             }
 
             return properties;
@@ -132,6 +131,7 @@ namespace Allard.Configinator.Schema
 
             return new SchemaTypeId(typeId);
         }
+
 
         private async Task<ObjectSchemaType> GetType(SchemaTypeId typeId)
         {
@@ -181,29 +181,6 @@ namespace Allard.Configinator.Schema
             sourceYaml[schemaId] = new SchemaYaml((YamlMappingNode) source);
             return sourceYaml[schemaId];
         }
-
-        /*[DebuggerDisplay("{SchemaTypeId}")]
-        private abstract record SchemaType
-        {
-            public SchemaTypeId SchemaTypeId { get; }
-
-            protected SchemaType(SchemaTypeId schemaTypeId)
-            {
-                SchemaTypeId = schemaTypeId;
-            }
-        }*/
-
-        /*
-        [DebuggerDisplay("{SchemaTypeId} - {PrimitiveType}")]
-        private record PrimitiveSchemaType : SchemaType
-        {
-            public PrimitiveSchemaType(SchemaTypeId typeId, string primitiveType) : base(typeId)
-            {
-                PrimitiveType = primitiveType;
-            }
-
-            public string PrimitiveType { get; }
-        }*/
 
         [DebuggerDisplay("{SchemaTypeId}")]
         private record ObjectSchemaType
@@ -300,7 +277,7 @@ namespace Allard.Configinator.Schema
                     : null;
             }
         }
-        
+
         [DebuggerDisplay("{Path}")]
         private record PathYaml : IPropertiesYaml
         {

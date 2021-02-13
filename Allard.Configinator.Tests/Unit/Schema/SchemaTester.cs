@@ -49,13 +49,19 @@ namespace Allard.Configinator.Tests.Unit.Schema
             {
                 var expectedPropertyName = (string) expectedPropertyNode.Key;
                 var expectedPropertyPath = propertyName + "/" + expectedPropertyName;
-                var expectedType = expectedPropertyNode.Value.StringValue("type");
+                var expectedType = new SchemaParser.SchemaTypeId(expectedPropertyNode.Value.StringValue("type"));
 
                 testOutputHelper.WriteLine(space + expectedPropertyName + " [" + expectedType + "]");
                 var actualProperty = actual.SingleOrDefault(p => p.Name == expectedPropertyName);
                 actualProperty.Should().NotBeNull("actual property not found: " + expectedPropertyPath);
                 Debug.Assert(actualProperty != null);
-                actualProperty.TypeId.FullId.Should().Be(expectedType);
+                actualProperty.TypeId.FullId.Should().Be(expectedType.FullId);
+
+                if (expectedType.IsPrimitive)
+                {
+                    // todo: secret
+                }
+                
                 var map = (YamlMappingNode) expectedPropertyNode.Value;
                 if (!map.Children.ContainsKey("properties"))
                 {
