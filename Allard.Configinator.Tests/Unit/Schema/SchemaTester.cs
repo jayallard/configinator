@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -50,8 +51,7 @@ namespace Allard.Configinator.Tests.Unit.Schema
                 var expectedPropertyName = (string) expectedPropertyNode.Key;
                 var expectedPropertyPath = propertyName + "/" + expectedPropertyName;
                 var expectedType = new SchemaParser.SchemaTypeId(expectedPropertyNode.Value.StringValue("type"));
-
-                testOutputHelper.WriteLine(space + expectedPropertyName + " [" + expectedType + "]");
+                testOutputHelper.WriteLine(space + expectedPropertyName + " [" + expectedType.FullId + "]");
                 var actualProperty = actual.SingleOrDefault(p => p.Name == expectedPropertyName);
                 actualProperty.Should().NotBeNull("actual property not found: " + expectedPropertyPath);
                 Debug.Assert(actualProperty != null);
@@ -59,9 +59,11 @@ namespace Allard.Configinator.Tests.Unit.Schema
 
                 if (expectedType.IsPrimitive)
                 {
-                    // todo: secret
+                    var prim = (PropertyPrimitive) actualProperty;
+                    prim.IsSecret.Should().Be(expectedPropertyNode.Value.ChildAsBoolean("is-secret"));
+                    Console.WriteLine();
                 }
-                
+
                 var map = (YamlMappingNode) expectedPropertyNode.Value;
                 if (!map.Children.ContainsKey("properties"))
                 {

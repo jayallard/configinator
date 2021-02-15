@@ -13,10 +13,10 @@
         "properties":
           "user-id": 
             "type": "primitive-types/string"
-            "is-secret": true
+            #"is-secret": true
           "password":
             "type": "primitive-types/string"
-            "is-secret": true
+            #"is-secret": true
           "host":
             "type": "primitive-types/string"
       "other-kafka":

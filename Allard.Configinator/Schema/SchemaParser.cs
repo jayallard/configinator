@@ -79,7 +79,7 @@ namespace Allard.Configinator.Schema
                     properties.Add(new PropertyPrimitive
                     {
                         Name = (string) p.Key,
-                        IsSecret = false,
+                        IsSecret = p.Value.ChildAsBoolean("is-secret"),
                         TypeId = typeId
                     });
 
