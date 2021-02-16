@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using YamlDotNet.RepresentationModel;
 
 namespace Allard.Configinator.Schema
@@ -61,7 +62,7 @@ namespace Allard.Configinator.Schema
             {
                 return
                     map.Children.ContainsKey(childName)
-                        ? null
+                        ? ((YamlSequenceNode)map[childName]).Select(i => (string)i).ToHashSet()
                         : new HashSet<string>();
             }
 

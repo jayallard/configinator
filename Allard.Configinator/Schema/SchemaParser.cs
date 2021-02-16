@@ -10,18 +10,46 @@ namespace Allard.Configinator.Schema
 {
     public class SchemaParser
     {
+        /// <summary>
+        /// Stores the YAML per schema id.
+        /// </summary>
         private readonly Dictionary<string, YamlMappingNode> sourceYaml = new();
+        
+        /// <summary>
+        /// Stores the schemas per schema id.
+        /// </summary>
         private readonly Dictionary<string, ConfigurationSchema> schemas = new();
-        private readonly Dictionary<SchemaTypeId, ObjectSchemaType> schemaTypes = new();
+        
+        /// <summary>
+        /// Stores the schema types per type id.
+        /// </summary>
+        private readonly Dictionary<SchemaTypeId, ObjectSchemaType> types = new();
+        
+        /// <summary>
+        /// Retrieves the Yaml.
+        /// </summary>
         private readonly ISchemaRepository repository;
+        
+        /// <summary>
+        /// Converts YamlProperties to property objects.
+        /// </summary>
         private readonly PropertyParser propertyParser;
 
+        /// <summary>
+        /// Initializes an instance of the SchemaParser class.
+        /// </summary>
+        /// <param name="repository"></param>
         public SchemaParser(ISchemaRepository repository)
         {
             this.repository = repository ?? throw new ArgumentNullException(nameof(repository));
             propertyParser = new PropertyParser(this);
         }
 
+        /// <summary>
+        /// Retrieve a schema.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public async Task<ConfigurationSchema> GetSchema(string id)
         {
             if (schemas.ContainsKey(id))
@@ -34,9 +62,14 @@ namespace Allard.Configinator.Schema
             return schema;
         }
 
+        /// <summary>
+        /// Convert YAML to a ConfigurationSchema object.
+        /// </summary>
+        /// <param name="schemaId">The id of the schema to convert.</param>
+        /// <returns></returns>
         private async Task<ConfigurationSchema> BuildSchema(string schemaId)
         {
-            var source = await GetSource(schemaId);
+            var source = await GetYaml(schemaId);
             var pathNodes = (YamlMappingNode) source["paths"];
             var paths = new List<PathNode>();
             foreach (var p in pathNodes)
@@ -57,6 +90,15 @@ namespace Allard.Configinator.Schema
             };
         }
 
+        /// <summary>
+        /// Converts a type id to a standard format.
+        /// If the id is "./type", it is converted to "relativeSchemaId/type".
+        /// If the id starts with "/x", it is converted to "primitive-types/x",
+        /// where x can be any primitive type.
+        /// </summary>
+        /// <param name="relativeSchemaId"></param>
+        /// <param name="typeId"></param>
+        /// <returns></returns>
         private static SchemaTypeId NormalizeTypeId(string relativeSchemaId, string typeId)
         {
             if (!typeId.Contains("/"))
@@ -76,31 +118,41 @@ namespace Allard.Configinator.Schema
             return new SchemaTypeId(typeId);
         }
 
-        private async Task<ObjectSchemaType> GetType(SchemaTypeId typeId)
+        /// <summary>
+        /// Returns the schema type of the given id.
+        /// </summary>
+        /// <param name="typeId">The id of the schema type to return.</param>
+        /// <returns></returns>
+        private async Task<ObjectSchemaType> GetSchemaType(SchemaTypeId typeId)
         {
-            if (schemaTypes.ContainsKey(typeId))
+            if (types.ContainsKey(typeId))
             {
-                return schemaTypes[typeId];
+                return types[typeId];
             }
 
             var type = await BuildType(typeId);
-            schemaTypes[typeId] = type;
+            types[typeId] = type;
             return type;
         }
 
+        /// <summary>
+        /// Build a schema type from yaml.
+        /// </summary>
+        /// <param name="schemaTypeId"></param>
+        /// <returns></returns>
         private async Task<ObjectSchemaType> BuildType(SchemaTypeId schemaTypeId)
         {
-            var sourceSchema = await GetSource(schemaTypeId.SchemaId);
-            var typesYanl = (YamlMappingNode) sourceSchema["types"];
-            var typeYaml = typesYanl.Single(t => (string) t.Key == schemaTypeId.TypeId);
+            var sourceSchema = await GetYaml(schemaTypeId.SchemaId);
+            var typesYaml = (YamlMappingNode) sourceSchema["types"];
+            var typeYaml = typesYaml.Single(t => (string) t.Key == schemaTypeId.TypeId);
             var props = new List<Property>();
 
-            // from the base
+            // from the base, if there is one.
             var baseTypeName = typeYaml.Value.ChildAsString("$base");
             if (baseTypeName != null)
             {
                 var baseTypeId = NormalizeTypeId(schemaTypeId.SchemaId, baseTypeName);
-                var baseType = await GetType(baseTypeId);
+                var baseType = await GetSchemaType(baseTypeId);
                 props.AddRange(baseType.Properties);
             }
 
@@ -109,7 +161,13 @@ namespace Allard.Configinator.Schema
             return new ObjectSchemaType(schemaTypeId, props);
         }
 
-        private async Task<YamlMappingNode> GetSource(string schemaId)
+        /// <summary>
+        /// Get the Yaml for the schema.
+        /// </summary>
+        /// <param name="schemaId"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        private async Task<YamlMappingNode> GetYaml(string schemaId)
         {
             if (sourceYaml.ContainsKey(schemaId))
             {
@@ -117,6 +175,8 @@ namespace Allard.Configinator.Schema
             }
 
             var source = await repository.GetSchema(schemaId);
+            
+            // make sure the id from the source matches the requested id.
             var sourceId = (string) source["id"];
             if (schemaId != sourceId)
             {
@@ -161,66 +221,6 @@ namespace Allard.Configinator.Schema
             }
         }
 
-        /*
-        private interface IPropertiesYaml
-        {
-            SchemaYaml Owner { get; }
-            YamlMappingNode Yaml { get; }
-        }
-
-        [DebuggerDisplay("{SchemaId}")]
-        private record SchemaYaml
-        {
-            public ReadOnlyCollection<TypeYaml> Types { get; }
-            public string SchemaId { get; }
-
-            public ReadOnlyCollection<PathYaml> Paths { get; }
-
-            public SchemaYaml(YamlMappingNode schemaYaml)
-            {
-                SchemaId = (string) schemaYaml["id"];
-                Paths = ConvertNodes(schemaYaml, "paths", p => new PathYaml(this, p));
-                Types = ConvertNodes(schemaYaml, "types", p => new TypeYaml(this, p));
-            }
-
-            private static ReadOnlyCollection<T> ConvertNodes<T>(
-                YamlMappingNode schemaYaml,
-                string nodeName,
-                Func<KeyValuePair<YamlNode, YamlNode>, T> convertMethod)
-            {
-                if (!schemaYaml.Children.ContainsKey(nodeName))
-                {
-                    return new List<T>().AsReadOnly();
-                }
-
-                return ((YamlMappingNode) schemaYaml[nodeName])
-                    .Select(convertMethod)
-                    .ToList()
-                    .AsReadOnly();
-            }
-        }
-
-        [DebuggerDisplay("{SchemaTypeId}")]
-        private record TypeYaml : IPropertiesYaml
-        {
-            public SchemaYaml Owner { get; }
-            public YamlMappingNode Yaml { get; }
-            public SchemaTypeId SchemaTypeId { get; }
-            public SchemaTypeId BaseType { get; }
-
-            public TypeYaml(SchemaYaml owner, KeyValuePair<YamlNode, YamlNode> typeYaml)
-            {
-                var value = (YamlMappingNode) typeYaml.Value;
-                Owner = owner;
-                Yaml = (YamlMappingNode) value["properties"];
-                SchemaTypeId = new SchemaTypeId(owner.SchemaId + "/" + (string) typeYaml.Key);
-                BaseType = value.Children.ContainsKey("$base")
-                    //? new SchemaTypeId((string) value["$base"])
-                    ? NormalizeTypeId(owner.SchemaId, (string) value["$base"])
-                    : null;
-            }
-        }*/
-
         private class PropertyParser
         {
             private readonly SchemaParser schemaParser;
@@ -234,6 +234,7 @@ namespace Allard.Configinator.Schema
             {
                 var properties = new List<Property>();
                 var propertiesYaml = (YamlMappingNode) yaml["properties"];
+                var secrets = yaml.ChildAsHashSet("secrets");
                 foreach (var p in propertiesYaml)
                 {
                     //  Type may be specified 2 ways.
@@ -248,10 +249,11 @@ namespace Allard.Configinator.Schema
                     var typeId = NormalizeTypeId(schemaId, typeIdName);
                     if (typeId.IsPrimitive)
                     {
+                        var name = (string) p.Key;
                         properties.Add(new PropertyPrimitive
                         {
-                            Name = (string) p.Key,
-                            IsSecret = p.Value.ChildAsBoolean("is-secret"),
+                            Name = name,
+                            IsSecret = secrets.Contains(name) || p.Value.ChildAsBoolean("is-secret"),
                             TypeId = typeId
                         });
 
@@ -262,7 +264,7 @@ namespace Allard.Configinator.Schema
                     // append additional propertiees added at
                     // the schema leel.
                     var propertiesForType = new List<Property>();
-                    var type = await schemaParser.GetType(typeId);
+                    var type = await schemaParser.GetSchemaType(typeId);
                     propertiesForType.AddRange(type.Properties);
                     properties.Add(new PropertyGroup
                     {
@@ -272,24 +274,20 @@ namespace Allard.Configinator.Schema
                     });
                 }
 
-                return properties;
+                // make sure that all properties specified in the "secrets" collection
+                // are valid.
+                // IE:    secrets: ["a", "b", "c"]
+                // confirm that a,b,c are all valid property names.
+                var propertyNames = properties.Select(p => p.Name).ToHashSet();
+                var badNames = secrets.Where(s => !propertyNames.Contains(s)).ToList();
+                if (badNames.Count == 0)
+                {
+                    return properties;
+                }
+
+                var badNamesCombined = string.Join(',', badNames);
+                throw new InvalidOperationException("Invalid secret names: " + badNamesCombined);
             }
         }
-
-        /*[DebuggerDisplay("{Path}")]
-        private record PathYaml : IPropertiesYaml
-        {
-            public SchemaYaml Owner { get; }
-            
-            public YamlMappingNode Yaml { get; }
-            public string Path { get; }
-
-            public PathYaml(SchemaYaml owner, KeyValuePair<YamlNode, YamlNode> pathYaml)
-            {
-                Owner = owner;
-                Path = (string) pathYaml.Key;
-                Yaml = (YamlMappingNode) pathYaml.Value["properties"];
-            }
-        }*/
     }
 }

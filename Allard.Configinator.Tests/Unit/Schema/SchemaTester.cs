@@ -46,6 +46,9 @@ namespace Allard.Configinator.Tests.Unit.Schema
         private void VerifyProperties(YamlMappingNode expected, List<Property> actual, int level, string propertyName)
         {
             var space = new string(' ', level * indentLevel);
+            
+            // the number of properties in EXPECTED and ACTUAL need to match.
+            actual.Count.Should().Be(expected.Children.Count, "the number of properties defined in the test results don't match");
             foreach (var expectedPropertyNode in expected)
             {
                 var expectedPropertyName = (string) expectedPropertyNode.Key;

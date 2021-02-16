@@ -20,13 +20,31 @@ namespace Allard.Configinator.Tests.Unit.Schema
         {
             this.testOutputHelper = testOutputHelper;
         }
+        
 
+        /// <summary>
+        /// Tests that exhaustive.yml is rendered
+        /// as expected. compare exhaustive.yml parsed schema
+        /// to "exhaustive-results.yml".
+        /// </summary>
+        /// <returns></returns>
         [Fact]
-        public async Task DoEverythingBetter()
+        public async Task ExhaustiveTest()
         {
             await new SchemaTester(testOutputHelper)
                 .Test("exhaustive");
         }
-        
+
+        /// <summary>
+        /// The secrets array can only refer to valid property names.
+        /// IE: "secrets": ["a", "b", "c"]
+        /// a,b,c must be properties.
+        /// </summary>
+        [Fact]
+        public async Task SecretNamesMustBeValid()
+        {
+            var schema = await TestUtility.CreateSchemaParser().GetSchema("invalid-secret-name");
+            testOutputHelper.WriteLine("");
+        }
     }
 }
