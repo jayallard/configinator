@@ -6,9 +6,17 @@ namespace Allard.Configinator.Schema
 {
     public static class ExtensionMethods
     {
-        public static string StringValue(this YamlNode node, string name)
+        public static string ChildAsString(this YamlNode node, string name, string defaultValue = null)
         {
-            return (string) node[name];
+            if (node is YamlMappingNode map)
+            {
+                return
+                    map.Children.ContainsKey(name)
+                        ? (string) map[name]
+                        : defaultValue;
+            }
+
+            return defaultValue;
         }
 
         public static bool AsBoolean(this YamlNode node)
@@ -32,6 +40,19 @@ namespace Allard.Configinator.Schema
             }
 
             return defaultValue;
+        }
+
+        public static YamlMappingNode ChildAsMap(this YamlNode parent, string childName)
+        {
+            if (parent is YamlMappingNode map)
+            {
+                return
+                    map.Children.ContainsKey(childName)
+                        ? (YamlMappingNode) map.Child(childName)
+                        : new YamlMappingNode();
+            }
+
+            return new YamlMappingNode();
         }
 
         public static HashSet<string> ChildAsHashSet(this YamlNode parent, string childName)

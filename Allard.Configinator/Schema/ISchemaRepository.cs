@@ -5,6 +5,6 @@ namespace Allard.Configinator.Schema
 {
     public interface ISchemaRepository
     {
-        Task<YamlNode> GetSchema(string id);
+        Task<YamlMappingNode> GetSchema(string id);
     }
 }

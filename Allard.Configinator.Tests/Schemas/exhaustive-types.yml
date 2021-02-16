@@ -7,13 +7,6 @@
         "type": "string"
   "kafka-ssl":
     "$base": "./kafka"
-    # todo: remove support for this.
-    # if you want to add properties,
-    # create a type.
-    # as-is, this states "type = kafka", 
-    # but it has properties not from kafka,
-    # so doesn't make sense even if it
-    # happens to be convenient.
     "properties":
       "something": "string"
   "mssql":

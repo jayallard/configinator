@@ -10,14 +10,16 @@ namespace Allard.Configinator.Schema
 {
     public class SchemaParser
     {
-        private readonly Dictionary<string, SchemaYaml> sourceYaml = new();
+        private readonly Dictionary<string, YamlMappingNode> sourceYaml = new();
         private readonly Dictionary<string, ConfigurationSchema> schemas = new();
         private readonly Dictionary<SchemaTypeId, ObjectSchemaType> schemaTypes = new();
         private readonly ISchemaRepository repository;
+        private readonly PropertyParser propertyParser;
 
         public SchemaParser(ISchemaRepository repository)
         {
             this.repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            propertyParser = new PropertyParser(this);
         }
 
         public async Task<ConfigurationSchema> GetSchema(string id)
@@ -35,14 +37,16 @@ namespace Allard.Configinator.Schema
         private async Task<ConfigurationSchema> BuildSchema(string schemaId)
         {
             var source = await GetSource(schemaId);
+            var pathNodes = (YamlMappingNode) source["paths"];
             var paths = new List<PathNode>();
-            foreach (var p in source.Paths)
+            foreach (var p in pathNodes)
             {
-                var properties = await GetProperties(p);
+                var properties = await propertyParser
+                    .GetProperties(schemaId, (YamlMappingNode) p.Value);
                 paths.Add(new PathNode
                 {
-                    Properties = properties,
-                    Path = p.Path
+                    Properties = properties.ToList(),
+                    Path = (string) p.Key
                 });
             }
 
@@ -51,66 +55,6 @@ namespace Allard.Configinator.Schema
                 Id = schemaId,
                 Paths = paths.AsReadOnly()
             };
-        }
-
-        private async Task<List<Property>> GetProperties(IPropertiesYaml path)
-        {
-            return await GetProperties(path.Owner, path.PropertiesYaml);
-        }
-
-        private async Task<List<Property>> GetProperties(SchemaYaml owner,
-            IEnumerable<KeyValuePair<YamlNode, YamlNode>> propertiesYaml)
-        {
-            var properties = new List<Property>();
-            foreach (var p in propertiesYaml)
-            {
-                //  Type may be specified 2 ways.
-                //       properties:
-                //          "value": "string"
-                //          "object":
-                //             "type": "string"
-                var isObject = p.Value is YamlMappingNode;
-                var typeIdName = isObject
-                    ? (string) ((YamlMappingNode) p.Value)["type"]
-                    : (string) p.Value;
-                var typeId = NormalizeTypeId(owner.SchemaId, typeIdName);
-                if (typeId.IsPrimitive)
-                {
-                    properties.Add(new PropertyPrimitive
-                    {
-                        Name = (string) p.Key,
-                        IsSecret = p.Value.ChildAsBoolean("is-secret"),
-                        TypeId = typeId
-                    });
-
-                    continue;
-                }
-
-                // get the properties for the type.
-                // append additional propertiees added at
-                // the schema leel.
-                var propertiesForType = new List<Property>();
-                var type = await GetType(typeId);
-                propertiesForType.AddRange(type.Properties);
-                if (isObject)
-                {
-                    var obj = (YamlMappingNode) p.Value;
-                    if (obj.Children.ContainsKey("properties"))
-                    {
-                        var propertyYaml = ((YamlMappingNode) obj["properties"]).Children;
-                        propertiesForType.AddRange(await GetProperties(owner, propertyYaml));
-                    }
-                }
-
-                properties.Add(new PropertyGroup
-                {
-                    Properties = propertiesForType.AsReadOnly(),
-                    Name = (string) p.Key,
-                    TypeId = type.SchemaTypeId
-                });
-            }
-
-            return properties;
         }
 
         private static SchemaTypeId NormalizeTypeId(string relativeSchemaId, string typeId)
@@ -132,7 +76,6 @@ namespace Allard.Configinator.Schema
             return new SchemaTypeId(typeId);
         }
 
-
         private async Task<ObjectSchemaType> GetType(SchemaTypeId typeId)
         {
             if (schemaTypes.ContainsKey(typeId))
@@ -148,22 +91,25 @@ namespace Allard.Configinator.Schema
         private async Task<ObjectSchemaType> BuildType(SchemaTypeId schemaTypeId)
         {
             var sourceSchema = await GetSource(schemaTypeId.SchemaId);
-            var typeYaml = sourceSchema.Types.Single(t => t.SchemaTypeId == schemaTypeId);
+            var typesYanl = (YamlMappingNode) sourceSchema["types"];
+            var typeYaml = typesYanl.Single(t => (string) t.Key == schemaTypeId.TypeId);
             var props = new List<Property>();
 
             // from the base
-            if (typeYaml.BaseType != null)
+            var baseTypeName = typeYaml.Value.ChildAsString("$base");
+            if (baseTypeName != null)
             {
-                var baseType = await GetType(typeYaml.BaseType);
+                var baseTypeId = NormalizeTypeId(schemaTypeId.SchemaId, baseTypeName);
+                var baseType = await GetType(baseTypeId);
                 props.AddRange(baseType.Properties);
             }
 
             // from the local type
-            props.AddRange(await GetProperties(typeYaml));
+            props.AddRange(await propertyParser.GetProperties(schemaTypeId.SchemaId, (YamlMappingNode) typeYaml.Value));
             return new ObjectSchemaType(schemaTypeId, props);
         }
 
-        private async Task<SchemaYaml> GetSource(string schemaId)
+        private async Task<YamlMappingNode> GetSource(string schemaId)
         {
             if (sourceYaml.ContainsKey(schemaId))
             {
@@ -171,14 +117,13 @@ namespace Allard.Configinator.Schema
             }
 
             var source = await repository.GetSchema(schemaId);
-
             var sourceId = (string) source["id"];
             if (schemaId != sourceId)
             {
                 throw new InvalidOperationException($"Schema id mismatch. Schema Id={schemaId}, Id in File={sourceId}");
             }
 
-            sourceYaml[schemaId] = new SchemaYaml((YamlMappingNode) source);
+            sourceYaml[schemaId] = source;
             return sourceYaml[schemaId];
         }
 
@@ -216,10 +161,11 @@ namespace Allard.Configinator.Schema
             }
         }
 
+        /*
         private interface IPropertiesYaml
         {
             SchemaYaml Owner { get; }
-            ReadOnlyCollection<KeyValuePair<YamlNode, YamlNode>> PropertiesYaml { get; }
+            YamlMappingNode Yaml { get; }
         }
 
         [DebuggerDisplay("{SchemaId}")]
@@ -258,7 +204,7 @@ namespace Allard.Configinator.Schema
         private record TypeYaml : IPropertiesYaml
         {
             public SchemaYaml Owner { get; }
-            public ReadOnlyCollection<KeyValuePair<YamlNode, YamlNode>> PropertiesYaml { get; }
+            public YamlMappingNode Yaml { get; }
             public SchemaTypeId SchemaTypeId { get; }
             public SchemaTypeId BaseType { get; }
 
@@ -266,34 +212,84 @@ namespace Allard.Configinator.Schema
             {
                 var value = (YamlMappingNode) typeYaml.Value;
                 Owner = owner;
-                PropertiesYaml = ((YamlMappingNode) value["properties"])
-                    .Children
-                    .ToList()
-                    .AsReadOnly();
+                Yaml = (YamlMappingNode) value["properties"];
                 SchemaTypeId = new SchemaTypeId(owner.SchemaId + "/" + (string) typeYaml.Key);
                 BaseType = value.Children.ContainsKey("$base")
                     //? new SchemaTypeId((string) value["$base"])
                     ? NormalizeTypeId(owner.SchemaId, (string) value["$base"])
                     : null;
             }
+        }*/
+
+        private class PropertyParser
+        {
+            private readonly SchemaParser schemaParser;
+
+            public PropertyParser(SchemaParser schemaParser)
+            {
+                this.schemaParser = schemaParser;
+            }
+
+            public async Task<IEnumerable<Property>> GetProperties(string schemaId, YamlMappingNode yaml)
+            {
+                var properties = new List<Property>();
+                var propertiesYaml = (YamlMappingNode) yaml["properties"];
+                foreach (var p in propertiesYaml)
+                {
+                    //  Type may be specified 2 ways.
+                    //       properties:
+                    //          "value": "string"
+                    //          "object":
+                    //             "type": "string"
+                    var isObject = p.Value is YamlMappingNode;
+                    var typeIdName = isObject
+                        ? (string) ((YamlMappingNode) p.Value)["type"]
+                        : (string) p.Value;
+                    var typeId = NormalizeTypeId(schemaId, typeIdName);
+                    if (typeId.IsPrimitive)
+                    {
+                        properties.Add(new PropertyPrimitive
+                        {
+                            Name = (string) p.Key,
+                            IsSecret = p.Value.ChildAsBoolean("is-secret"),
+                            TypeId = typeId
+                        });
+
+                        continue;
+                    }
+
+                    // get the properties for the type.
+                    // append additional propertiees added at
+                    // the schema leel.
+                    var propertiesForType = new List<Property>();
+                    var type = await schemaParser.GetType(typeId);
+                    propertiesForType.AddRange(type.Properties);
+                    properties.Add(new PropertyGroup
+                    {
+                        Properties = propertiesForType.AsReadOnly(),
+                        Name = (string) p.Key,
+                        TypeId = type.SchemaTypeId
+                    });
+                }
+
+                return properties;
+            }
         }
 
-        [DebuggerDisplay("{Path}")]
+        /*[DebuggerDisplay("{Path}")]
         private record PathYaml : IPropertiesYaml
         {
             public SchemaYaml Owner { get; }
+            
+            public YamlMappingNode Yaml { get; }
             public string Path { get; }
-            public ReadOnlyCollection<KeyValuePair<YamlNode, YamlNode>> PropertiesYaml { get; }
 
             public PathYaml(SchemaYaml owner, KeyValuePair<YamlNode, YamlNode> pathYaml)
             {
                 Owner = owner;
                 Path = (string) pathYaml.Key;
-                PropertiesYaml = ((YamlMappingNode) pathYaml.Value["properties"])
-                    .Children
-                    .ToList()
-                    .AsReadOnly();
+                Yaml = (YamlMappingNode) pathYaml.Value["properties"];
             }
-        }
+        }*/
     }
 }

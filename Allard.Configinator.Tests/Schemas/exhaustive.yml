@@ -7,8 +7,6 @@
       "my-sql": "exhaustive-types/mssql"
       "other-kafka":
         "type": "exhaustive-types/kafka-ssl"
-        "properties":
-           "local": "string"
 
 
     

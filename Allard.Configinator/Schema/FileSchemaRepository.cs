@@ -14,7 +14,7 @@ namespace Allard.Configinator.Schema
             this.schemaFolder = schemaFolder;
         }
 
-        public async Task<YamlNode> GetSchema(string id)
+        public async Task<YamlMappingNode> GetSchema(string id)
         {
             var fileName = Path.Combine(schemaFolder, id + ".yml");
             if (!File.Exists(fileName))
@@ -32,7 +32,7 @@ namespace Allard.Configinator.Schema
                                                     yamlStream.Documents.Count);
             }
 
-            return yamlStream.Documents[0].RootNode;
+            return (YamlMappingNode)yamlStream.Documents[0].RootNode;
         }
     }
 }

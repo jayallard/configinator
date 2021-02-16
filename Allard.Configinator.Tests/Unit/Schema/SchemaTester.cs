@@ -26,7 +26,7 @@ namespace Allard.Configinator.Tests.Unit.Schema
             var schema = await TestUtility.CreateSchemaParser().GetSchema(schemaId);
             var expected = await TestUtility.GetExpectedResolution(schemaId);
 
-            schema.Id.Should().Be(expected.StringValue("id"));
+            schema.Id.Should().Be(expected.ChildAsString("id"));
 
             testOutputHelper.WriteLine("Schema: " + schema.Id);
             var expectedPathsNode = (YamlMappingNode) expected["paths"];
@@ -50,7 +50,7 @@ namespace Allard.Configinator.Tests.Unit.Schema
             {
                 var expectedPropertyName = (string) expectedPropertyNode.Key;
                 var expectedPropertyPath = propertyName + "/" + expectedPropertyName;
-                var expectedType = new SchemaParser.SchemaTypeId(expectedPropertyNode.Value.StringValue("type"));
+                var expectedType = new SchemaParser.SchemaTypeId(expectedPropertyNode.Value.ChildAsString("type"));
                 testOutputHelper.WriteLine(space + expectedPropertyName + " [" + expectedType.FullId + "]");
                 var actualProperty = actual.SingleOrDefault(p => p.Name == expectedPropertyName);
                 actualProperty.Should().NotBeNull("actual property not found: " + expectedPropertyPath);

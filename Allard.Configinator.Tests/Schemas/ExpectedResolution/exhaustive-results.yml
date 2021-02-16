@@ -28,8 +28,5 @@
           # from kafka-ssl
           "something":
             "type": "primitive-types/string"
-          # from other-kafka
-          "local":
-            "type": "primitive-types/string"
                       
               
