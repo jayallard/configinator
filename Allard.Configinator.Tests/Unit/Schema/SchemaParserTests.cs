@@ -31,8 +31,10 @@ namespace Allard.Configinator.Tests.Unit.Schema
         [Fact]
         public async Task ExhaustiveTest()
         {
-            await new SchemaTester(testOutputHelper)
+            var schema = await new SchemaTester(testOutputHelper)
                 .Test("exhaustive");
+            testOutputHelper.WriteLine("------------------------------------------------------");
+            testOutputHelper.WriteLine(schema.ToSampleJson().Single().RootElement.ToString());
         }
 
         /// <summary>

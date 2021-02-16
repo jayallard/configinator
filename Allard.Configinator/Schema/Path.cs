@@ -1,54 +1,28 @@
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 
 namespace Allard.Configinator.Schema
 {
     // todo: collections aren't actually immutable... might be casted. fix.
-    public record ConfigurationSchema
-    {
-        public string Id { get; init; }
-        public ReadOnlyCollection<PathNode> Paths { get; init; }
-    }
+    public record ConfigurationSchema(string Id, ReadOnlyCollection<PathNode> Paths);
 
     [DebuggerDisplay("{Path}")]
-    public record PathNode
-    {
-        public string Path { get; init; }
-        public List<Property> Properties { get; init; }
-    }
+    public record PathNode(string Path, ReadOnlyCollection<Property> Properties);
 
     [DebuggerDisplay("{Name}")]
-    public abstract record Property
-    {
-        public string Name { get; init; }
-        public SchemaParser.SchemaTypeId TypeId { get; init; }
-    }
+    public abstract record Property(string Name, SchemaParser.SchemaTypeId TypeId);
 
     [DebuggerDisplay("{Name}")]
-    public record PropertyGroup : Property
-    {
-        public ReadOnlyCollection<Property> Properties { get; init; }
-
-    }
+    public record PropertyGroup
+        (string Name, SchemaParser.SchemaTypeId TypeId, ReadOnlyCollection<Property> Properties) : Property(Name,
+            TypeId);
 
     [DebuggerDisplay("{Name}")]
-    public record PropertyPrimitive : Property
+    public record PropertyPrimitive(string Name, SchemaParser.SchemaTypeId TypeId, bool IsSecret) : Property(Name, TypeId)
     {
-        public bool IsSecret { get; init; }
-
-
         public PropertyPrimitive SetSecret(bool isSecret)
         {
             return this with {IsSecret = isSecret};
         }
     }
-
-    /*
-    [DebuggerDisplay("{TypeId}")]
-    public record SchemaType
-    {
-        public string TypeId { get; init; }
-        public ReadOnlyCollection<Property> Properties { get; init; }
-    }*/
 }

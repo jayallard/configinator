@@ -13,15 +13,15 @@ namespace Allard.Configinator.Tests.Unit.Schema
     public class SchemaTester
     {
         private readonly ITestOutputHelper testOutputHelper;
-        private const int indentLevel = 3;
-        private readonly string oneIndent = new(' ', indentLevel);
+        private const int IndentLevel = 3;
+        private readonly string oneIndent = new(' ', IndentLevel);
 
         public SchemaTester(ITestOutputHelper testOutputHelper)
         {
             this.testOutputHelper = testOutputHelper;
         }
 
-        public async Task Test(string schemaId)
+        public async Task<ConfigurationSchema> Test(string schemaId)
         {
             var schema = await TestUtility.CreateSchemaParser().GetSchema(schemaId);
             var expected = await TestUtility.GetExpectedResolution(schemaId);
@@ -41,21 +41,24 @@ namespace Allard.Configinator.Tests.Unit.Schema
                 actualPath.Properties.Count.Should().Be(expectedPathPropertiesNode.Children.Count);
                 VerifyProperties(expectedPathPropertiesNode, actualPath.Properties, 2, "");
             }
+
+            return schema;
         }
 
-        private void VerifyProperties(YamlMappingNode expected, List<Property> actual, int level, string propertyName)
+        private void VerifyProperties(YamlMappingNode expected, IEnumerable<Property> actual, int level, string propertyName)
         {
-            var space = new string(' ', level * indentLevel);
+            var space = new string(' ', level * IndentLevel);
             
             // the number of properties in EXPECTED and ACTUAL need to match.
-            actual.Count.Should().Be(expected.Children.Count, "the number of properties defined in the test results don't match");
+            var actualList = actual.ToList();
+            actualList.Count().Should().Be(expected.Children.Count, "the number of properties defined in the test results don't match");
             foreach (var expectedPropertyNode in expected)
             {
                 var expectedPropertyName = (string) expectedPropertyNode.Key;
                 var expectedPropertyPath = propertyName + "/" + expectedPropertyName;
                 var expectedType = new SchemaParser.SchemaTypeId(expectedPropertyNode.Value.ChildAsString("type"));
                 testOutputHelper.WriteLine(space + expectedPropertyName + " [" + expectedType.FullId + "]");
-                var actualProperty = actual.SingleOrDefault(p => p.Name == expectedPropertyName);
+                var actualProperty = actualList.SingleOrDefault(p => p.Name == expectedPropertyName);
                 actualProperty.Should().NotBeNull("actual property not found: " + expectedPropertyPath);
                 Debug.Assert(actualProperty != null);
                 actualProperty.TypeId.FullId.Should().Be(expectedType.FullId);

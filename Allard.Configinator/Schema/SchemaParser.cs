@@ -14,22 +14,22 @@ namespace Allard.Configinator.Schema
         /// Stores the YAML per schema id.
         /// </summary>
         private readonly Dictionary<string, YamlMappingNode> sourceYaml = new();
-        
+
         /// <summary>
         /// Stores the schemas per schema id.
         /// </summary>
         private readonly Dictionary<string, ConfigurationSchema> schemas = new();
-        
+
         /// <summary>
         /// Stores the schema types per type id.
         /// </summary>
         private readonly Dictionary<SchemaTypeId, ObjectSchemaType> types = new();
-        
+
         /// <summary>
         /// Retrieves the Yaml.
         /// </summary>
         private readonly ISchemaRepository repository;
-        
+
         /// <summary>
         /// Converts YamlProperties to property objects.
         /// </summary>
@@ -76,18 +76,10 @@ namespace Allard.Configinator.Schema
             {
                 var properties = await propertyParser
                     .GetProperties(schemaId, (YamlMappingNode) p.Value);
-                paths.Add(new PathNode
-                {
-                    Properties = properties.ToList(),
-                    Path = (string) p.Key
-                });
+                paths.Add(new PathNode((string) p.Key, properties.ToList().AsReadOnly()));
             }
 
-            return new ConfigurationSchema
-            {
-                Id = schemaId,
-                Paths = paths.AsReadOnly()
-            };
+            return new ConfigurationSchema(schemaId, paths.AsReadOnly());
         }
 
         /// <summary>
@@ -158,7 +150,7 @@ namespace Allard.Configinator.Schema
 
             // from the local type
             props.AddRange(await propertyParser.GetProperties(schemaTypeId.SchemaId, (YamlMappingNode) typeYaml.Value));
-            return new ObjectSchemaType(schemaTypeId, props);
+            return new ObjectSchemaType(schemaTypeId, props.AsReadOnly());
         }
 
         /// <summary>
@@ -175,7 +167,7 @@ namespace Allard.Configinator.Schema
             }
 
             var source = await repository.GetSchema(schemaId);
-            
+
             // make sure the id from the source matches the requested id.
             var sourceId = (string) source["id"];
             if (schemaId != sourceId)
@@ -188,20 +180,7 @@ namespace Allard.Configinator.Schema
         }
 
         [DebuggerDisplay("{SchemaTypeId}")]
-        private record ObjectSchemaType
-        {
-            public SchemaTypeId SchemaTypeId { get; }
-
-            public ReadOnlyCollection<Property> Properties { get; }
-
-            public ObjectSchemaType(
-                SchemaTypeId schemaTypeId,
-                List<Property> properties)
-            {
-                SchemaTypeId = schemaTypeId;
-                Properties = properties.AsReadOnly();
-            }
-        }
+        private record ObjectSchemaType(SchemaTypeId SchemaTypeId, ReadOnlyCollection<Property> Properties);
 
         [DebuggerDisplay("{FullId}")]
         public record SchemaTypeId
@@ -246,17 +225,13 @@ namespace Allard.Configinator.Schema
                     var typeIdName = isObject
                         ? (string) ((YamlMappingNode) p.Value)["type"]
                         : (string) p.Value;
+
+                    var propertyName = (string) p.Key;
                     var typeId = NormalizeTypeId(schemaId, typeIdName);
                     if (typeId.IsPrimitive)
                     {
-                        var name = (string) p.Key;
-                        properties.Add(new PropertyPrimitive
-                        {
-                            Name = name,
-                            IsSecret = secrets.Contains(name) || p.Value.ChildAsBoolean("is-secret"),
-                            TypeId = typeId
-                        });
-
+                        var isSecret = secrets.Contains(propertyName) || p.Value.ChildAsBoolean("is-secret");
+                        properties.Add(new PropertyPrimitive(propertyName, typeId, isSecret));
                         continue;
                     }
 
@@ -266,12 +241,7 @@ namespace Allard.Configinator.Schema
                     var propertiesForType = new List<Property>();
                     var type = await schemaParser.GetSchemaType(typeId);
                     propertiesForType.AddRange(type.Properties);
-                    properties.Add(new PropertyGroup
-                    {
-                        Properties = propertiesForType.AsReadOnly(),
-                        Name = (string) p.Key,
-                        TypeId = type.SchemaTypeId
-                    });
+                    properties.Add(new PropertyGroup(propertyName, typeId, propertiesForType.AsReadOnly()));
                 }
 
                 // make sure that all properties specified in the "secrets" collection
