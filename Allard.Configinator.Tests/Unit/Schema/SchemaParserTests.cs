@@ -20,7 +20,7 @@ namespace Allard.Configinator.Tests.Unit.Schema
         {
             this.testOutputHelper = testOutputHelper;
         }
-        
+
 
         /// <summary>
         /// Tests that exhaustive.yml is rendered
@@ -43,10 +43,17 @@ namespace Allard.Configinator.Tests.Unit.Schema
         /// a,b,c must be properties.
         /// </summary>
         [Fact]
-        public async Task SecretNamesMustBeValid()
+        public void SecretNamesMustBeValid()
         {
-            var schema = await TestUtility.CreateSchemaParser().GetSchema("invalid-secret-name");
-            testOutputHelper.WriteLine("");
+            // arrange
+            Func<Task> action = async () => await TestUtility.CreateSchemaParser().GetSchema("invalid-secret-name");
+
+            // act 
+            // assert
+            action
+                .Should()
+                .Throw<InvalidOperationException>()
+                .WithMessage("Invalid secret names: xyz");
         }
     }
 }
