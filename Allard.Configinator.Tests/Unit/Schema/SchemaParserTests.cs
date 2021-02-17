@@ -8,6 +8,7 @@ using FluentAssertions;
 using Microsoft.VisualBasic;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 using YamlDotNet.RepresentationModel;
 
 namespace Allard.Configinator.Tests.Unit.Schema
@@ -21,6 +22,15 @@ namespace Allard.Configinator.Tests.Unit.Schema
             this.testOutputHelper = testOutputHelper;
         }
 
+        public void Test()
+        {
+            /*
+             * var schemas = await blah.GetSchemas();
+             *      id, description
+             * var schema = await blah.GetSchema(id);
+             * 
+             */
+        }
 
         /// <summary>
         /// Tests that exhaustive.yml is rendered
@@ -31,10 +41,24 @@ namespace Allard.Configinator.Tests.Unit.Schema
         [Fact]
         public async Task ExhaustiveTest()
         {
+            await TestSchema("exhaustive");
+        }
+
+        [Fact]
+        public async Task InheritAll()
+        {
+            await TestSchema("inherit-all");
+        }
+
+        private async Task TestSchema(string schemaName)
+        {
             var schema = await new SchemaTester(testOutputHelper)
-                .Test("exhaustive");
-            testOutputHelper.WriteLine("------------------------------------------------------");
-            testOutputHelper.WriteLine(schema.ToSampleJson().Single().RootElement.ToString());
+                .Test(schemaName);
+            foreach (var sample in schema.ToSampleJson())
+            {
+                testOutputHelper.WriteLine("------------------------------------------------------");
+                testOutputHelper.WriteLine(sample.RootElement.ToString());
+            }
         }
 
         /// <summary>
@@ -53,7 +77,7 @@ namespace Allard.Configinator.Tests.Unit.Schema
             action
                 .Should()
                 .Throw<InvalidOperationException>()
-                .WithMessage("Invalid secret names: xyz");
+                .WithMessage("Secrets contains invalid property names.\nInvalid: xyz\nValid: user-id,password,xyz");
         }
     }
 }

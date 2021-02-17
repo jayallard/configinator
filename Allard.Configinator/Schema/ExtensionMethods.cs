@@ -61,6 +61,26 @@ namespace Allard.Configinator.Schema
             return new YamlMappingNode();
         }
 
+        public static IReadOnlySet<string> ChildNames(this YamlNode node)
+        {
+            if (node is YamlMappingNode mapping)
+            {
+                return mapping.Children.Select(p => (string) p.Key).ToHashSet();
+            }
+
+            return new HashSet<string>();
+        }
+
+        public static string CurrentAsString(this YamlNode current)
+        {
+            if (current is YamlScalarNode scalarNode)
+            {
+                return (string) scalarNode;
+            }
+
+            return null;
+        }
+
         public static HashSet<string> ChildAsHashSet(this YamlNode parent, string childName)
         {
             if (parent is YamlMappingNode map)

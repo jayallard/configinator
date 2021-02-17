@@ -62,6 +62,9 @@ namespace Allard.Configinator.Schema
             return schema;
         }
 
+        // a PATH node can only have these child nodes.
+        private readonly HashSet<string> allowedPathNodeNames = new(new[] {"$type", "properties", "secrets"});
+
         /// <summary>
         /// Convert YAML to a ConfigurationSchema object.
         /// </summary>
@@ -74,12 +77,27 @@ namespace Allard.Configinator.Schema
             var paths = new List<PathNode>();
             foreach (var p in pathNodes)
             {
-                var properties = await propertyParser
-                    .GetProperties(schemaId, (YamlMappingNode) p.Value);
+                EnsureNodeNamesAreValid("PATH node has invalid children.", p.Value.ChildNames(), allowedPathNodeNames);
+                var properties = await propertyParser.GetProperties(schemaId, p.Value);
                 paths.Add(new PathNode((string) p.Key, properties.ToList().AsReadOnly()));
             }
 
             return new ConfigurationSchema(schemaId, paths.AsReadOnly());
+        }
+
+        private static void EnsureNodeNamesAreValid(string errorMessage,
+            IReadOnlySet<string> existingNames,
+            IReadOnlySet<string> allowedNames)
+        {
+            var bad = existingNames.Where(n => !allowedNames.Contains(n)).ToList();
+            if (bad.Count == 0)
+            {
+                return;
+            }
+
+            var invalidNames = string.Join(',', bad);
+            var validNames = string.Join(',', allowedNames);
+            throw new InvalidOperationException(errorMessage + "\nInvalid: " + invalidNames + "\nValid: " + validNames);
         }
 
         /// <summary>
@@ -138,15 +156,6 @@ namespace Allard.Configinator.Schema
             var typesYaml = (YamlMappingNode) sourceSchema["types"];
             var typeYaml = typesYaml.Single(t => (string) t.Key == schemaTypeId.TypeId);
             var props = new List<Property>();
-
-            // from the base, if there is one.
-            var baseTypeName = typeYaml.Value.ChildAsString("$base");
-            if (baseTypeName != null)
-            {
-                var baseTypeId = NormalizeTypeId(schemaTypeId.SchemaId, baseTypeName);
-                var baseType = await GetSchemaType(baseTypeId);
-                props.AddRange(baseType.Properties);
-            }
 
             // from the local type
             props.AddRange(await propertyParser.GetProperties(schemaTypeId.SchemaId, (YamlMappingNode) typeYaml.Value));
@@ -209,18 +218,68 @@ namespace Allard.Configinator.Schema
                 this.schemaParser = schemaParser;
             }
 
-            public async Task<IEnumerable<Property>> GetProperties(string schemaId, YamlMappingNode yaml)
+            private async Task<IEnumerable<Property>> GetBaseProperties(string schemaId, YamlNode parentYaml)
             {
+                // $type and $base are functionally the same thing. 
+                // they describe where to get properties from.
+                // BASE is used by a TYPE. A type can get properties from another type,
+                // then manipulate.
+                // TYPE is used to specify that something is of a type. But, you can't add
+                // more to it.
+                // To be semantically accurate, TYPES use BASE and PATHS use TYPE.
+                var baseTypeName =
+                    parentYaml.ChildAsString("$type") // paths can be assigned to a type.
+                    ?? parentYaml.ChildAsString("$base") // types can have bases.
+                    ?? parentYaml.CurrentAsString();
+                if (baseTypeName == null)
+                {
+                    return new List<Property>();
+                }
+
+                var id = NormalizeTypeId(schemaId, baseTypeName);
+                var baseType = await schemaParser.GetSchemaType(id);
+                return baseType.Properties;
+            }
+
+            public async Task<IEnumerable<Property>> GetProperties(string schemaId, YamlNode propertiesContainer)
+            {
+                // the properties container is the element that contains properties, such as a TYPE or PATH.
+                // properties may be defined as an object within the propertiesContainer.
+                // or, the container can be a scalar value that is the name of a type that has the properties.
+                // so, the container may be a YamlMappingNode, or a YamlScalarNode.
+                //
+                // propertiesContainer may be:
+                //      a YamlMappingNode that has a PropertiesNode.
+                //              "paths":
+                //                  "/a/b/c":                   <---- propertiesContainer.
+                //                      "properties":
+                //      
+                //      or a YamlScalarNode that points to a type:
+                //              "paths":
+                //                  "/a/b/c": "base type"       <---- propertiesContainer.
+                //
+                //      the same applies within types.
+                //              "types":
+                //                  "kafka":                    <---- propertiesContainer.
+                //                      "properties":
                 var properties = new List<Property>();
-                var propertiesYaml = (YamlMappingNode) yaml["properties"];
-                var secrets = yaml.ChildAsHashSet("secrets");
+
+                // the properties defined locally in this object.
+                var propertiesYaml = propertiesContainer.ChildAsMap("properties");
+
+                // the secrets short-cut:  "secrets": ["a", "b", "c"]
+                var secrets = propertiesContainer.ChildAsHashSet("secrets");
+
+                // add properties from the base type.
+                properties.AddRange(await GetBaseProperties(schemaId, propertiesContainer));
                 foreach (var p in propertiesYaml)
                 {
                     //  Type may be specified 2 ways.
                     //       properties:
-                    //          "value": "string"
-                    //          "object":
-                    //             "type": "string"
+                    //          "value": "string"     # shortcut to specify the type name.
+                    //          "object":           
+                    //             "type": "string"     # long hand. needed when there are other values to set too.
+                    //             "is-secret": true    # this can be avoided by using the secrets shortcut.
                     var isObject = p.Value is YamlMappingNode;
                     var typeIdName = isObject
                         ? (string) ((YamlMappingNode) p.Value)["type"]
@@ -244,20 +303,36 @@ namespace Allard.Configinator.Schema
                     properties.Add(new PropertyGroup(propertyName, typeId, propertiesForType.AsReadOnly()));
                 }
 
+                //EnsureAllSecretNamesAreValid(secrets, properties.Select(p => p.Name).ToHashSet());
+                EnsureNodeNamesAreValid("Secrets contains invalid property names.", secrets,
+                    properties.Select(p => p.Name).ToHashSet());
+                return properties;
+            }
+
+            /*
+            /// <summary>
+            /// Make sure all secret names are valid.
+            /// IE: You can't flag property "xyz" as a secret if "xyz" isn't a property.
+            /// </summary>
+            /// <param name="secretProperties">The names of properties to flag as secrets.</param>
+            /// <param name="allProperties">The names of all of the properties.</param>
+            /// <exception cref="InvalidOperationException"></exception>
+            private static void EnsureAllSecretNamesAreValid(HashSet<string> secretProperties,
+                HashSet<string> allProperties)
+            {
                 // make sure that all properties specified in the "secrets" collection
                 // are valid.
                 // IE:    secrets: ["a", "b", "c"]
                 // confirm that a,b,c are all valid property names.
-                var propertyNames = properties.Select(p => p.Name).ToHashSet();
-                var badNames = secrets.Where(s => !propertyNames.Contains(s)).ToList();
+                var badNames = secretProperties.Where(s => !allProperties.Contains(s)).ToList();
                 if (badNames.Count == 0)
                 {
-                    return properties;
+                    return;
                 }
 
                 var badNamesCombined = string.Join(',', badNames);
                 throw new InvalidOperationException("Invalid secret names: " + badNamesCombined);
-            }
+            }*/
         }
     }
 }

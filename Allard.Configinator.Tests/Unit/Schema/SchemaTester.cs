@@ -51,7 +51,7 @@ namespace Allard.Configinator.Tests.Unit.Schema
             
             // the number of properties in EXPECTED and ACTUAL need to match.
             var actualList = actual.ToList();
-            actualList.Count().Should().Be(expected.Children.Count, "the number of properties defined in the test results don't match");
+            actualList.Count.Should().Be(expected.Children.Count, "the number of properties defined in the test results don't match");
             foreach (var expectedPropertyNode in expected)
             {
                 var expectedPropertyName = (string) expectedPropertyNode.Key;
