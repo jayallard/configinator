@@ -1,0 +1,10 @@
+---
+"types":
+  "inherit-all/my-type":
+    "properties":
+      "a":
+        "type" : "primitive-types/string"
+      "b":
+        "type" : "primitive-types/string"
+      "c":
+        "type" : "primitive-types/string"

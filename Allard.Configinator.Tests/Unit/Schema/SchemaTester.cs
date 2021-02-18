@@ -23,13 +23,16 @@ namespace Allard.Configinator.Tests.Unit.Schema
 
         public async Task<ConfigurationSchema> Test(string schemaId)
         {
-            var schema = await TestUtility.CreateSchemaParser().GetSchema(schemaId);
+            var schema = await TestUtility
+                .CreateSchemaParser()
+                .GetSchemaType(schemaId);
             var expected = await TestUtility.GetExpectedResolution(schemaId);
 
-            schema.Id.Should().Be(expected.AsString("id"));
+            schema.SchemaTypeId.FullId.Should().Be(expected.AsString("id"));
 
-            testOutputHelper.WriteLine("Schema: " + schema.Id);
+            testOutputHelper.WriteLine("Schema: " + schema.SchemaTypeId.FullId);
             var expectedPathsNode = (YamlMappingNode) expected["paths"];
+            schema
             schema.Paths.Count.Should().Be(expectedPathsNode.Children.Count);
             foreach (var expectedPathNode in expectedPathsNode)
             {

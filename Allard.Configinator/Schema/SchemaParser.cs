@@ -19,11 +19,6 @@ namespace Allard.Configinator.Schema
         private readonly Dictionary<string, YamlMappingNode> sourceYaml = new();
 
         /// <summary>
-        /// Stores the schemas per schema id.
-        /// </summary>
-        private readonly Dictionary<string, ConfigurationSchema> schemas = new();
-
-        /// <summary>
         /// Stores the schema types per type id.
         /// </summary>
         private readonly Dictionary<SchemaTypeId, ObjectSchemaType> schemaTypes = new();
@@ -47,31 +42,6 @@ namespace Allard.Configinator.Schema
             this.repository = repository ?? throw new ArgumentNullException(nameof(repository));
             propertyParser = new PropertyParser(this);
         }
-
-        /// <summary>
-        /// Retrieve a schema.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public async Task<ConfigurationSchema> GetSchema(string id)
-        {
-            if (schemas.ContainsKey(id))
-            {
-                return schemas[id];
-            }
-
-            var schema = await BuildSchema(id);
-            schemas[id] = schema;
-            return schema;
-        }
-
-        /// <summary>
-        /// The node names that are valid within a path node.
-        /// "paths":
-        ///     "/x/y/z":
-        ///         these nodes
-        /// </summary>
-        private readonly HashSet<string> allowedPathNodeNames = new(new[] {"$type", "properties", "secrets"});
         
         /// <summary>
         /// The node names that are valid within a type node
@@ -80,26 +50,6 @@ namespace Allard.Configinator.Schema
         ///         these nodes
         /// </summary>
         private readonly HashSet<string> allowedTypeNodeName = new(new[] {"$base", "properties", "secrets"});
-
-        /// <summary>
-        /// Convert YAML to a ConfigurationSchema object.
-        /// </summary>
-        /// <param name="schemaId">The id of the schema to convert.</param>
-        /// <returns></returns>
-        private async Task<ConfigurationSchema> BuildSchema(string schemaId)
-        {
-            var source = await GetYaml(schemaId);
-            var pathNodes = (YamlMappingNode) source["paths"];
-            var paths = new List<PathNode>();
-            foreach (var p in pathNodes)
-            {
-                EnsureValuesAreValid("PATH node has invalid children.", p.Value.ChildNames(), allowedPathNodeNames);
-                var properties = await propertyParser.GetProperties(schemaId, p.Value);
-                paths.Add(new PathNode((string) p.Key, properties.ToList().AsReadOnly()));
-            }
-
-            return new ConfigurationSchema(schemaId, paths.AsReadOnly());
-        }
 
         /// <summary>
         /// Converts a type id to a standard format.
@@ -129,6 +79,11 @@ namespace Allard.Configinator.Schema
             return new SchemaTypeId(typeId);
         }
 
+        public async Task<ObjectSchemaType> GetSchemaType(string typeId)
+        {
+            return await GetSchemaType(new SchemaTypeId(typeId));
+        }
+        
         /// <summary>
         /// Returns the schema type of the given id.
         /// </summary>
@@ -194,30 +149,8 @@ namespace Allard.Configinator.Schema
         /// The properties of a type.
         /// </summary>
         [DebuggerDisplay("{SchemaTypeId}")]
-        private record ObjectSchemaType(SchemaTypeId SchemaTypeId, ReadOnlyCollection<Property> Properties);
-
-        /// <summary>
-        /// Identity for a schema.
-        /// Comprised of the schema name and the type name.
-        /// </summary>
-        [DebuggerDisplay("{FullId}")]
-        public record SchemaTypeId
-        {
-            public bool IsPrimitive { get; }
-            public string SchemaId { get; }
-            public string TypeId { get; }
-            public string FullId { get; }
-
-            public SchemaTypeId(string fullId)
-            {
-                var parts = fullId.Split('/');
-                SchemaId = parts[0];
-                TypeId = parts[1];
-                FullId = fullId;
-                IsPrimitive = SchemaId == "primitive-types";
-            }
-        }
-
+        public record ObjectSchemaType(SchemaTypeId SchemaTypeId, ReadOnlyCollection<Property> Properties);
+        
         /// <summary>
         /// Parses properties for paths and for types.
         /// It collects properties from base type
@@ -240,28 +173,14 @@ namespace Allard.Configinator.Schema
             }
 
             /// <summary>
-            /// Checks if parentYaml refers to another type, either via $base or $type.
-            /// If so, returns the properties from that type.
-            /// If parentYaml is an object, then checks for ...
-            ///   $base is used by TYPES.
-            ///   $type is used by paths.
-            /// If parentYaml is a string, then the string is the reference type.
             /// </summary>
             /// <param name="schemaId"></param>
             /// <param name="parentYaml"></param>
             /// <returns></returns>
             private async Task<IEnumerable<Property>> GetReferencedProperties(string schemaId, YamlNode parentYaml)
             {
-                // $type and $base are functionally the same thing. 
-                // they describe where to get properties from.
-                // BASE is used by a TYPE. A type can get properties from another type,
-                // then manipulate.
-                // TYPE is used to specify that something is of a type. But, you can't add
-                // more to it.
-                // To be semantically accurate, TYPES use BASE and PATHS use TYPE.
                 var baseTypeName =
-                    parentYaml.AsString("$type") // paths can be assigned to a type.
-                    ?? parentYaml.AsString("$base") // types can have bases.
+                    parentYaml.AsString("$base") // types can have bases.
                     ?? parentYaml.AsString();
                 if (baseTypeName == null)
                 {
@@ -276,30 +195,11 @@ namespace Allard.Configinator.Schema
             /// <summary>
             /// Gets the properties defined within the propertiesContainer.
             /// </summary>
-            /// <param name="schemaId"></param>
+            /// <param name="relativeSchemaId"></param>
             /// <param name="propertiesContainer"></param>
             /// <returns></returns>
-            public async Task<IEnumerable<Property>> GetProperties(string schemaId, YamlNode propertiesContainer)
+            public async Task<IEnumerable<Property>> GetProperties(string relativeSchemaId, YamlNode propertiesContainer)
             {
-                // the properties container is the element that contains properties, such as a TYPE or PATH.
-                // properties may be defined as an object within the propertiesContainer.
-                // or, the container can be a scalar value that is the name of a type that has the properties.
-                // so, the container may be a YamlMappingNode, or a YamlScalarNode.
-                //
-                // propertiesContainer may be:
-                //      a YamlMappingNode that has a PropertiesNode.
-                //              "paths":
-                //                  "/a/b/c":                   <---- propertiesContainer.
-                //                      "properties":
-                //      
-                //      or a YamlScalarNode that points to a type:
-                //              "paths":
-                //                  "/a/b/c": "base type"       <---- propertiesContainer.
-                //
-                //      the same applies within types.
-                //              "types":
-                //                  "kafka":                    <---- propertiesContainer.
-                //                      "properties":
                 var properties = new List<Property>();
 
                 // the properties defined locally in this object.
@@ -309,7 +209,7 @@ namespace Allard.Configinator.Schema
                 var secrets = propertiesContainer.AsStringHashSet("secrets");
 
                 // add properties from the base type.
-                properties.AddRange(await GetReferencedProperties(schemaId, propertiesContainer));
+                properties.AddRange(await GetReferencedProperties(relativeSchemaId, propertiesContainer));
                 foreach (var p in propertiesYaml)
                 {
                     //  Type may be specified 2 ways.
@@ -324,7 +224,7 @@ namespace Allard.Configinator.Schema
                         : (string) p.Value;
 
                     var propertyName = (string) p.Key;
-                    var typeId = NormalizeTypeId(schemaId, typeIdName);
+                    var typeId = NormalizeTypeId(relativeSchemaId, typeIdName);
                     if (typeId.IsPrimitive)
                     {
                         var isSecret = secrets.Contains(propertyName) || p.Value.AsBoolean("is-secret");

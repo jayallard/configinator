@@ -70,7 +70,9 @@ namespace Allard.Configinator.Tests.Unit.Schema
         public void SecretNamesMustBeValid()
         {
             // arrange
-            Func<Task> action = async () => await TestUtility.CreateSchemaParser().GetSchema("invalid-secret-name");
+            Func<Task> action = async () => await TestUtility
+                .CreateSchemaParser()
+                .GetSchemaType("invalid-secret-name");
 
             // act 
             // assert

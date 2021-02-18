@@ -91,6 +91,11 @@ namespace Allard.Configinator.Schema
             return new YamlMappingNode();
         }
 
+        public static YamlMappingNode AsMap(this YamlNode node)
+        {
+            return (YamlMappingNode) node;
+        }
+
         /// <summary>
         /// Returns a set of the name of the children of the node.
         /// If the node is not a YamlMappingNode, it returns an empty set.
@@ -146,6 +151,7 @@ namespace Allard.Configinator.Schema
             return new HashSet<string>();
         }
 
+        /*
         /// <summary>
         /// Converts a schema to sample json documents.
         /// </summary>
@@ -167,7 +173,7 @@ namespace Allard.Configinator.Schema
                     var json = Encoding.UTF8.GetString(stream.ToArray());
                     return JsonDocument.Parse(json);
                 });
-        }
+        }*/
 
         /// <summary>
         /// Emit a collection of properties to a json writer.

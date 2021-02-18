@@ -1,9 +1,5 @@
 ---
 "id": "inherit-all"
-"paths":
-  "/a/b/c":
-    "$type": "./my-type"
-  "/d/e/f": "./my-type"
 "types":
   "my-type":
     "properties":

@@ -12,7 +12,7 @@ namespace Allard.Configinator.Tests.Unit
         /// Gets the folder that has the test schemas.
         /// </summary>
         public static string SchemaFolder { get; } =
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Schemas");
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Schemas", "TestTypes", "Types");
 
         /// <summary>
         /// Gets the folder that has the test resolutions.
@@ -51,7 +51,7 @@ namespace Allard.Configinator.Tests.Unit
         /// <param name="fileName"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        private static async Task<YamlNode> GetYamlFromFile(string fileName)
+        public static async Task<YamlNode> GetYamlFromFile(string fileName)
         {
             var yaml = await File.ReadAllTextAsync(fileName);
             var reader = new StringReader(yaml);
