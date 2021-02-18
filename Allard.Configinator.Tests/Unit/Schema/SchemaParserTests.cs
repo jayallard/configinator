@@ -77,7 +77,7 @@ namespace Allard.Configinator.Tests.Unit.Schema
             action
                 .Should()
                 .Throw<InvalidOperationException>()
-                .WithMessage("Secrets contains invalid property names.\nInvalid: xyz\nValid: user-id,password,xyz");
+                .WithMessage("Secrets contains invalid property names.\nInvalid: xyz\nValid: user-id, password");
         }
     }
 }

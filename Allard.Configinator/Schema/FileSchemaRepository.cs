@@ -5,16 +5,33 @@ using YamlDotNet.RepresentationModel;
 
 namespace Allard.Configinator.Schema
 {
+    /// <summary>
+    /// Retrieves schema yaml from files.
+    /// </summary>
     public class FileSchemaRepository : ISchemaRepository
     {
         private readonly string schemaFolder;
 
+        /// <summary>
+        /// Initializes a new instance of the fileSchemaRepository class.
+        /// </summary>
+        /// <param name="schemaFolder">The folder that contains the schema files.</param>
         public FileSchemaRepository(string schemaFolder)
         {
-            this.schemaFolder = schemaFolder;
+            this.schemaFolder = schemaFolder ?? throw new ArgumentNullException(nameof(schemaFolder));
         }
 
-        public async Task<YamlMappingNode> GetSchema(string id)
+        /// <summary>
+        /// Retrieve schema yaml.
+        /// The name of the file will be id.yml.
+        /// The id in the file must match the file name.
+        /// If the file doesn't exist, it will throw an exception.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        /// <exception cref="FileNotFoundException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
+        public async Task<YamlMappingNode> GetSchemaYaml(string id)
         {
             var fileName = Path.Combine(schemaFolder, id + ".yml");
             if (!File.Exists(fileName))
@@ -23,7 +40,7 @@ namespace Allard.Configinator.Schema
             }
 
             var yaml = await File.ReadAllTextAsync(fileName);
-            var reader = new StringReader(yaml);
+            using var reader = new StringReader(yaml);
             var yamlStream = new YamlStream();
             yamlStream.Load(reader);
             if (yamlStream.Documents.Count != 1)

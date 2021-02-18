@@ -8,6 +8,9 @@ using YamlDotNet.RepresentationModel;
 
 namespace Allard.Configinator.Schema
 {
+    /// <summary>
+    /// Converts Yaml to a 
+    /// </summary>
     public class SchemaParser
     {
         /// <summary>
@@ -23,7 +26,7 @@ namespace Allard.Configinator.Schema
         /// <summary>
         /// Stores the schema types per type id.
         /// </summary>
-        private readonly Dictionary<SchemaTypeId, ObjectSchemaType> types = new();
+        private readonly Dictionary<SchemaTypeId, ObjectSchemaType> schemaTypes = new();
 
         /// <summary>
         /// Retrieves the Yaml.
@@ -62,8 +65,21 @@ namespace Allard.Configinator.Schema
             return schema;
         }
 
-        // a PATH node can only have these child nodes.
+        /// <summary>
+        /// The node names that are valid within a path node.
+        /// "paths":
+        ///     "/x/y/z":
+        ///         these nodes
+        /// </summary>
         private readonly HashSet<string> allowedPathNodeNames = new(new[] {"$type", "properties", "secrets"});
+        
+        /// <summary>
+        /// The node names that are valid within a type node
+        /// "types":
+        ///     "my-type":
+        ///         these nodes
+        /// </summary>
+        private readonly HashSet<string> allowedTypeNodeName = new(new[] {"$base", "properties", "secrets"});
 
         /// <summary>
         /// Convert YAML to a ConfigurationSchema object.
@@ -77,27 +93,12 @@ namespace Allard.Configinator.Schema
             var paths = new List<PathNode>();
             foreach (var p in pathNodes)
             {
-                EnsureNodeNamesAreValid("PATH node has invalid children.", p.Value.ChildNames(), allowedPathNodeNames);
+                EnsureValuesAreValid("PATH node has invalid children.", p.Value.ChildNames(), allowedPathNodeNames);
                 var properties = await propertyParser.GetProperties(schemaId, p.Value);
                 paths.Add(new PathNode((string) p.Key, properties.ToList().AsReadOnly()));
             }
 
             return new ConfigurationSchema(schemaId, paths.AsReadOnly());
-        }
-
-        private static void EnsureNodeNamesAreValid(string errorMessage,
-            IReadOnlySet<string> existingNames,
-            IReadOnlySet<string> allowedNames)
-        {
-            var bad = existingNames.Where(n => !allowedNames.Contains(n)).ToList();
-            if (bad.Count == 0)
-            {
-                return;
-            }
-
-            var invalidNames = string.Join(',', bad);
-            var validNames = string.Join(',', allowedNames);
-            throw new InvalidOperationException(errorMessage + "\nInvalid: " + invalidNames + "\nValid: " + validNames);
         }
 
         /// <summary>
@@ -135,13 +136,13 @@ namespace Allard.Configinator.Schema
         /// <returns></returns>
         private async Task<ObjectSchemaType> GetSchemaType(SchemaTypeId typeId)
         {
-            if (types.ContainsKey(typeId))
+            if (schemaTypes.ContainsKey(typeId))
             {
-                return types[typeId];
+                return schemaTypes[typeId];
             }
 
             var type = await BuildType(typeId);
-            types[typeId] = type;
+            schemaTypes[typeId] = type;
             return type;
         }
 
@@ -155,6 +156,7 @@ namespace Allard.Configinator.Schema
             var sourceSchema = await GetYaml(schemaTypeId.SchemaId);
             var typesYaml = (YamlMappingNode) sourceSchema["types"];
             var typeYaml = typesYaml.Single(t => (string) t.Key == schemaTypeId.TypeId);
+            EnsureValuesAreValid("TYPE node has invalid children.", typeYaml.Value.ChildNames(), allowedTypeNodeName);
             var props = new List<Property>();
 
             // from the local type
@@ -175,7 +177,7 @@ namespace Allard.Configinator.Schema
                 return sourceYaml[schemaId];
             }
 
-            var source = await repository.GetSchema(schemaId);
+            var source = await repository.GetSchemaYaml(schemaId);
 
             // make sure the id from the source matches the requested id.
             var sourceId = (string) source["id"];
@@ -188,9 +190,16 @@ namespace Allard.Configinator.Schema
             return sourceYaml[schemaId];
         }
 
+        /// <summary>
+        /// The properties of a type.
+        /// </summary>
         [DebuggerDisplay("{SchemaTypeId}")]
         private record ObjectSchemaType(SchemaTypeId SchemaTypeId, ReadOnlyCollection<Property> Properties);
 
+        /// <summary>
+        /// Identity for a schema.
+        /// Comprised of the schema name and the type name.
+        /// </summary>
         [DebuggerDisplay("{FullId}")]
         public record SchemaTypeId
         {
@@ -209,16 +218,39 @@ namespace Allard.Configinator.Schema
             }
         }
 
+        /// <summary>
+        /// Parses properties for paths and for types.
+        /// It collects properties from base type
+        /// and reference types, etc. The whole gambit.
+        /// </summary>
         private class PropertyParser
         {
+            /// <summary>
+            /// Used to retrieve other types.
+            /// </summary>
             private readonly SchemaParser schemaParser;
 
+            /// <summary>
+            /// Initializes a new instance of the PropertyParser class.
+            /// </summary>
+            /// <param name="schemaParser"></param>
             public PropertyParser(SchemaParser schemaParser)
             {
                 this.schemaParser = schemaParser;
             }
 
-            private async Task<IEnumerable<Property>> GetBaseProperties(string schemaId, YamlNode parentYaml)
+            /// <summary>
+            /// Checks if parentYaml refers to another type, either via $base or $type.
+            /// If so, returns the properties from that type.
+            /// If parentYaml is an object, then checks for ...
+            ///   $base is used by TYPES.
+            ///   $type is used by paths.
+            /// If parentYaml is a string, then the string is the reference type.
+            /// </summary>
+            /// <param name="schemaId"></param>
+            /// <param name="parentYaml"></param>
+            /// <returns></returns>
+            private async Task<IEnumerable<Property>> GetReferencedProperties(string schemaId, YamlNode parentYaml)
             {
                 // $type and $base are functionally the same thing. 
                 // they describe where to get properties from.
@@ -228,9 +260,9 @@ namespace Allard.Configinator.Schema
                 // more to it.
                 // To be semantically accurate, TYPES use BASE and PATHS use TYPE.
                 var baseTypeName =
-                    parentYaml.ChildAsString("$type") // paths can be assigned to a type.
-                    ?? parentYaml.ChildAsString("$base") // types can have bases.
-                    ?? parentYaml.CurrentAsString();
+                    parentYaml.AsString("$type") // paths can be assigned to a type.
+                    ?? parentYaml.AsString("$base") // types can have bases.
+                    ?? parentYaml.AsString();
                 if (baseTypeName == null)
                 {
                     return new List<Property>();
@@ -241,6 +273,12 @@ namespace Allard.Configinator.Schema
                 return baseType.Properties;
             }
 
+            /// <summary>
+            /// Gets the properties defined within the propertiesContainer.
+            /// </summary>
+            /// <param name="schemaId"></param>
+            /// <param name="propertiesContainer"></param>
+            /// <returns></returns>
             public async Task<IEnumerable<Property>> GetProperties(string schemaId, YamlNode propertiesContainer)
             {
                 // the properties container is the element that contains properties, such as a TYPE or PATH.
@@ -265,13 +303,13 @@ namespace Allard.Configinator.Schema
                 var properties = new List<Property>();
 
                 // the properties defined locally in this object.
-                var propertiesYaml = propertiesContainer.ChildAsMap("properties");
+                var propertiesYaml = propertiesContainer.AsMap("properties");
 
                 // the secrets short-cut:  "secrets": ["a", "b", "c"]
-                var secrets = propertiesContainer.ChildAsHashSet("secrets");
+                var secrets = propertiesContainer.AsStringHashSet("secrets");
 
                 // add properties from the base type.
-                properties.AddRange(await GetBaseProperties(schemaId, propertiesContainer));
+                properties.AddRange(await GetReferencedProperties(schemaId, propertiesContainer));
                 foreach (var p in propertiesYaml)
                 {
                     //  Type may be specified 2 ways.
@@ -289,7 +327,7 @@ namespace Allard.Configinator.Schema
                     var typeId = NormalizeTypeId(schemaId, typeIdName);
                     if (typeId.IsPrimitive)
                     {
-                        var isSecret = secrets.Contains(propertyName) || p.Value.ChildAsBoolean("is-secret");
+                        var isSecret = secrets.Contains(propertyName) || p.Value.AsBoolean("is-secret");
                         properties.Add(new PropertyPrimitive(propertyName, typeId, isSecret));
                         continue;
                     }
@@ -303,36 +341,38 @@ namespace Allard.Configinator.Schema
                     properties.Add(new PropertyGroup(propertyName, typeId, propertiesForType.AsReadOnly()));
                 }
 
-                //EnsureAllSecretNamesAreValid(secrets, properties.Select(p => p.Name).ToHashSet());
-                EnsureNodeNamesAreValid("Secrets contains invalid property names.", secrets,
+                EnsureValuesAreValid("Secrets contains invalid property names.", secrets,
                     properties.Select(p => p.Name).ToHashSet());
                 return properties;
             }
+        }
 
-            /*
-            /// <summary>
-            /// Make sure all secret names are valid.
-            /// IE: You can't flag property "xyz" as a secret if "xyz" isn't a property.
-            /// </summary>
-            /// <param name="secretProperties">The names of properties to flag as secrets.</param>
-            /// <param name="allProperties">The names of all of the properties.</param>
-            /// <exception cref="InvalidOperationException"></exception>
-            private static void EnsureAllSecretNamesAreValid(HashSet<string> secretProperties,
-                HashSet<string> allProperties)
+        /// <summary>
+        /// Given 2 sets, make sure all items in the first set
+        /// exist in the second set.
+        /// IE: set 1 is a,b,c,d
+        ///     set 2 is a,b,c
+        /// An exception will be thrown because "d" doesn't
+        /// exist in the second set.
+        /// </summary>
+        /// <param name="errorMessage"></param>
+        /// <param name="existingNames"></param>
+        /// <param name="allowedNames"></param>
+        /// <exception cref="InvalidOperationException"></exception>
+        private static void EnsureValuesAreValid(string errorMessage,
+            IReadOnlySet<string> existingNames,
+            IReadOnlySet<string> allowedNames)
+        {
+            var bad = existingNames.Except(allowedNames).ToList();
+            if (bad.Count == 0)
             {
-                // make sure that all properties specified in the "secrets" collection
-                // are valid.
-                // IE:    secrets: ["a", "b", "c"]
-                // confirm that a,b,c are all valid property names.
-                var badNames = secretProperties.Where(s => !allProperties.Contains(s)).ToList();
-                if (badNames.Count == 0)
-                {
-                    return;
-                }
+                return;
+            }
 
-                var badNamesCombined = string.Join(',', badNames);
-                throw new InvalidOperationException("Invalid secret names: " + badNamesCombined);
-            }*/
+            var invalidNames = string.Join(", ", bad);
+            var validNames = string.Join(", ", allowedNames);
+            var message = errorMessage + "\nInvalid: " + invalidNames + "\nValid: " + validNames;
+            throw new InvalidOperationException(message);
         }
     }
 }

@@ -3,7 +3,6 @@ using System.Diagnostics;
 
 namespace Allard.Configinator.Schema
 {
-    // todo: collections aren't actually immutable... might be casted. fix.
     public record ConfigurationSchema(string Id, ReadOnlyCollection<PathNode> Paths);
 
     [DebuggerDisplay("{Path}")]

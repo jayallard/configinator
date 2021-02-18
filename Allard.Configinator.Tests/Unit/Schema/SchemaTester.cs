@@ -26,7 +26,7 @@ namespace Allard.Configinator.Tests.Unit.Schema
             var schema = await TestUtility.CreateSchemaParser().GetSchema(schemaId);
             var expected = await TestUtility.GetExpectedResolution(schemaId);
 
-            schema.Id.Should().Be(expected.ChildAsString("id"));
+            schema.Id.Should().Be(expected.AsString("id"));
 
             testOutputHelper.WriteLine("Schema: " + schema.Id);
             var expectedPathsNode = (YamlMappingNode) expected["paths"];
@@ -56,7 +56,7 @@ namespace Allard.Configinator.Tests.Unit.Schema
             {
                 var expectedPropertyName = (string) expectedPropertyNode.Key;
                 var expectedPropertyPath = propertyName + "/" + expectedPropertyName;
-                var expectedType = new SchemaParser.SchemaTypeId(expectedPropertyNode.Value.ChildAsString("type"));
+                var expectedType = new SchemaParser.SchemaTypeId(expectedPropertyNode.Value.AsString("type"));
                 testOutputHelper.WriteLine(space + expectedPropertyName + " [" + expectedType.FullId + "]");
                 var actualProperty = actualList.SingleOrDefault(p => p.Name == expectedPropertyName);
                 actualProperty.Should().NotBeNull("actual property not found: " + expectedPropertyPath);
@@ -66,7 +66,7 @@ namespace Allard.Configinator.Tests.Unit.Schema
                 if (expectedType.IsPrimitive)
                 {
                     var prim = (PropertyPrimitive) actualProperty;
-                    prim.IsSecret.Should().Be(expectedPropertyNode.Value.ChildAsBoolean("is-secret"));
+                    prim.IsSecret.Should().Be(expectedPropertyNode.Value.AsBoolean("is-secret"));
                     Console.WriteLine();
                 }
 

@@ -5,6 +5,11 @@ namespace Allard.Configinator.Schema
 {
     public interface ISchemaRepository
     {
-        Task<YamlMappingNode> GetSchema(string id);
+        /// <summary>
+        /// Retrieve the raw yaml of a schema.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        Task<YamlMappingNode> GetSchemaYaml(string id);
     }
 }
