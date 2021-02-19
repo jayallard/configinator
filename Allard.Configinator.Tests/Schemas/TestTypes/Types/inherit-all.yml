@@ -6,6 +6,8 @@
       "a": "string"
       "b": "string"
       "c": "string"
+  "inherit": 
+    "$base": "./my-type"
 
 
     

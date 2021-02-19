@@ -8,3 +8,11 @@
         "type" : "primitive-types/string"
       "c":
         "type" : "primitive-types/string"
+  "inherit-all/inherit":
+    "properties":
+      "a":
+        "type" : "primitive-types/string"
+      "b":
+        "type" : "primitive-types/string"
+      "c":
+        "type" : "primitive-types/string"

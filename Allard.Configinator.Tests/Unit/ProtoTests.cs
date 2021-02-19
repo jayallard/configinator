@@ -7,12 +7,11 @@ namespace Allard.Configinator.Tests.Unit
         [Fact]
         public void Proto()
         {
-            var configService = new ConfgurationService();
-            var namespaces = configService.GetNamespaces();
-            
-            var ns = configService.GetNamespaces(namespaces.First().Id);
-            
-            
+            // var configService = new ConfgurationService();
+            //
+            // var namespaces = configService.GetNamespaces();
+            // var ns = configService.GetNamespaces(namespaces.First().Id);
+            // var section = ns.ConfigurationSections().First();
         }
     }
 }
