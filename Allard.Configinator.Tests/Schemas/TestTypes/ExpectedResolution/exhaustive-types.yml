@@ -4,6 +4,7 @@
   "exhaustive-types/kafka":
     "properties":
       "bootstrap-servers":
+        "type": "primitive-types/string"
   "exhaustive-types/kafka-ssl":
     "properties":
       "bootstrap-servers":
@@ -23,18 +24,16 @@
         "is-secret": true
       "host":
         "type": "primitive-types/string"
-
-
-      "other-kafka":
-        "type": "exhaustive-types/kafka-ssl"
-        "properties":
-          # from kafka
-          "bootstrap-servers":
-            "type": "primitive-types/string"
-          # from kafka-ssl
-          "something":
-            "type": "primitive-types/string"
-          "something-secret":
-            "type": "primitive-types/string"
-            "is-secret": true
+    "other-kafka":
+      "type": "exhaustive-types/kafka-ssl"
+      "properties":
+        # from kafka
+        "bootstrap-servers":
+          "type": "primitive-types/string"
+        # from kafka-ssl
+        "something":
+          "type": "primitive-types/string"
+        "something-secret":
+          "type": "primitive-types/string"
+          "is-secret": true
               

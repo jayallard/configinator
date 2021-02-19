@@ -12,7 +12,7 @@ namespace Allard.Configinator.Tests.Unit
         /// Gets the folder that has the test schemas.
         /// </summary>
         public static string SchemaFolder { get; } =
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Schemas", "TestTypes", "Types");
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Schemas");
 
         /// <summary>
         /// Gets the folder that has the test resolutions.
