@@ -40,13 +40,13 @@ namespace Allard.Configinator.Tests.Unit.Schema
         /// Actual = parse(Types/x.yml)
         /// Expected = ExpectedResolution/xyml
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="namespaceName"></param>
         /// <returns></returns>
         [Theory]
         [MemberData(nameof(GetTestFiles))]
-        public async Task Reconcile(string id)
+        public async Task Reconcile(string namespaceName)
         {
-            await Verify(id);
+            await Verify(namespaceName);
         }
 
         [Fact]
@@ -74,11 +74,11 @@ namespace Allard.Configinator.Tests.Unit.Schema
                 .Select(f => new object[] {f});
         }
 
-        private async Task Verify(string id)
+        private async Task Verify(string nameSpace)
         {
             var rootPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Schemas", "TestTypes");
             var typesFolder = Path.Combine(rootPath, "Types");
-            var expectedFileName = Path.Combine(rootPath, "ExpectedResolution", id + ".yml");
+            var expectedFileName = Path.Combine(rootPath, "ExpectedResolution", nameSpace + ".yml");
             var expectedDoc = await TestUtility.GetYamlFromFile(expectedFileName);
 
             var parser = new SchemaParser(new FileSchemaRepository(typesFolder));

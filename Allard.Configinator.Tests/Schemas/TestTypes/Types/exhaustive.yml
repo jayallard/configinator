@@ -1,15 +1,15 @@
 ---
-"id": "exhaustive"
+"namespace": "exhaustive"
 "types":
   "exhaustive":
     "properties":
-      "my-kafka": "exhaustive-types/kafka"
+      "my-kafka": "external/kafka"
       "my-sql": 
-        "type": "exhaustive-types/mssql"
+        "type": "external/mssql"
       "other-kafka":
         "type": "./other"
   "other":
-    "$base": "exhaustive-types/kafka-ssl"
+    "$base": "external/kafka-ssl"
     "properties":
       "other-local": 
         "type": "string"

@@ -8,8 +8,8 @@ namespace Allard.Configinator.Schema
         /// <summary>
         /// Retrieve the raw yaml of a schema.
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="nameSpace"></param>
         /// <returns></returns>
-        Task<YamlMappingNode> GetSchemaYaml(string id);
+        Task<YamlMappingNode> GetSchemaYaml(string nameSpace);
     }
 }

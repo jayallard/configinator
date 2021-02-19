@@ -1,11 +1,11 @@
 ---
-"id": "exhaustive-types"
+"namespace": "external"
 "types":
-  "exhaustive-types/kafka":
+  "external/kafka":
     "properties":
       "bootstrap-servers":
         "type": "primitive-types/string"
-  "exhaustive-types/kafka-ssl":
+  "external/kafka-ssl":
     "properties":
       "bootstrap-servers":
         "type": "primitive-types/string"
@@ -14,7 +14,7 @@
       "something-secret":
         "type": "primitive-types/string"
         "is-secret": true        
-  "exhaustive-types/mssql":
+  "external/mssql":
     "properties":
       "user-id": 
         "type": "primitive-types/string"
@@ -25,7 +25,7 @@
       "host":
         "type": "primitive-types/string"
     "other-kafka":
-      "type": "exhaustive-types/kafka-ssl"
+      "type": "external/kafka-ssl"
       "properties":
         # from kafka
         "bootstrap-servers":

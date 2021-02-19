@@ -1,6 +1,5 @@
 ---
-"namespace-id": "my-domain.x.y.z"
-"description": "test 1"
+"namespace": "my-domain.x.y.z"
 "configuration-sections":
   "service-1":
     "path": "/a/b/c/service-1" 

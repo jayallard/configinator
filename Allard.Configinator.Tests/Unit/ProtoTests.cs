@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Allard.Configinator.Tests.Unit
@@ -5,13 +6,10 @@ namespace Allard.Configinator.Tests.Unit
     public class ProtoTests
     {
         [Fact]
-        public void Proto()
+        public async Task Proto()
         {
-            // var configService = new ConfgurationService();
-            //
-            // var namespaces = configService.GetNamespaces();
-            // var ns = configService.GetNamespaces(namespaces.First().Id);
-            // var section = ns.ConfigurationSections().First();
+            var s = new ConfiginatorService(null, null);
+            var namespaces = 
         }
     }
 }

@@ -135,10 +135,10 @@ namespace Allard.Configinator.Schema
             var source = await repository.GetSchemaYaml(schemaId);
 
             // make sure the id from the source matches the requested id.
-            var sourceId = (string) source["id"];
-            if (schemaId != sourceId)
+            var nameSpace = (string) source["namespace"];
+            if (schemaId != nameSpace)
             {
-                throw new InvalidOperationException($"Schema id mismatch. Schema Id={schemaId}, Id in File={sourceId}");
+                throw new InvalidOperationException($"Schema id mismatch. Schema Id={schemaId}, Id in File={nameSpace}");
             }
 
             sourceYaml[schemaId] = source;
@@ -233,8 +233,8 @@ namespace Allard.Configinator.Schema
                     }
 
                     // get the properties for the type.
-                    // append additional propertiees added at
-                    // the schema leel.
+                    // append additional properties added at
+                    // the schema level.
                     var propertiesForType = new List<Property>();
                     var type = await schemaParser.GetSchemaType(typeId);
                     propertiesForType.AddRange(type.Properties);

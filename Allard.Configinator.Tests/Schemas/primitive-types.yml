@@ -1,5 +1,5 @@
 ---
-"id": "primitive-types"
+"namespace": "primitive-types"
 "types":
   "string":
     "properties":

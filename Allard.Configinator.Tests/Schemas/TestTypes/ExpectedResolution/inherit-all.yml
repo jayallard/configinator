@@ -1,4 +1,6 @@
 ---
+# todo - delete this line and make sure tests fail
+"namespace": "inherit-all"
 "types":
   "inherit-all/my-type":
     "properties":

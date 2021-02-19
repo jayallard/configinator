@@ -27,13 +27,13 @@ namespace Allard.Configinator.Schema
         /// The id in the file must match the file name.
         /// If the file doesn't exist, it will throw an exception.
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="nameSpace"></param>
         /// <returns></returns>
         /// <exception cref="FileNotFoundException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
-        public async Task<YamlMappingNode> GetSchemaYaml(string id)
+        public async Task<YamlMappingNode> GetSchemaYaml(string nameSpace)
         {
-            var fileName = Path.Combine(schemaFolder, id + ".yml");
+            var fileName = Path.Combine(schemaFolder, nameSpace + ".yml");
             if (!File.Exists(fileName))
             {
                 throw new FileNotFoundException("Schema file doesn't exist: " + Path.GetFileName(fileName), fileName);

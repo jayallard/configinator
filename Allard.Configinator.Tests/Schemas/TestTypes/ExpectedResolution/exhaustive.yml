@@ -1,15 +1,15 @@
 ---
-"id": "exhaustive"
+"namespace": "exhaustive"
 "types":
   "exhaustive/exhaustive":
     "properties":
       "my-kafka":
-        "type": "exhaustive-types/kafka"
+        "type": "external/kafka"
         "properties":
           "bootstrap-servers":
             "type": "primitive-types/string"
       "my-sql":
-        "type": "exhaustive-types/mssql"
+        "type": "external/mssql"
         "properties":
           "user-id":
             "type": "primitive-types/string"
