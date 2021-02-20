@@ -1,10 +1,35 @@
+using System;
 using System.Collections.Generic;
 using Allard.Configinator.Schema;
 
 namespace Allard.Configinator.Configuration
 {
     public record ConfigurationSectionId(string Namespace, string Name);
-    public record ConfigurationSectionValue(Habitat Habitat, ConfigurationSection Section, string ETag, string Value);
+
+    public class ConfigurationSectionValue
+    {
+        public Habitat Habitat { get; }
+        public ConfigurationSection ConfigurationSection { get; }
+        public string ETag { get; }
+        public string Value { get; private set; }
+
+        public ConfigurationSectionValue(Habitat habitat, ConfigurationSection configurationSection, string eTag, string value)
+        {
+            Habitat = habitat ?? throw new ArgumentNullException(nameof(habitat));
+            ConfigurationSection =
+                configurationSection ?? throw new ArgumentNullException(nameof(configurationSection));
+            ETag = eTag;
+            Value = value;
+        }
+
+        public ConfigurationSectionValue SetValue(string value)
+        {
+            Value = value;
+            return this;
+        }
+        
+    }
+        
     public record ConfigurationSection(ConfigurationSectionId Id, string Path, SchemaParser.ObjectSchemaType Type, string Description);
     public record Habitat(string Name, string Description, IReadOnlySet<string> Bases);
 

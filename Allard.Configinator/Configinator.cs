@@ -60,10 +60,10 @@ namespace Allard.Configinator
             return habitats.Values;
         }
 
-        public async Task<Habitat> GetHabitat(string spaceName)
+        public async Task<Habitat> GetHabitat(string habitatName)
         {
             await LoadHabitats();
-            return habitats[spaceName];
+            return habitats[habitatName];
         }
 
         private async Task LoadNamespaces()
@@ -117,14 +117,22 @@ namespace Allard.Configinator
             return namespaces[nameSpace];
         }
 
-        public async Task Save(ConfigurationSectionValue value)
+        public async Task SetValueAsync(ConfigurationSectionValue value)
         {
+            // TODO: validate habitat and config section are valid.
+            
+            await configStore.SetValueAsync(value);
         }
 
-        public async Task<ConfigurationSection> GetValue(string habitat, string nameSpace, string configSection)
+        public async Task<ConfigurationSectionValue> GetValueAsync(string habitat, string nameSpace, string configSection)
         {
-            //this.configStore.GetConfiguration()
-            return null;
+            var h = await GetHabitat(habitat);
+            var ns = await GetNamespace(nameSpace);
+            var cs = ns.ConfigurationSections.Single(c => c.Id.Name == configSection);
+            var value = await this.configStore.GetValue(h, cs);
+            
+            // TODO: indicate that the value doesn't exist.
+            return value ?? new ConfigurationSectionValue(h, cs, null, null);
         }
     }
 }

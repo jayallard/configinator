@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Allard.Configinator.Configuration;
 using Allard.Configinator.Schema;
+using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -65,11 +66,21 @@ namespace Allard.Configinator.Tests.Unit
             }
             
             // -----------------------------------------
-            // get config
+            // get/set config
             // -----------------------------------------
-            //var value = await configinator.GetValue("dev-jay2", "domain-a", "demo1");
-            //configinator.Save()
+            testOutputHelper.WriteLine("--------------------------------------------------------");
+            testOutputHelper.WriteLine("Get/Set Values:");
+            var value = await configinator.GetValueAsync("dev-jay2", "domain-a", "service-1");
+            value.Value.Should().BeNull();
+            value.SetValue("something new!");
+            testOutputHelper.WriteLine("\tNo existing value, as expected");
             
+            await configinator.SetValueAsync(value);
+            testOutputHelper.WriteLine("\tSet value");
+            
+            var value2 = await configinator.GetValueAsync("dev-jay2", "domain-a", "service-1");
+            value2.Value.Should().Be("something new!");
+            testOutputHelper.WriteLine("\tRead value: " + value2.Value);
         }
     }
 }

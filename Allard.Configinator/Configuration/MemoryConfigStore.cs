@@ -19,14 +19,14 @@ namespace Allard.Configinator.Configuration
         private readonly ConcurrentDictionary<string, ConfigurationSectionValue> repo = new();
         private readonly Mutex readWriteLock = new();
 
-        public Task<ConfigurationSectionValue> GetConfiguration(Habitat habitat, ConfigurationSection section)
+        public Task<ConfigurationSectionValue> GetValue(Habitat habitat, ConfigurationSection section)
         {
             try
             {
                 readWriteLock.WaitOne();
                 var key = habitat.Name + "::" + section.Path;
                 return repo.TryGetValue(key, out var value)
-                    ? Task.FromResult(value)
+                    ? Task.FromResult(new ConfigurationSectionValue(value.Habitat, value.ConfigurationSection, value.ETag, value.Value))
                     : Task.FromResult<ConfigurationSectionValue>(null);
             }
             finally
@@ -35,27 +35,24 @@ namespace Allard.Configinator.Configuration
             }
         }
 
-        public async Task WriteConfiguration(ConfigurationSectionValue value)
+        public async Task SetValueAsync(ConfigurationSectionValue value)
         {
             try
             {
                 readWriteLock.WaitOne();
-                var existing = await GetConfiguration(value.Habitat, value.Section);
+                var existing = await GetValue(value.Habitat, value.ConfigurationSection);
                 if (existing != null && existing.ETag != value.ETag)
                 {
                     throw new Exception("etag change");
                 }
 
-                // need a new etag if the object is new, or if the object content has changed.
-                // todo: determine if this is the appropriate behavior. i think it is.
-                // also, if content didn't change, then no need to update.
-                var needNewEtag = existing == null || existing.Value != value.Value;
-                var toWrite =
-                    needNewEtag
-                        ? value with {ETag = Guid.NewGuid().ToString()}
-                        : existing;
-                var key = value.Habitat.Name + "::" + value.Section.Path;
-                repo[key] = toWrite;
+                var etag =
+                    existing == null || existing.Value != value.Value
+                        ? Guid.NewGuid().ToString()
+                        : existing.ETag;
+                
+                var key = value.Habitat.Name + "::" + value.ConfigurationSection.Path;
+                repo[key] = new ConfigurationSectionValue(value.Habitat, value.ConfigurationSection, etag, value.Value);
             }
             finally
             {

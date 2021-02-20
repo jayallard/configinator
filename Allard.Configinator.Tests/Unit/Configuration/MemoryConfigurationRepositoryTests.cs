@@ -9,8 +9,6 @@ namespace Allard.Configinator.Tests.Unit.Configuration
 {
     public class MemoryConfigurationRepositoryTests
     {
-        private readonly Habitat habitat = new Habitat("test", "test", new HashSet<string>());
-        
         [Fact]
         public async Task WriteRead()
         {
@@ -19,13 +17,13 @@ namespace Allard.Configinator.Tests.Unit.Configuration
             var configId = new ConfigurationSectionId("WriteReadTest", "blah");
             var configSection = new ConfigurationSection(configId, "path", null, null);
             var space = new Habitat("name", "description", new HashSet<string>());
-            
+
             // write
             var config = new ConfigurationSectionValue(space, configSection, "A", "config");
-            await mem.WriteConfiguration(config);
+            await mem.SetValueAsync(config);
 
             // read
-            var read = await mem.GetConfiguration(space, configSection);
+            var read = await mem.GetValue(space, configSection);
             read.Value.Should().Be("config");
             read.ETag.Should().NotBe("A");
         }
@@ -41,23 +39,22 @@ namespace Allard.Configinator.Tests.Unit.Configuration
 
             // initialize
             var config = new ConfigurationSectionValue(space, configSection, "A", "config");
-            await mem.WriteConfiguration(config);
+            await mem.SetValueAsync(config);
 
             // read
-            var read1 = await mem.GetConfiguration(space, configSection);
-            var read2 = await mem.GetConfiguration(space, configSection);
-            read1.Should().Be(read2);
+            var read1 = await mem.GetValue(space, configSection);
+            var read2 = await mem.GetValue(space, configSection);
 
-            var write1 = read1 with {Value = "write1"};
-            var write2 = read2 with {Value = "write2"};
+            read1.SetValue("write1");
+            read2.SetValue("read2");
 
             // this will work
-            await mem.WriteConfiguration(write1);
+            await mem.SetValueAsync(read1);
 
             // this will fail because the etag in the repo
             // changed with the last write
             // so the etag on the write2 doesn't match what's in the repo.
-            Func<Task> test = async () => await mem.WriteConfiguration(write2);
+            Func<Task> test = async () => await mem.SetValueAsync(read2);
             test.Should().Throw<Exception>().WithMessage("etag change");
         }
 
@@ -72,14 +69,14 @@ namespace Allard.Configinator.Tests.Unit.Configuration
 
             // initialize
             var config = new ConfigurationSectionValue(space, configSection, "A", "config");
-            await mem.WriteConfiguration(config);
+            await mem.SetValueAsync(config);
 
             // read, then write.
-            var read = await mem.GetConfiguration(space, configSection);
-            await mem.WriteConfiguration(read);
+            var read = await mem.GetValue(space, configSection);
+            await mem.SetValueAsync(read);
 
             // read again. see the etag is the same.
-            var read2 = await mem.GetConfiguration(space, configSection);
+            var read2 = await mem.GetValue(space, configSection);
             read2.ETag.Should().Be(read.ETag);
         }
 
@@ -90,18 +87,18 @@ namespace Allard.Configinator.Tests.Unit.Configuration
 
             var configId = new ConfigurationSectionId("EtagChangesIfValueChanges", "blah");
             var configSection = new ConfigurationSection(configId, "path", null, null);
-            var space = new Habitat("name", "description", new HashSet<string>());
+            var habitat = new Habitat("name", "description", new HashSet<string>());
 
             // initialize
-            var config = new ConfigurationSectionValue(space, configSection, "A", "config");
-            await mem.WriteConfiguration(config);
+            var config = new ConfigurationSectionValue(habitat, configSection, "A", "config");
+            await mem.SetValueAsync(config);
 
             // read, change the value, write
-            var read = await mem.GetConfiguration(space, configSection) with {Value = "blah blah blah"};
-            await mem.WriteConfiguration(read);
+            var read = (await mem.GetValue(habitat, configSection)).SetValue("blah blah blah");
+            await mem.SetValueAsync(read);
 
             // read again. see the etag is the same.
-            var read2 = await mem.GetConfiguration(space, configSection);
+            var read2 = await mem.GetValue(habitat, configSection);
             read2.ETag.Should().NotBe(read.ETag);
         }
     }
