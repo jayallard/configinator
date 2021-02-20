@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 using Allard.Configinator.Configuration;
@@ -108,6 +109,16 @@ namespace Allard.Configinator
         {
             await LoadNamespaces();
             return namespaces.Values;
+        }
+
+        public async Task<ConfigurationNamespace> GetNamespace(string nameSpace)
+        {
+            await LoadNamespaces();
+            return namespaces[nameSpace];
+        }
+
+        public async Task Save(ConfigurationSectionValue value)
+        {
         }
     }
 }

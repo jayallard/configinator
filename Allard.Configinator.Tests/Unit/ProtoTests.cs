@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Allard.Configinator.Configuration;
 using Allard.Configinator.Schema;
@@ -40,7 +41,7 @@ namespace Allard.Configinator.Tests.Unit
             // -----------------------------------------
             testOutputHelper.WriteLine("--------------------------------------------------------");
             testOutputHelper.WriteLine("Namespaces:");
-            var namespaces = await s.GetNamespaces();
+            var namespaces = (await s.GetNamespaces()).ToList();
             foreach (var ns in namespaces)
             {
                 testOutputHelper.WriteLine(ns.Name);
@@ -57,11 +58,16 @@ namespace Allard.Configinator.Tests.Unit
             // -----------------------------------------
             testOutputHelper.WriteLine("--------------------------------------------------------");
             testOutputHelper.WriteLine("Spaces:");
-            var spaces = await s.GetSpaces();
+            var spaces = (await s.GetSpaces()).ToList();
             foreach (var space in spaces)
             {
                 testOutputHelper.WriteLine("\t" + space.Name);
             }
+            
+            // -----------------------------------------
+            // set config
+            // -----------------------------------------
+            var namespaceGet = await s.GetNamespace("domain-a");
         }
     }
 }

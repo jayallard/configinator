@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Allard.Configinator.Configuration;
 using FluentAssertions;
@@ -15,9 +16,10 @@ namespace Allard.Configinator.Tests.Unit.Configuration
 
             var configId = new ConfigurationSectionId("WriteReadTest", "blah");
             var configSection = new ConfigurationSection(configId, "path", null, null);
-
+            var space = new Space("name", "description", new HashSet<string>());
+            
             // write
-            var config = new ConfigurationSectionValue(configSection, "A", "config");
+            var config = new ConfigurationSectionValue(space, configSection, "A", "config");
             await mem.WriteConfiguration(config);
 
             // read
@@ -33,9 +35,10 @@ namespace Allard.Configinator.Tests.Unit.Configuration
 
             var configId = new ConfigurationSectionId("WriteReadTest", "blah");
             var configSection = new ConfigurationSection(configId, "path", null, null);
+            var space = new Space("name", "description", new HashSet<string>());
 
             // initialize
-            var config = new ConfigurationSectionValue(configSection, "A", "config");
+            var config = new ConfigurationSectionValue(space, configSection, "A", "config");
             await mem.WriteConfiguration(config);
 
             // read
@@ -63,9 +66,10 @@ namespace Allard.Configinator.Tests.Unit.Configuration
 
             var configId = new ConfigurationSectionId("EtagDoesntChangeIfNoChange", "blah");
             var configSection = new ConfigurationSection(configId, "path", null, null);
+            var space = new Space("name", "description", new HashSet<string>());
 
             // initialize
-            var config = new ConfigurationSectionValue(configSection, "A", "config");
+            var config = new ConfigurationSectionValue(space, configSection, "A", "config");
             await mem.WriteConfiguration(config);
 
             // read, then write.
@@ -84,9 +88,10 @@ namespace Allard.Configinator.Tests.Unit.Configuration
 
             var configId = new ConfigurationSectionId("EtagChangesIfValueChanges", "blah");
             var configSection = new ConfigurationSection(configId, "path", null, null);
+            var space = new Space("name", "description", new HashSet<string>());
 
             // initialize
-            var config = new ConfigurationSectionValue(configSection, "A", "config");
+            var config = new ConfigurationSectionValue(space, configSection, "A", "config");
             await mem.WriteConfiguration(config);
 
             // read, change the value, write
