@@ -9,6 +9,8 @@ namespace Allard.Configinator.Tests.Unit.Configuration
 {
     public class MemoryConfigurationRepositoryTests
     {
+        private readonly Space space = new Space("test", "test", new HashSet<string>());
+        
         [Fact]
         public async Task WriteRead()
         {
@@ -23,7 +25,7 @@ namespace Allard.Configinator.Tests.Unit.Configuration
             await mem.WriteConfiguration(config);
 
             // read
-            var read = await mem.GetConfiguration(configSection);
+            var read = await mem.GetConfiguration(space, configSection);
             read.Value.Should().Be("config");
             read.ETag.Should().NotBe("A");
         }
@@ -42,8 +44,8 @@ namespace Allard.Configinator.Tests.Unit.Configuration
             await mem.WriteConfiguration(config);
 
             // read
-            var read1 = await mem.GetConfiguration(configSection);
-            var read2 = await mem.GetConfiguration(configSection);
+            var read1 = await mem.GetConfiguration(space, configSection);
+            var read2 = await mem.GetConfiguration(space, configSection);
             read1.Should().Be(read2);
 
             var write1 = read1 with {Value = "write1"};
@@ -73,11 +75,11 @@ namespace Allard.Configinator.Tests.Unit.Configuration
             await mem.WriteConfiguration(config);
 
             // read, then write.
-            var read = await mem.GetConfiguration(configSection);
+            var read = await mem.GetConfiguration(space, configSection);
             await mem.WriteConfiguration(read);
 
             // read again. see the etag is the same.
-            var read2 = await mem.GetConfiguration(configSection);
+            var read2 = await mem.GetConfiguration(space, configSection);
             read2.ETag.Should().Be(read.ETag);
         }
 
@@ -95,11 +97,11 @@ namespace Allard.Configinator.Tests.Unit.Configuration
             await mem.WriteConfiguration(config);
 
             // read, change the value, write
-            var read = await mem.GetConfiguration(configSection) with {Value = "blah blah blah"};
+            var read = await mem.GetConfiguration(space, configSection) with {Value = "blah blah blah"};
             await mem.WriteConfiguration(read);
 
             // read again. see the etag is the same.
-            var read2 = await mem.GetConfiguration(configSection);
+            var read2 = await mem.GetConfiguration(space, configSection);
             read2.ETag.Should().NotBe(read.ETag);
         }
     }

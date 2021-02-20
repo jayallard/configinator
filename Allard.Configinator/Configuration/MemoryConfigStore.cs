@@ -19,12 +19,13 @@ namespace Allard.Configinator.Configuration
         private readonly ConcurrentDictionary<string, ConfigurationSectionValue> repo = new();
         private readonly Mutex readWriteLock = new();
 
-        public Task<ConfigurationSectionValue> GetConfiguration(ConfigurationSection section)
+        public Task<ConfigurationSectionValue> GetConfiguration(Space space, ConfigurationSection section)
         {
             try
             {
                 readWriteLock.WaitOne();
-                return repo.TryGetValue(section.Path, out var value)
+                var key = space.Name + "::" + section.Path;
+                return repo.TryGetValue(key, out var value)
                     ? Task.FromResult(value)
                     : Task.FromResult<ConfigurationSectionValue>(null);
             }
@@ -39,7 +40,7 @@ namespace Allard.Configinator.Configuration
             try
             {
                 readWriteLock.WaitOne();
-                var existing = await GetConfiguration(value.Section);
+                var existing = await GetConfiguration(value.Space, value.Section);
                 if (existing != null && existing.ETag != value.ETag)
                 {
                     throw new Exception("etag change");
@@ -53,7 +54,8 @@ namespace Allard.Configinator.Configuration
                     needNewEtag
                         ? value with {ETag = Guid.NewGuid().ToString()}
                         : existing;
-                repo[toWrite.Section.Path] = toWrite;
+                var key = value.Space.Name + "::" + value.Section.Path;
+                repo[key] = toWrite;
             }
             finally
             {

@@ -9,7 +9,7 @@ namespace Allard.Configinator.Configuration
     /// </summary>
     public interface IConfigStore
     {
-        Task<ConfigurationSectionValue> GetConfiguration(ConfigurationSection section);
+        Task<ConfigurationSectionValue> GetConfiguration(Space space, ConfigurationSection section);
         Task WriteConfiguration(ConfigurationSectionValue value);
     }
 }

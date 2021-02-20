@@ -30,7 +30,7 @@ namespace Allard.Configinator.Tests.Unit
             var parser = new SchemaParser(new FileSchemaMetaRepository(schemasFolder));
             var spaceRepo = new YamlSpacesRepository(spacesFile);
             var namespaceRepo = new YamlNamespaceRepository(namespaceFolder);
-            var s = new ConfiginatorService(
+            var configinator = new ConfiginatorService(
                 parser,
                 configStore,
                 spaceRepo,
@@ -41,7 +41,7 @@ namespace Allard.Configinator.Tests.Unit
             // -----------------------------------------
             testOutputHelper.WriteLine("--------------------------------------------------------");
             testOutputHelper.WriteLine("Namespaces:");
-            var namespaces = (await s.GetNamespaces()).ToList();
+            var namespaces = (await configinator.GetNamespaces()).ToList();
             foreach (var ns in namespaces)
             {
                 testOutputHelper.WriteLine(ns.Name);
@@ -58,7 +58,7 @@ namespace Allard.Configinator.Tests.Unit
             // -----------------------------------------
             testOutputHelper.WriteLine("--------------------------------------------------------");
             testOutputHelper.WriteLine("Spaces:");
-            var spaces = (await s.GetSpaces()).ToList();
+            var spaces = (await configinator.GetSpaces()).ToList();
             foreach (var space in spaces)
             {
                 testOutputHelper.WriteLine("\t" + space.Name);
@@ -67,7 +67,10 @@ namespace Allard.Configinator.Tests.Unit
             // -----------------------------------------
             // set config
             // -----------------------------------------
-            var namespaceGet = await s.GetNamespace("domain-a");
+            var config = "{}";
+            var value = new ConfigurationSectionValue()
+            configinator.Save()
+            
         }
     }
 }
