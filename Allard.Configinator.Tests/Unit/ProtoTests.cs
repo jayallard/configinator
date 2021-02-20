@@ -24,13 +24,13 @@ namespace Allard.Configinator.Tests.Unit
             var baseFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FullSetup");
             var schemasFolder = Path.Combine(baseFolder, "Schemas");
             var namespaceFolder = Path.Combine(baseFolder, "Namespaces");
-            var spacesFile = Path.Combine(baseFolder, "Spaces", "spaces.yml");
+            var habitatsFile = Path.Combine(baseFolder, "Habitats", "habitats.yml");
             
             var configStore = new MemoryConfigStore();
             var parser = new SchemaParser(new FileSchemaMetaRepository(schemasFolder));
-            var spaceRepo = new YamlSpacesRepository(spacesFile);
+            var spaceRepo = new YamlHabitatsRepository(habitatsFile);
             var namespaceRepo = new YamlNamespaceRepository(namespaceFolder);
-            var configinator = new ConfiginatorService(
+            var configinator = new Configinator(
                 parser,
                 configStore,
                 spaceRepo,
@@ -54,22 +54,21 @@ namespace Allard.Configinator.Tests.Unit
             }
             
             // -----------------------------------------
-            // spaces
+            // habitats
             // -----------------------------------------
             testOutputHelper.WriteLine("--------------------------------------------------------");
-            testOutputHelper.WriteLine("Spaces:");
-            var spaces = (await configinator.GetSpaces()).ToList();
-            foreach (var space in spaces)
+            testOutputHelper.WriteLine("Habitats:");
+            var habitats = (await configinator.GetHabitats()).ToList();
+            foreach (var space in habitats)
             {
                 testOutputHelper.WriteLine("\t" + space.Name);
             }
             
             // -----------------------------------------
-            // set config
+            // get config
             // -----------------------------------------
-            var config = "{}";
-            var value = new ConfigurationSectionValue()
-            configinator.Save()
+            //var value = await configinator.GetValue("dev-jay2", "domain-a", "demo1");
+            //configinator.Save()
             
         }
     }

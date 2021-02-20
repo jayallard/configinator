@@ -9,7 +9,7 @@ namespace Allard.Configinator.Tests.Unit.Configuration
 {
     public class MemoryConfigurationRepositoryTests
     {
-        private readonly Space space = new Space("test", "test", new HashSet<string>());
+        private readonly Habitat habitat = new Habitat("test", "test", new HashSet<string>());
         
         [Fact]
         public async Task WriteRead()
@@ -18,7 +18,7 @@ namespace Allard.Configinator.Tests.Unit.Configuration
 
             var configId = new ConfigurationSectionId("WriteReadTest", "blah");
             var configSection = new ConfigurationSection(configId, "path", null, null);
-            var space = new Space("name", "description", new HashSet<string>());
+            var space = new Habitat("name", "description", new HashSet<string>());
             
             // write
             var config = new ConfigurationSectionValue(space, configSection, "A", "config");
@@ -37,7 +37,7 @@ namespace Allard.Configinator.Tests.Unit.Configuration
 
             var configId = new ConfigurationSectionId("WriteReadTest", "blah");
             var configSection = new ConfigurationSection(configId, "path", null, null);
-            var space = new Space("name", "description", new HashSet<string>());
+            var space = new Habitat("name", "description", new HashSet<string>());
 
             // initialize
             var config = new ConfigurationSectionValue(space, configSection, "A", "config");
@@ -68,7 +68,7 @@ namespace Allard.Configinator.Tests.Unit.Configuration
 
             var configId = new ConfigurationSectionId("EtagDoesntChangeIfNoChange", "blah");
             var configSection = new ConfigurationSection(configId, "path", null, null);
-            var space = new Space("name", "description", new HashSet<string>());
+            var space = new Habitat("name", "description", new HashSet<string>());
 
             // initialize
             var config = new ConfigurationSectionValue(space, configSection, "A", "config");
@@ -90,7 +90,7 @@ namespace Allard.Configinator.Tests.Unit.Configuration
 
             var configId = new ConfigurationSectionId("EtagChangesIfValueChanges", "blah");
             var configSection = new ConfigurationSection(configId, "path", null, null);
-            var space = new Space("name", "description", new HashSet<string>());
+            var space = new Habitat("name", "description", new HashSet<string>());
 
             // initialize
             var config = new ConfigurationSectionValue(space, configSection, "A", "config");

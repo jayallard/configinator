@@ -6,27 +6,27 @@ using Allard.Configinator.Schema;
 
 namespace Allard.Configinator.Configuration
 {
-    public class YamlSpacesRepository : ISpaceRepository
+    public class YamlHabitatsRepository : IHabitatRepository
     {
         private readonly string yamlFile;
 
-        public YamlSpacesRepository(string yamlFile)
+        public YamlHabitatsRepository(string yamlFile)
         {
             this.yamlFile = string.IsNullOrWhiteSpace(yamlFile)
                 ? throw new ArgumentNullException(nameof(yamlFile))
                 : yamlFile;
         }
 
-        public async Task<IEnumerable<Space>> GetSpaces()
+        public async Task<IEnumerable<Habitat>> GetHabitats()
         {
             var yaml = (await YamlUtility.GetYamlFromFile(yamlFile))
                 .Single()
                 .RootNode
                 .AsMap();
-            return Deserializers.DeserializeSpace(yaml);
+            return Deserializers.DeserializeHabitat(yaml);
         }
 
-        public Task<Space> GetSpace(string name)
+        public Task<Habitat> GetSpace(string name)
         {
             throw new System.NotImplementedException();
         }

@@ -4,9 +4,9 @@ using Allard.Configinator.Schema;
 namespace Allard.Configinator.Configuration
 {
     public record ConfigurationSectionId(string Namespace, string Name);
-    public record ConfigurationSectionValue(Space Space, ConfigurationSection Section, string ETag, string Value);
+    public record ConfigurationSectionValue(Habitat Habitat, ConfigurationSection Section, string ETag, string Value);
     public record ConfigurationSection(ConfigurationSectionId Id, string Path, SchemaParser.ObjectSchemaType Type, string Description);
-    public record Space(string Name, string Description, IReadOnlySet<string> Bases);
+    public record Habitat(string Name, string Description, IReadOnlySet<string> Bases);
 
     public record ConfigurationNamespace(string Name, IReadOnlyCollection<ConfigurationSection> ConfigurationSections);
 

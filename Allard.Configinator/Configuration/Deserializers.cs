@@ -8,10 +8,10 @@ namespace Allard.Configinator.Configuration
     public static class Deserializers
     {
         // TODO: switch to DTO
-        public static IEnumerable<Space> DeserializeSpace(YamlMappingNode spaces)
+        public static IEnumerable<Habitat> DeserializeHabitat(YamlMappingNode habitats)
         {
-            return spaces
-                .AsMap("spaces")
+            return habitats
+                .AsMap("habitats")
                 .Children
                 .Select(s =>
                 {
@@ -19,13 +19,13 @@ namespace Allard.Configinator.Configuration
                     if (s.Value is YamlScalarNode)
                     {
                         // no children, so nothing else to do.
-                        return new Space(name, null, new HashSet<string>());
+                        return new Habitat(name, null, new HashSet<string>());
                     }
 
                     var node = s.Value.AsMap();
                     var description = node.AsString("description");
                     var bases = node.AsStringHashSet("bases");
-                    return new Space(name, description, bases);
+                    return new Habitat(name, description, bases);
                 });
         }
 

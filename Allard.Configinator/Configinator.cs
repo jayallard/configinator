@@ -9,7 +9,7 @@ using Allard.Configinator.Schema;
 
 namespace Allard.Configinator
 {
-    public class ConfiginatorService
+    public class Configinator
     {
         private readonly SchemaParser parser;
 
@@ -21,49 +21,49 @@ namespace Allard.Configinator
         /// <summary>
         /// Works with the storage of space configuration info.
         /// </summary>
-        private readonly ISpaceRepository spaceRepository;
+        private readonly IHabitatRepository habitatRepository;
 
         private readonly ISchemaMetaRepository schemaMetaRepository;
         private readonly INamespaceRepository namespaceRepository;
-        private ConcurrentDictionary<string, Space> spaces;
+        private ConcurrentDictionary<string, Habitat> habitats;
         private ConcurrentDictionary<string, ConfigurationNamespace> namespaces;
 
-        public ConfiginatorService(
+        public Configinator(
             SchemaParser parser,
             IConfigStore configStore,
-            ISpaceRepository spaceRepository,
+            IHabitatRepository habitatRepository,
             INamespaceRepository namespaceRepository)
         {
             this.parser = parser ?? throw new ArgumentNullException(nameof(parser));
             this.configStore = configStore ?? throw new ArgumentNullException(nameof(configStore));
-            this.spaceRepository =
-                spaceRepository ?? throw new ArgumentNullException(nameof(spaceRepository));
+            this.habitatRepository =
+                habitatRepository ?? throw new ArgumentNullException(nameof(habitatRepository));
             this.namespaceRepository = namespaceRepository ??
                                            throw new ArgumentNullException(nameof(namespaceRepository));
         }
 
-        private async Task LoadSpaces()
+        private async Task LoadHabitats()
         {
-            if (spaces != null)
+            if (habitats != null)
             {
                 return;
             }
 
-            var spaceMap = (await spaceRepository.GetSpaces())
+            var spaceMap = (await habitatRepository.GetHabitats())
                 .ToDictionary(s => s.Name);
-            spaces = new ConcurrentDictionary<string, Space>(spaceMap);
+            habitats = new ConcurrentDictionary<string, Habitat>(spaceMap);
         }
 
-        public async Task<IEnumerable<Space>> GetSpaces()
+        public async Task<IEnumerable<Habitat>> GetHabitats()
         {
-            await LoadSpaces();
-            return spaces.Values;
+            await LoadHabitats();
+            return habitats.Values;
         }
 
-        public async Task<Space> GetSpace(string spaceName)
+        public async Task<Habitat> GetHabitat(string spaceName)
         {
-            await LoadSpaces();
-            return spaces[spaceName];
+            await LoadHabitats();
+            return habitats[spaceName];
         }
 
         private async Task LoadNamespaces()
@@ -119,6 +119,12 @@ namespace Allard.Configinator
 
         public async Task Save(ConfigurationSectionValue value)
         {
+        }
+
+        public async Task<ConfigurationSection> GetValue(string habitat, string nameSpace, string configSection)
+        {
+            //this.configStore.GetConfiguration()
+            return null;
         }
     }
 }
