@@ -11,10 +11,10 @@ namespace Allard.Configinator.Tests.Unit.Configuration
         [Fact]
         public async Task WriteRead()
         {
-            var mem = new MemoryConfigurationRepository();
+            var mem = new MemoryConfigStore();
 
             var configId = new ConfigurationSectionId("WriteReadTest", "blah");
-            var configSection = new ConfigurationSection(configId, null, null, null);
+            var configSection = new ConfigurationSection(configId, "path", null, null);
 
             // write
             var config = new ConfigurationSectionValue(configSection, "A", "config");
@@ -29,10 +29,10 @@ namespace Allard.Configinator.Tests.Unit.Configuration
         [Fact]
         public async Task WriteFailsIfEtagChanges()
         {
-            var mem = new MemoryConfigurationRepository();
+            var mem = new MemoryConfigStore();
 
             var configId = new ConfigurationSectionId("WriteReadTest", "blah");
-            var configSection = new ConfigurationSection(configId, null, null, null);
+            var configSection = new ConfigurationSection(configId, "path", null, null);
 
             // initialize
             var config = new ConfigurationSectionValue(configSection, "A", "config");
@@ -59,10 +59,10 @@ namespace Allard.Configinator.Tests.Unit.Configuration
         [Fact]
         public async Task EtagDoesntChangeIfNoChange()
         {
-            var mem = new MemoryConfigurationRepository();
+            var mem = new MemoryConfigStore();
 
             var configId = new ConfigurationSectionId("EtagDoesntChangeIfNoChange", "blah");
-            var configSection = new ConfigurationSection(configId, null, null, null);
+            var configSection = new ConfigurationSection(configId, "path", null, null);
 
             // initialize
             var config = new ConfigurationSectionValue(configSection, "A", "config");
@@ -80,10 +80,10 @@ namespace Allard.Configinator.Tests.Unit.Configuration
         [Fact]
         public async Task EtagChangesIfValueChanges()
         {
-            var mem = new MemoryConfigurationRepository();
+            var mem = new MemoryConfigStore();
 
             var configId = new ConfigurationSectionId("EtagChangesIfValueChanges", "blah");
-            var configSection = new ConfigurationSection(configId, null, null, null);
+            var configSection = new ConfigurationSection(configId, "path", null, null);
 
             // initialize
             var config = new ConfigurationSectionValue(configSection, "A", "config");

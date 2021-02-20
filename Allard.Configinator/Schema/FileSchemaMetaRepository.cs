@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using YamlDotNet.RepresentationModel;
 
@@ -8,7 +10,7 @@ namespace Allard.Configinator.Schema
     /// <summary>
     /// Retrieves schema yaml from files.
     /// </summary>
-    public class FileSchemaRepository : ISchemaRepository
+    public class FileSchemaMetaRepository : ISchemaMetaRepository
     {
         private readonly string schemaFolder;
 
@@ -16,7 +18,7 @@ namespace Allard.Configinator.Schema
         /// Initializes a new instance of the fileSchemaRepository class.
         /// </summary>
         /// <param name="schemaFolder">The folder that contains the schema files.</param>
-        public FileSchemaRepository(string schemaFolder)
+        public FileSchemaMetaRepository(string schemaFolder)
         {
             this.schemaFolder = schemaFolder ?? throw new ArgumentNullException(nameof(schemaFolder));
         }
@@ -33,23 +35,23 @@ namespace Allard.Configinator.Schema
         /// <exception cref="InvalidOperationException"></exception>
         public async Task<YamlMappingNode> GetSchemaYaml(string nameSpace)
         {
-            var fileName = Path.Combine(schemaFolder, nameSpace + ".yml");
-            if (!File.Exists(fileName))
-            {
-                throw new FileNotFoundException("Schema file doesn't exist: " + Path.GetFileName(fileName), fileName);
-            }
-
-            var yaml = await File.ReadAllTextAsync(fileName);
-            using var reader = new StringReader(yaml);
-            var yamlStream = new YamlStream();
-            yamlStream.Load(reader);
-            if (yamlStream.Documents.Count != 1)
+            var yaml = (await YamlUtility.GetYamlFromFile(schemaFolder, nameSpace + ".yml")).ToList();
+            if (yaml.Count != 1)
             {
                 throw new InvalidOperationException("Schema file should have one document. It has " +
-                                                    yamlStream.Documents.Count);
+                                                    yaml.Count);
             }
 
-            return (YamlMappingNode)yamlStream.Documents[0].RootNode;
+            return (YamlMappingNode) yaml[0].RootNode;
+        }
+
+        public Task<IReadOnlySet<string>> GetNamespaces()
+        {
+            return Task.Run<IReadOnlySet<string>>(() =>
+                Directory
+                    .GetFiles(schemaFolder, "*.yml")
+                    .Select(f => Path.GetFileNameWithoutExtension(f))
+                    .ToHashSet());
         }
     }
 }

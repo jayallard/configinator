@@ -12,7 +12,7 @@ namespace Allard.Configinator.Tests.Unit
         /// Gets the folder that has the test schemas.
         /// </summary>
         public static string SchemaFolder { get; } =
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Schemas");
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFiles", "Schemas");
 
         /// <summary>
         /// Gets the folder that has the test resolutions.
@@ -37,7 +37,7 @@ namespace Allard.Configinator.Tests.Unit
         /// Creates a repository object that uses the schema folder.
         /// </summary>
         /// <returns></returns>
-        public static ISchemaRepository CreateSchemaRepository() => new FileSchemaRepository(SchemaFolder);
+        public static ISchemaMetaRepository CreateSchemaRepository() => new FileSchemaMetaRepository(SchemaFolder);
 
         /// <summary>
         /// Creates a schema parser using the schema folder.

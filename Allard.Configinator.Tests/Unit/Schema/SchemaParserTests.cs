@@ -65,6 +65,7 @@ namespace Allard.Configinator.Tests.Unit.Schema
         {
             var folder = Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory,
+                "TestFiles",
                 "Schemas",
                 "TestTypes",
                 "Types");
@@ -76,12 +77,12 @@ namespace Allard.Configinator.Tests.Unit.Schema
 
         private async Task Verify(string nameSpace)
         {
-            var rootPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Schemas", "TestTypes");
-            var typesFolder = Path.Combine(rootPath, "Types");
-            var expectedFileName = Path.Combine(rootPath, "ExpectedResolution", nameSpace + ".yml");
-            var expectedDoc = await TestUtility.GetYamlFromFile(expectedFileName);
-
-            var parser = new SchemaParser(new FileSchemaRepository(typesFolder));
+            var expectedDoc =
+                (await YamlUtility.GetYamlFromFile("TestFiles", "Schemas", "TestTypes", "ExpectedResolution",
+                    nameSpace + ".yml"))
+                .Single().RootNode;
+            var typesFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFiles", "Schemas", "TestTypes", "Types");
+            var parser = new SchemaParser(new FileSchemaMetaRepository(typesFolder));
             var expectedTypes = expectedDoc.AsMap("types");
             foreach (var expectedType in expectedTypes)
             {

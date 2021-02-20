@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace Allard.Configinator.Schema
 {
-    public record SchemaType(string Name, ReadOnlyCollection<Property> Properties);
+    //public record SchemaType(string Name, ReadOnlyCollection<Property> Properties);
     
     [DebuggerDisplay("{Name}")]
     public abstract record Property(string Name, SchemaTypeId TypeId);
@@ -30,17 +30,17 @@ namespace Allard.Configinator.Schema
     public record SchemaTypeId
     {
         public bool IsPrimitive { get; }
-        public string SchemaId { get; }
+        public string NameSpace { get; }
         public string TypeId { get; }
         public string FullId { get; }
 
         public SchemaTypeId(string fullId)
         {
             var parts = fullId.Split('/');
-            SchemaId = parts[0];
+            NameSpace = parts[0];
             TypeId = parts[1];
             FullId = fullId;
-            IsPrimitive = SchemaId == "primitive-types";
+            IsPrimitive = NameSpace == "primitive-types";
         }
     }
 }

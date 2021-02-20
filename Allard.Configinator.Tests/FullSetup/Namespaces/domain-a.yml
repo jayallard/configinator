@@ -1,11 +1,11 @@
 ---
-"namespace": "my-domain.x.y.z"
+"namespace": "domain-a"
 "configuration-sections":
   "service-1":
     "path": "/a/b/c/service-1" 
-    "type": "blah"
+    "type": "domain-a/demo1"
     "description": ""
   "service-2":
     "path" : "/a/b/c/service-1"
-    "type" : "blah"
+    "type" : "domain-a/demo1"
     "description" : ""

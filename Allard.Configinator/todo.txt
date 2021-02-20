@@ -1,4 +1,9 @@
 * don't allow a type to use a type from a different namespace, unless the scope of the other namespace is "global".
     default scope is private.
     
+ space validations
+    no circular base references
+    no duplicate names
+    etc...
+ 
  

@@ -1,0 +1,12 @@
+---
+"spaces":
+  "production":
+  "development":
+  "dev-jay1":
+    "description": "jay1"
+    "bases":
+      - "development"
+  "dev-jay2":
+    "bases":
+      - "development"
+      - "dev-jay1"

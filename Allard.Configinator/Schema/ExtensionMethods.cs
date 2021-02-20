@@ -125,6 +125,7 @@ namespace Allard.Configinator.Schema
 
             return null;
         }
+        
 
         /// <summary>
         /// Returns child nodes as a set of strings.

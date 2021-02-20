@@ -1,10 +1,14 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using YamlDotNet.RepresentationModel;
+
+// TODO: this needs one more rewrite. it's currently based on TYPE.
+// we need it to be based on NAMESPACE instead.
 
 namespace Allard.Configinator.Schema
 {
@@ -16,7 +20,7 @@ namespace Allard.Configinator.Schema
         /// <summary>
         /// Stores the YAML per schema id.
         /// </summary>
-        private readonly Dictionary<string, YamlMappingNode> sourceYaml = new();
+        private readonly ConcurrentDictionary<string, YamlMappingNode> sourceYaml = new();
 
         /// <summary>
         /// Stores the schema types per type id.
@@ -26,7 +30,7 @@ namespace Allard.Configinator.Schema
         /// <summary>
         /// Retrieves the Yaml.
         /// </summary>
-        private readonly ISchemaRepository repository;
+        private readonly ISchemaMetaRepository metaRepository;
 
         /// <summary>
         /// Converts YamlProperties to property objects.
@@ -36,10 +40,10 @@ namespace Allard.Configinator.Schema
         /// <summary>
         /// Initializes an instance of the SchemaParser class.
         /// </summary>
-        /// <param name="repository"></param>
-        public SchemaParser(ISchemaRepository repository)
+        /// <param name="metaRepository"></param>
+        public SchemaParser(ISchemaMetaRepository metaRepository)
         {
-            this.repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            this.metaRepository = metaRepository ?? throw new ArgumentNullException(nameof(metaRepository));
             propertyParser = new PropertyParser(this);
         }
         
@@ -108,14 +112,14 @@ namespace Allard.Configinator.Schema
         /// <returns></returns>
         private async Task<ObjectSchemaType> BuildType(SchemaTypeId schemaTypeId)
         {
-            var sourceSchema = await GetYaml(schemaTypeId.SchemaId);
+            var sourceSchema = await GetYaml(schemaTypeId.NameSpace);
             var typesYaml = (YamlMappingNode) sourceSchema["types"];
             var typeYaml = typesYaml.Single(t => (string) t.Key == schemaTypeId.TypeId);
             EnsureValuesAreValid("TYPE node has invalid children.", typeYaml.Value.ChildNames(), allowedTypeNodeName);
             var props = new List<Property>();
 
             // from the local type
-            props.AddRange(await propertyParser.GetProperties(schemaTypeId.SchemaId, (YamlMappingNode) typeYaml.Value));
+            props.AddRange(await propertyParser.GetProperties(schemaTypeId.NameSpace, (YamlMappingNode) typeYaml.Value));
             return new ObjectSchemaType(schemaTypeId, props.AsReadOnly());
         }
 
@@ -132,13 +136,13 @@ namespace Allard.Configinator.Schema
                 return sourceYaml[schemaId];
             }
 
-            var source = await repository.GetSchemaYaml(schemaId);
+            var source = await metaRepository.GetSchemaYaml(schemaId);
 
             // make sure the id from the source matches the requested id.
             var nameSpace = (string) source["namespace"];
             if (schemaId != nameSpace)
             {
-                throw new InvalidOperationException($"Schema id mismatch. Schema Id={schemaId}, Id in File={nameSpace}");
+                throw new InvalidOperationException($"Namespace mismatch. Namespace={schemaId}, Namespace in File={nameSpace}");
             }
 
             sourceYaml[schemaId] = source;

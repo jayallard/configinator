@@ -1,0 +1,9 @@
+---
+"namespace": "domain-a"
+"types":
+  "demo1":
+    "properties":
+      "user-id": "primitive-types/string"
+      "password": "primitive-types/string"
+      "url": "primitive-types/string"
+    "secrets": ["user-id", "password"]
