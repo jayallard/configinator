@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Allard.Configinator.Configuration;
 using Allard.Configinator.Schema;
+using Newtonsoft.Json.Linq;
 
 namespace Allard.Configinator
 {
@@ -39,7 +40,7 @@ namespace Allard.Configinator
             this.habitatRepository =
                 habitatRepository ?? throw new ArgumentNullException(nameof(habitatRepository));
             this.namespaceRepository = namespaceRepository ??
-                                           throw new ArgumentNullException(nameof(namespaceRepository));
+                                       throw new ArgumentNullException(nameof(namespaceRepository));
         }
 
         private async Task LoadHabitats()
@@ -60,7 +61,7 @@ namespace Allard.Configinator
             return habitats.Values;
         }
 
-        public async Task<Habitat> GetHabitat(string habitatName)
+        public async Task<Habitat> GetHabitatAsync(string habitatName)
         {
             await LoadHabitats();
             return habitats[habitatName];
@@ -111,7 +112,7 @@ namespace Allard.Configinator
             return namespaces.Values;
         }
 
-        public async Task<ConfigurationNamespace> GetNamespace(string nameSpace)
+        public async Task<ConfigurationNamespace> GetNamespaceAsync(string nameSpace)
         {
             await LoadNamespaces();
             return namespaces[nameSpace];
@@ -120,19 +121,44 @@ namespace Allard.Configinator
         public async Task SetValueAsync(ConfigurationSectionValue value)
         {
             // TODO: validate habitat and config section are valid.
-            
+
             await configStore.SetValueAsync(value);
         }
 
-        public async Task<ConfigurationSectionValue> GetValueAsync(string habitat, string nameSpace, string configSection)
+        public async Task<ConfigurationSectionValue> GetValueAsync(string habitat, string nameSpace,
+            string configSection)
         {
-            var h = await GetHabitat(habitat);
-            var ns = await GetNamespace(nameSpace);
+            // todo: prevent circular references
+            var h = await GetHabitatAsync(habitat);
+            var ns = await GetNamespaceAsync(nameSpace);
             var cs = ns.ConfigurationSections.Single(c => c.Id.Name == configSection);
-            var value = await this.configStore.GetValue(h, cs);
-            
+
+            // get the base values
+            var baseValues = h
+                .Bases
+                .Select(async h => { return await GetValueAsync(h, nameSpace, configSection); })
+                .ToList();
+
+            // get the requested value
+            var value = configStore.GetValue(h, cs);
+            await Task.WhenAll(baseValues).ConfigureAwait(false);
+            await value;
+
+            var all = baseValues
+                .Where(b => b.Result?.Value != null)
+                .Select(b => b.Result.Value).ToList();
+            if (value.Result?.Value != null)
+            {
+                all.Add(value.Result.Value);
+            }
+
+            all.Reverse();
+
+            var docs = all.Select(JToken.Parse).ToList();
+            var final = new JsonMerger(docs).Merge()?.ToString();
+
             // TODO: indicate that the value doesn't exist.
-            return value ?? new ConfigurationSectionValue(h, cs, null, null);
+            return new ConfigurationSectionValue(h, cs, string.Empty, final);
         }
     }
 }

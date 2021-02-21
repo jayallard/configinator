@@ -25,7 +25,7 @@ namespace Allard.Configinator.Schema
         /// <summary>
         /// Stores the schema types per type id.
         /// </summary>
-        private readonly Dictionary<SchemaTypeId, ObjectSchemaType> schemaTypes = new();
+        private readonly ConcurrentDictionary<SchemaTypeId, ObjectSchemaType> schemaTypes = new();
 
         /// <summary>
         /// Retrieves the Yaml.
