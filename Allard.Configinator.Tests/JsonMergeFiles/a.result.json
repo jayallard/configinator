@@ -1,0 +1,17 @@
+{
+  "test": {
+    "hello": "world",
+    "greetings": {
+      "for": "earthling"
+    },
+    "test2": 1234,
+    "test3": {
+      "han": "solo"
+    },
+    "test4": {
+      "n1": {
+        "string": "value"
+      }
+    }
+  }
+}
