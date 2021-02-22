@@ -66,8 +66,6 @@ namespace Allard.Configinator.Schema
         /// <returns></returns>
         private static SchemaTypeId NormalizeTypeId(string relativeSchemaId, string typeId)
         {
-
-
             return typeId.StartsWith("./")
                 // if references this schema, then change the ./ to this schema id.
                 // IE:  "./typeId" becomes "currentSchemaId/typeId"

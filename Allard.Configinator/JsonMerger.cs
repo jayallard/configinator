@@ -19,7 +19,7 @@ namespace Allard.Configinator
         // merge a into b, then b in to c
         //
 
-        private readonly List<JToken> toMerge = new();
+        private readonly List<JToken> toMerge;
 
         public JsonMerger(params JToken[] toMerge)
         {
@@ -45,8 +45,8 @@ namespace Allard.Configinator
                     return toMerge[0];
             }
 
-            // iterate the input docs.
-            // merge x into x+1
+            // iterate the input docs using x.
+            // merge x into x+1.
             var source = toMerge[0];
             for (var i = 1; i < toMerge.Count; i++)
             {
@@ -93,8 +93,6 @@ namespace Allard.Configinator
                     default:
                         throw new Exception("unhandled type: " + source.Type);
                 }
-
-                break;
             }
         }
 

@@ -1,7 +1,7 @@
 namespace Allard.Configinator.Schema
 {
-    public class ITypeValidator
+    public interface ITypeValidator
     {
-        
+        string ForSchemaType { get; }
     }
 }

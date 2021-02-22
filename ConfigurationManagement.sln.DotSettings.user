@@ -5,6 +5,9 @@
     &lt;Namespace&gt;Allard.Configinator.Tests&lt;/Namespace&gt;
   &lt;/And&gt;
 &lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=5db46946_002Dde80_002D4651_002Da321_002D645631fbbccc/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from &amp;lt;Allard.Configinator.Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;Project Location="/home/jaya/personal/projects/configinator/Allard.Configinator.Tests" Presentation="&amp;lt;Allard.Configinator.Tests&amp;gt;" /&gt;
+&lt;/SessionState&gt;</s:String>
 	
 	
 	
