@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
+using System.Runtime.CompilerServices;
 using Newtonsoft.Json.Linq;
+using YamlDotNet.Core;
 
 namespace Allard.Configinator
 {
@@ -58,6 +61,14 @@ namespace Allard.Configinator
         {
             Debug.Assert(source != null);
             Debug.Assert(target != null);
+
+            // if the source is null,
+            // then delete if from the target.
+            if (source.Type == JTokenType.Null)
+            {
+                target.Parent?.Remove();
+                return;
+            }
 
             if (source.Type != target.Type)
             {

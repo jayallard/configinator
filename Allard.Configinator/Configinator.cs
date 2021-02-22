@@ -144,6 +144,7 @@ namespace Allard.Configinator
             await Task.WhenAll(baseValues).ConfigureAwait(false);
             await value;
 
+            // todo: base can't have null values. no point inheriting if it doesn't exist.
             var all = baseValues
                 .Where(b => b.Result?.Value != null)
                 .Select(b => b.Result.Value).ToList();
