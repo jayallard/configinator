@@ -5,16 +5,16 @@
   "inherit-all/my-type":
     "properties":
       "a":
-        "type" : "primitive-types/string"
+        "type" : "string"
       "b":
-        "type" : "primitive-types/string"
+        "type" : "string"
       "c":
-        "type" : "primitive-types/string"
+        "type" : "string"
   "inherit-all/inherit":
     "properties":
       "a":
-        "type" : "primitive-types/string"
+        "type" : "string"
       "b":
-        "type" : "primitive-types/string"
+        "type" : "string"
       "c":
-        "type" : "primitive-types/string"
+        "type" : "string"

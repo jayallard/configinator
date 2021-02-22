@@ -66,10 +66,6 @@ namespace Allard.Configinator.Schema
         /// <returns></returns>
         private static SchemaTypeId NormalizeTypeId(string relativeSchemaId, string typeId)
         {
-            if (!typeId.Contains("/"))
-                // if a schema isn't specified (no / in the id),
-                // then set it to primitive-types
-                return new SchemaTypeId("primitive-types/" + typeId);
 
 
             return typeId.StartsWith("./")

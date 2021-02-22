@@ -35,12 +35,21 @@ namespace Allard.Configinator.Schema
             fullId = string.IsNullOrWhiteSpace(fullId)
                 ? throw new ArgumentNullException(nameof(fullId))
                 : fullId;
+
+            if (!fullId.Contains("/"))
+            {
+                NameSpace = string.Empty;
+                TypeId = fullId;
+                FullId = fullId;
+                IsPrimitive = true;
+                return;
+            }
             
             var parts = fullId.Split('/');
             NameSpace = parts[0];
             TypeId = parts[1];
             FullId = fullId;
-            IsPrimitive = NameSpace == "primitive-types";
+            IsPrimitive = false;
         }
 
         public bool IsPrimitive { get; }

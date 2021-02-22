@@ -3,7 +3,7 @@
 "types":
   "demo1":
     "properties":
-      "user-id": "primitive-types/string"
-      "password": "primitive-types/string"
-      "url": "primitive-types/string"
+      "user-id": "string"
+      "password": "string"
+      "url": "string"
     "secrets": ["user-id", "password"]

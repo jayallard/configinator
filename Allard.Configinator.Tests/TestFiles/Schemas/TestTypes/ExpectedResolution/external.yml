@@ -4,36 +4,36 @@
   "external/kafka":
     "properties":
       "bootstrap-servers":
-        "type": "primitive-types/string"
+        "type": "string"
   "external/kafka-ssl":
     "properties":
       "bootstrap-servers":
-        "type": "primitive-types/string"
+        "type": "string"
       "something": 
-        "type": "primitive-types/string"
+        "type": "string"
       "something-secret":
-        "type": "primitive-types/string"
+        "type": "string"
         "is-secret": true        
   "external/mssql":
     "properties":
       "user-id": 
-        "type": "primitive-types/string"
+        "type": "string"
         "is-secret": true
       "password":
-        "type": "primitive-types/string"
+        "type": "string"
         "is-secret": true
       "host":
-        "type": "primitive-types/string"
+        "type": "string"
     "other-kafka":
       "type": "external/kafka-ssl"
       "properties":
         # from kafka
         "bootstrap-servers":
-          "type": "primitive-types/string"
+          "type": "string"
         # from kafka-ssl
         "something":
-          "type": "primitive-types/string"
+          "type": "string"
         "something-secret":
-          "type": "primitive-types/string"
+          "type": "string"
           "is-secret": true
               

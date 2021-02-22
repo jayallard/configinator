@@ -15,7 +15,7 @@ namespace Allard.Configinator.Tests.Unit.Schema
     // in fact, i think the file could be deleted and nothing 
     // would notice. that'll need to be fixed for parameterized
     // validations. the expected type in the tests will probably
-    // change from primitive-types/string to $$string
+    // change from string to string
     public class Tests
     {
         private readonly ITestOutputHelper testOutputHelper;

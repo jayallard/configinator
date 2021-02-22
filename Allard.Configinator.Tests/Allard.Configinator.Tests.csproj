@@ -34,13 +34,5 @@
         <Content Include="JsonMergeFiles\**\*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <Content Include="TestFiles\Schemas\invalid-secret-name.yml" />
-        <Content Include="TestFiles\Schemas\primitive-types.yml" />
-        <Content Include="TestFiles\Schemas\TestTypes\ExpectedResolution\exhaustive.yml" />
-        <Content Include="TestFiles\Schemas\TestTypes\ExpectedResolution\external.yml" />
-        <Content Include="TestFiles\Schemas\TestTypes\ExpectedResolution\inherit-all.yml" />
-        <Content Include="TestFiles\Schemas\TestTypes\Types\exhaustive.yml" />
-        <Content Include="TestFiles\Schemas\TestTypes\Types\external.yml" />
-        <Content Include="TestFiles\Schemas\TestTypes\Types\inherit-all.yml" />
     </ItemGroup>
 </Project>

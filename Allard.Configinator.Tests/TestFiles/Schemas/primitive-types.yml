@@ -1,6 +1,0 @@
----
-"namespace": "primitive-types"
-"types":
-  "string":
-    "properties":
-      "value": "$$string"
