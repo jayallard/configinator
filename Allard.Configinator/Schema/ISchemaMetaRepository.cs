@@ -5,12 +5,12 @@ using YamlDotNet.RepresentationModel;
 namespace Allard.Configinator.Schema
 {
     /// <summary>
-    /// Manage the storage of schema metadata.
+    ///     Manage the storage of schema metadata.
     /// </summary>
     public interface ISchemaMetaRepository
     {
         /// <summary>
-        /// Retrieve the raw yaml of a schema.
+        ///     Retrieve the raw yaml of a schema.
         /// </summary>
         /// <param name="nameSpace"></param>
         /// <returns></returns>

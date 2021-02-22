@@ -5,6 +5,6 @@ namespace Allard.Configinator.Configuration
 {
     public interface INamespaceRepository
     {
-      public Task<IEnumerable<NamespaceDto>> GetNamespaces(); 
-    } 
+        public Task<IEnumerable<NamespaceDto>> GetNamespaces();
+    }
 }

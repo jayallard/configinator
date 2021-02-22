@@ -20,8 +20,8 @@ namespace Allard.Configinator.Tests.Unit
         }
 
         /// <summary>
-        /// If there's only one document, then there's nothing
-        /// to merge. so, it returns the only doc it received..
+        ///     If there's only one document, then there's nothing
+        ///     to merge. so, it returns the only doc it received..
         /// </summary>
         [Fact]
         public void OneDocumentReturnsItself()
@@ -61,7 +61,7 @@ namespace Allard.Configinator.Tests.Unit
             obj["hello"].Value<string>().Should().Be("world");
             obj["a"].Value<string>().Should().Be("b");
         }
-        
+
         private static JToken MergeFromStrings(params string[] json)
         {
             return new JsonMerger(json.Select(j => JToken.Parse(j))).Merge();
@@ -75,10 +75,7 @@ namespace Allard.Configinator.Tests.Unit
             testOutputHelper.WriteLine(tests.Count().ToString());
 
             var merged = new JsonMerger(testData.Input).Merge();
-            if (JToken.DeepEquals(merged, testData.ExpectedOutput))
-            {
-                return;
-            }
+            if (JToken.DeepEquals(merged, testData.ExpectedOutput)) return;
 
             testOutputHelper.WriteLine("expected ---------");
             testOutputHelper.WriteLine(testData.ExpectedOutput.ToString());
@@ -121,7 +118,7 @@ namespace Allard.Configinator.Tests.Unit
                 .Select(test => new[] {test});
         }
     }
-    
+
     [DebuggerDisplay("{TestName}")]
     public record MergeData(string TestName, List<JObject> Input, JObject ExpectedOutput);
 }

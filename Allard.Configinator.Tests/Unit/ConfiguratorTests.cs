@@ -1,8 +1,6 @@
 using System;
-using System.Formats.Asn1;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Allard.Configinator.Configuration;
 using Allard.Configinator.Schema;
@@ -13,11 +11,11 @@ using Xunit.Abstractions;
 
 namespace Allard.Configinator.Tests.Unit
 {
-    public class ProtoTests
+    public class ConfiguratorTests
     {
         private readonly ITestOutputHelper testOutputHelper;
 
-        public ProtoTests(ITestOutputHelper testOutputHelper)
+        public ConfiguratorTests(ITestOutputHelper testOutputHelper)
         {
             this.testOutputHelper = testOutputHelper;
         }
@@ -100,10 +98,7 @@ namespace Allard.Configinator.Tests.Unit
             testOutputHelper.WriteLine("--------------------------------------------------------");
             testOutputHelper.WriteLine("Habitats:");
             var habitats = (await configinator.GetHabitats()).ToList();
-            foreach (var space in habitats)
-            {
-                testOutputHelper.WriteLine("\t" + space.Name);
-            }
+            foreach (var space in habitats) testOutputHelper.WriteLine("\t" + space.Name);
 
             // -----------------------------------------
             // get/set config

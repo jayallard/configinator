@@ -13,32 +13,40 @@ using YamlDotNet.RepresentationModel;
 namespace Allard.Configinator.Schema
 {
     /// <summary>
-    /// Converts Yaml to a 
+    ///     Converts Yaml to a
     /// </summary>
     public class SchemaParser
     {
         /// <summary>
-        /// Stores the YAML per schema id.
+        ///     The node names that are valid within a type node
+        ///     "types":
+        ///     "my-type":
+        ///     these nodes
         /// </summary>
-        private readonly ConcurrentDictionary<string, YamlMappingNode> sourceYaml = new();
+        private readonly HashSet<string> allowedTypeNodeName = new(new[] {"$base", "properties", "secrets"});
 
         /// <summary>
-        /// Stores the schema types per type id.
-        /// </summary>
-        private readonly ConcurrentDictionary<SchemaTypeId, ObjectSchemaType> schemaTypes = new();
-
-        /// <summary>
-        /// Retrieves the Yaml.
+        ///     Retrieves the Yaml.
         /// </summary>
         private readonly ISchemaMetaRepository metaRepository;
 
         /// <summary>
-        /// Converts YamlProperties to property objects.
+        ///     Converts YamlProperties to property objects.
         /// </summary>
         private readonly PropertyParser propertyParser;
 
         /// <summary>
-        /// Initializes an instance of the SchemaParser class.
+        ///     Stores the schema types per type id.
+        /// </summary>
+        private readonly ConcurrentDictionary<SchemaTypeId, ObjectSchemaType> schemaTypes = new();
+
+        /// <summary>
+        ///     Stores the YAML per schema id.
+        /// </summary>
+        private readonly ConcurrentDictionary<string, YamlMappingNode> sourceYaml = new();
+
+        /// <summary>
+        ///     Initializes an instance of the SchemaParser class.
         /// </summary>
         /// <param name="metaRepository"></param>
         public SchemaParser(ISchemaMetaRepository metaRepository)
@@ -46,20 +54,12 @@ namespace Allard.Configinator.Schema
             this.metaRepository = metaRepository ?? throw new ArgumentNullException(nameof(metaRepository));
             propertyParser = new PropertyParser(this);
         }
-        
-        /// <summary>
-        /// The node names that are valid within a type node
-        /// "types":
-        ///     "my-type":
-        ///         these nodes
-        /// </summary>
-        private readonly HashSet<string> allowedTypeNodeName = new(new[] {"$base", "properties", "secrets"});
 
         /// <summary>
-        /// Converts a type id to a standard format.
-        /// If the id is "./type", it is converted to "relativeSchemaId/type".
-        /// If the id starts with "/x", it is converted to "primitive-types/x",
-        /// where x can be any primitive type.
+        ///     Converts a type id to a standard format.
+        ///     If the id is "./type", it is converted to "relativeSchemaId/type".
+        ///     If the id starts with "/x", it is converted to "primitive-types/x",
+        ///     where x can be any primitive type.
         /// </summary>
         /// <param name="relativeSchemaId"></param>
         /// <param name="typeId"></param>
@@ -67,38 +67,34 @@ namespace Allard.Configinator.Schema
         private static SchemaTypeId NormalizeTypeId(string relativeSchemaId, string typeId)
         {
             if (!typeId.Contains("/"))
-            {
                 // if a schema isn't specified (no / in the id),
                 // then set it to primitive-types
                 return new SchemaTypeId("primitive-types/" + typeId);
-            }
 
-            if (typeId.StartsWith("./"))
-            {
+
+            return typeId.StartsWith("./")
                 // if references this schema, then change the ./ to this schema id.
                 // IE:  "./typeId" becomes "currentSchemaId/typeId"
-                return new SchemaTypeId(relativeSchemaId + "/" + typeId.Substring(2));
-            }
-
-            return new SchemaTypeId(typeId);
+                ? new SchemaTypeId(relativeSchemaId + "/" + typeId.Substring(2))
+                : new SchemaTypeId(typeId);
         }
 
         public async Task<ObjectSchemaType> GetSchemaType(string typeId)
         {
+            typeId = string.IsNullOrWhiteSpace(typeId)
+                ? throw new ArgumentNullException(typeId)
+                : typeId;
             return await GetSchemaType(new SchemaTypeId(typeId));
         }
-        
+
         /// <summary>
-        /// Returns the schema type of the given id.
+        ///     Returns the schema type of the given id.
         /// </summary>
         /// <param name="typeId">The id of the schema type to return.</param>
         /// <returns></returns>
         private async Task<ObjectSchemaType> GetSchemaType(SchemaTypeId typeId)
         {
-            if (schemaTypes.ContainsKey(typeId))
-            {
-                return schemaTypes[typeId];
-            }
+            if (schemaTypes.ContainsKey(typeId)) return schemaTypes[typeId];
 
             var type = await BuildType(typeId);
             schemaTypes[typeId] = type;
@@ -106,7 +102,7 @@ namespace Allard.Configinator.Schema
         }
 
         /// <summary>
-        /// Build a schema type from yaml.
+        ///     Build a schema type from yaml.
         /// </summary>
         /// <param name="schemaTypeId"></param>
         /// <returns></returns>
@@ -114,61 +110,83 @@ namespace Allard.Configinator.Schema
         {
             var sourceSchema = await GetYaml(schemaTypeId.NameSpace);
             var typesYaml = (YamlMappingNode) sourceSchema["types"];
-            var typeYaml = typesYaml.Single(t => (string) t.Key == schemaTypeId.TypeId);
-            EnsureValuesAreValid("TYPE node has invalid children.", typeYaml.Value.ChildNames(), allowedTypeNodeName);
+            var (_, value) = typesYaml.Single(t => (string) t.Key == schemaTypeId.TypeId);
+            EnsureValuesAreValid("TYPE node has invalid children.", value.ChildNames(), allowedTypeNodeName);
             var props = new List<Property>();
 
             // from the local type
-            props.AddRange(await propertyParser.GetProperties(schemaTypeId.NameSpace, (YamlMappingNode) typeYaml.Value));
+            props.AddRange(
+                await propertyParser.GetProperties(schemaTypeId.NameSpace, (YamlMappingNode) value));
             return new ObjectSchemaType(schemaTypeId, props.AsReadOnly());
         }
 
         /// <summary>
-        /// Get the Yaml for the schema.
+        ///     Get the Yaml for the schema.
         /// </summary>
         /// <param name="schemaId"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
         private async Task<YamlMappingNode> GetYaml(string schemaId)
         {
-            if (sourceYaml.ContainsKey(schemaId))
-            {
-                return sourceYaml[schemaId];
-            }
+            if (sourceYaml.ContainsKey(schemaId)) return sourceYaml[schemaId];
 
             var source = await metaRepository.GetSchemaYaml(schemaId);
 
             // make sure the id from the source matches the requested id.
             var nameSpace = (string) source["namespace"];
             if (schemaId != nameSpace)
-            {
-                throw new InvalidOperationException($"Namespace mismatch. Namespace={schemaId}, Namespace in File={nameSpace}");
-            }
+                throw new InvalidOperationException(
+                    $"Namespace mismatch. Namespace={schemaId}, Namespace in File={nameSpace}");
 
             sourceYaml[schemaId] = source;
             return sourceYaml[schemaId];
         }
 
         /// <summary>
-        /// The properties of a type.
+        ///     Given 2 sets, make sure all items in the first set
+        ///     exist in the second set.
+        ///     IE: set 1 is a,b,c,d
+        ///     set 2 is a,b,c
+        ///     An exception will be thrown because "d" doesn't
+        ///     exist in the second set.
+        /// </summary>
+        /// <param name="errorMessage"></param>
+        /// <param name="existingNames"></param>
+        /// <param name="allowedNames"></param>
+        /// <exception cref="InvalidOperationException"></exception>
+        private static void EnsureValuesAreValid(string errorMessage,
+            IReadOnlySet<string> existingNames,
+            IReadOnlySet<string> allowedNames)
+        {
+            var bad = existingNames.Except(allowedNames).ToList();
+            if (bad.Count == 0) return;
+
+            var invalidNames = string.Join(", ", bad);
+            var validNames = string.Join(", ", allowedNames);
+            var message = errorMessage + "\nInvalid: " + invalidNames + "\nValid: " + validNames;
+            throw new InvalidOperationException(message);
+        }
+
+        /// <summary>
+        ///     The properties of a type.
         /// </summary>
         [DebuggerDisplay("{SchemaTypeId}")]
         public record ObjectSchemaType(SchemaTypeId SchemaTypeId, ReadOnlyCollection<Property> Properties);
-        
+
         /// <summary>
-        /// Parses properties for paths and for types.
-        /// It collects properties from base type
-        /// and reference types, etc. The whole gambit.
+        ///     Parses properties for paths and for types.
+        ///     It collects properties from base type
+        ///     and reference types, etc. The whole gambit.
         /// </summary>
         private class PropertyParser
         {
             /// <summary>
-            /// Used to retrieve other types.
+            ///     Used to retrieve other types.
             /// </summary>
             private readonly SchemaParser schemaParser;
 
             /// <summary>
-            /// Initializes a new instance of the PropertyParser class.
+            ///     Initializes a new instance of the PropertyParser class.
             /// </summary>
             /// <param name="schemaParser"></param>
             public PropertyParser(SchemaParser schemaParser)
@@ -186,10 +204,7 @@ namespace Allard.Configinator.Schema
                 var baseTypeName =
                     parentYaml.AsString("$base") // types can have bases.
                     ?? parentYaml.AsString();
-                if (baseTypeName == null)
-                {
-                    return new List<Property>();
-                }
+                if (baseTypeName == null) return new List<Property>();
 
                 var id = NormalizeTypeId(schemaId, baseTypeName);
                 var baseType = await schemaParser.GetSchemaType(id);
@@ -197,12 +212,13 @@ namespace Allard.Configinator.Schema
             }
 
             /// <summary>
-            /// Gets the properties defined within the propertiesContainer.
+            ///     Gets the properties defined within the propertiesContainer.
             /// </summary>
             /// <param name="relativeSchemaId"></param>
             /// <param name="propertiesContainer"></param>
             /// <returns></returns>
-            public async Task<IEnumerable<Property>> GetProperties(string relativeSchemaId, YamlNode propertiesContainer)
+            public async Task<IEnumerable<Property>> GetProperties(string relativeSchemaId,
+                YamlNode propertiesContainer)
             {
                 var properties = new List<Property>();
 
@@ -249,34 +265,6 @@ namespace Allard.Configinator.Schema
                     properties.Select(p => p.Name).ToHashSet());
                 return properties;
             }
-        }
-
-        /// <summary>
-        /// Given 2 sets, make sure all items in the first set
-        /// exist in the second set.
-        /// IE: set 1 is a,b,c,d
-        ///     set 2 is a,b,c
-        /// An exception will be thrown because "d" doesn't
-        /// exist in the second set.
-        /// </summary>
-        /// <param name="errorMessage"></param>
-        /// <param name="existingNames"></param>
-        /// <param name="allowedNames"></param>
-        /// <exception cref="InvalidOperationException"></exception>
-        private static void EnsureValuesAreValid(string errorMessage,
-            IReadOnlySet<string> existingNames,
-            IReadOnlySet<string> allowedNames)
-        {
-            var bad = existingNames.Except(allowedNames).ToList();
-            if (bad.Count == 0)
-            {
-                return;
-            }
-
-            var invalidNames = string.Join(", ", bad);
-            var validNames = string.Join(", ", allowedNames);
-            var message = errorMessage + "\nInvalid: " + invalidNames + "\nValid: " + validNames;
-            throw new InvalidOperationException(message);
         }
     }
 }

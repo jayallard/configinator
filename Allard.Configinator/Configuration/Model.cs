@@ -8,12 +8,8 @@ namespace Allard.Configinator.Configuration
 
     public class ConfigurationSectionValue
     {
-        public Habitat Habitat { get; }
-        public ConfigurationSection ConfigurationSection { get; }
-        public string ETag { get; }
-        public string Value { get; private set; }
-
-        public ConfigurationSectionValue(Habitat habitat, ConfigurationSection configurationSection, string eTag, string value)
+        public ConfigurationSectionValue(Habitat habitat, ConfigurationSection configurationSection, string eTag,
+            string value)
         {
             Habitat = habitat ?? throw new ArgumentNullException(nameof(habitat));
             ConfigurationSection =
@@ -22,15 +18,21 @@ namespace Allard.Configinator.Configuration
             Value = value;
         }
 
+        public Habitat Habitat { get; }
+        public ConfigurationSection ConfigurationSection { get; }
+        public string ETag { get; }
+        public string Value { get; private set; }
+
         public ConfigurationSectionValue SetValue(string value)
         {
             Value = value;
             return this;
         }
-        
     }
-        
-    public record ConfigurationSection(ConfigurationSectionId Id, string Path, SchemaParser.ObjectSchemaType Type, string Description);
+
+    public record ConfigurationSection(ConfigurationSectionId Id, string Path, SchemaParser.ObjectSchemaType Type,
+        string Description);
+
     public record Habitat(string Name, string Description, IReadOnlySet<string> Bases);
 
     public record ConfigurationNamespace(string Name, IReadOnlyCollection<ConfigurationSection> ConfigurationSections);
@@ -38,8 +40,9 @@ namespace Allard.Configinator.Configuration
     public class NamespaceDto
     {
         public string Name { get; set; }
-        
+
         public List<ConfigurationSection> Sections { get; set; }
+
         public class ConfigurationSection
         {
             public string Name { get; set; }
@@ -48,5 +51,4 @@ namespace Allard.Configinator.Configuration
             public string Description { get; set; }
         }
     }
-        
 }

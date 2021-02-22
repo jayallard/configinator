@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Allard.Configinator.Schema;
@@ -10,6 +11,7 @@ namespace Allard.Configinator.Configuration
         // TODO: switch to DTO
         public static IEnumerable<Habitat> DeserializeHabitat(YamlMappingNode habitats)
         {
+            habitats = habitats ?? throw new ArgumentNullException(nameof(habitats));
             return habitats
                 .AsMap("habitats")
                 .Children
@@ -17,10 +19,8 @@ namespace Allard.Configinator.Configuration
                 {
                     var name = (string) s.Key;
                     if (s.Value is YamlScalarNode)
-                    {
                         // no children, so nothing else to do.
                         return new Habitat(name, null, new HashSet<string>());
-                    }
 
                     var node = s.Value.AsMap();
                     var description = node.AsString("description");
@@ -30,19 +30,23 @@ namespace Allard.Configinator.Configuration
         }
 
 
-        public static NamespaceDto DeserializeNamespace(YamlMappingNode namespaceNode) => new()
+        public static NamespaceDto DeserializeNamespace(YamlMappingNode namespaceNode)
         {
-            Name = namespaceNode.AsString("namespace"),
-            Sections = namespaceNode
-                .AsMap("configuration-sections")
-                .Children
-                .Select(section => new NamespaceDto.ConfigurationSection
-                {
-                    Description = section.Value.AsString("description"),
-                    Name = (string) section.Key,
-                    Type = section.Value.AsString("type"),
-                    Path = section.Value.AsString("path")
-                }).ToList()
-        };
+            namespaceNode = namespaceNode ?? throw new ArgumentNullException(nameof(namespaceNode));
+            return new()
+            {
+                Name = namespaceNode.AsString("namespace"),
+                Sections = namespaceNode
+                    .AsMap("configuration-sections")
+                    .Children
+                    .Select(section => new NamespaceDto.ConfigurationSection
+                    {
+                        Description = section.Value.AsString("description"),
+                        Name = (string) section.Key,
+                        Type = section.Value.AsString("type"),
+                        Path = section.Value.AsString("path")
+                    }).ToList()
+            };
+        }
     }
 }

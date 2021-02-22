@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using YamlDotNet.RepresentationModel;
 
@@ -9,7 +11,7 @@ namespace Allard.Configinator.Schema
     public static class ExtensionMethods
     {
         /// <summary>
-        /// Returns the value of a child node as a string.
+        ///     Returns the value of a child node as a string.
         /// </summary>
         /// <param name="node"></param>
         /// <param name="name"></param>
@@ -17,29 +19,33 @@ namespace Allard.Configinator.Schema
         /// <returns></returns>
         public static string AsString(this YamlNode node, string name, string defaultValue = null)
         {
+            node = node ?? throw new ArgumentNullException(nameof(node));
+            name = string.IsNullOrWhiteSpace(name)
+                ? throw new ArgumentNullException(nameof(node))
+                : name;
+
             if (node is YamlMappingNode map)
-            {
                 return
                     map.Children.ContainsKey(name)
                         ? (string) map[name]
                         : defaultValue;
-            }
 
             return defaultValue;
         }
 
         /// <summary>
-        /// Returns the node as a boolean.
+        ///     Returns the node as a boolean.
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
         public static bool AsBoolean(this YamlNode node)
         {
+            node = node ?? throw new ArgumentNullException(nameof(node));
             return bool.Parse((string) node);
         }
 
         /// <summary>
-        /// Returns a child node.
+        ///     Returns a child node.
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="childName"></param>
@@ -50,7 +56,7 @@ namespace Allard.Configinator.Schema
         }
 
         /// <summary>
-        /// Returns a child node as a boolean.
+        ///     Returns a child node as a boolean.
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="childName"></param>
@@ -59,32 +65,33 @@ namespace Allard.Configinator.Schema
         public static bool AsBoolean(this YamlNode parent, string childName, bool defaultValue = false)
         {
             if (parent is YamlMappingNode map)
-            {
                 return
                     map.Children.ContainsKey(childName)
                         ? map.Child(childName).AsBoolean()
                         : defaultValue;
-            }
 
             return defaultValue;
         }
 
         /// <summary>
-        /// Returns a child node as a YamlMappingNode.
-        /// If the child doesn't exist, returns an empty YamlMappingNode.
+        ///     Returns a child node as a YamlMappingNode.
+        ///     If the child doesn't exist, returns an empty YamlMappingNode.
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="childName"></param>
         /// <returns></returns>
         public static YamlMappingNode AsMap(this YamlNode parent, string childName)
         {
+            parent = parent ?? throw new ArgumentNullException(nameof(parent));
+            childName = string.IsNullOrWhiteSpace(childName)
+                ? throw new ArgumentNullException(nameof(childName))
+                : childName;
+            
             if (parent is YamlMappingNode map)
-            {
                 return
                     map.Children.ContainsKey(childName)
                         ? (YamlMappingNode) map.Child(childName)
                         : new YamlMappingNode();
-            }
 
             return new YamlMappingNode();
         }
@@ -95,95 +102,67 @@ namespace Allard.Configinator.Schema
         }
 
         /// <summary>
-        /// Returns a set of the name of the children of the node.
-        /// If the node is not a YamlMappingNode, it returns an empty set.
+        ///     Returns a set of the name of the children of the node.
+        ///     If the node is not a YamlMappingNode, it returns an empty set.
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
         public static IReadOnlySet<string> ChildNames(this YamlNode node)
         {
-            if (node is YamlMappingNode mapping)
-            {
-                return mapping.Children.Select(p => (string) p.Key).ToHashSet();
-            }
-
+            node = node ?? throw new ArgumentNullException(nameof(node));
+            if (node is YamlMappingNode mapping) return mapping.Children.Select(p => (string) p.Key).ToHashSet();
             return new HashSet<string>();
         }
 
         /// <summary>
-        /// Returns the node as a string value.
-        /// If the node is not a YamlScalarNode, it returns null.
+        ///     Returns the node as a string value.
+        ///     If the node is not a YamlScalarNode, it returns null.
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
         public static string AsString(this YamlNode node)
         {
-            if (node is YamlScalarNode scalarNode)
-            {
-                return (string) scalarNode;
-            }
-
+            node = node ?? throw new ArgumentNullException(nameof(node));
+            if (node is YamlScalarNode scalarNode) return (string) scalarNode;
             return null;
         }
-        
 
         /// <summary>
-        /// Returns child nodes as a set of strings.
-        /// If the node isn't a YamlMappingNode, it returns
-        /// an empty set. If it is a YamlMappingNode, then
-        /// the value must be a list of strings, or it will
-        /// throw an exception when parsing.
+        ///     Returns child nodes as a set of strings.
+        ///     If the node isn't a YamlMappingNode, it returns
+        ///     an empty set. If it is a YamlMappingNode, then
+        ///     the value must be a list of strings, or it will
+        ///     throw an exception when parsing.
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="childName"></param>
         /// <returns></returns>
         public static HashSet<string> AsStringHashSet(this YamlNode parent, string childName)
         {
+            parent = parent ?? throw new ArgumentNullException(nameof(parent));
+            childName = string.IsNullOrWhiteSpace(childName)
+                ? throw new ArgumentNullException(nameof(childName))
+                : childName;
             if (parent is YamlMappingNode map)
-            {
                 return
                     map.Children.ContainsKey(childName)
                         ? ((YamlSequenceNode) map[childName]).Select(i => (string) i).ToHashSet()
                         : new HashSet<string>();
-            }
 
             return new HashSet<string>();
         }
 
-        /*
         /// <summary>
-        /// Converts a schema to sample json documents.
-        /// </summary>
-        /// <param name="schema"></param>
-        /// <returns></returns>
-        public static IEnumerable<JsonDocument> ToSampleJson(this ConfigurationSchema schema)
-        {
-            return schema
-                .Paths
-                .Select(p =>
-                {
-                    var options = new JsonWriterOptions {Indented = true};
-                    using var stream = new MemoryStream();
-                    using var jsonWriter = new Utf8JsonWriter(stream, options);
-                    jsonWriter.WriteStartObject();
-                    WriteProperties(jsonWriter, p.Properties);
-                    jsonWriter.WriteEndObject();
-                    jsonWriter.Flush();
-                    var json = Encoding.UTF8.GetString(stream.ToArray());
-                    return JsonDocument.Parse(json);
-                });
-        }*/
-
-        /// <summary>
-        /// Emit a collection of properties to a json writer.
+        ///     Emit a collection of properties to a json writer.
         /// </summary>
         /// <param name="writer"></param>
         /// <param name="properties"></param>
         /// <exception cref="InvalidOperationException"></exception>
         private static void WriteProperties(Utf8JsonWriter writer, IEnumerable<Property> properties)
         {
+            writer = writer ?? throw new ArgumentNullException(nameof(writer));
+            properties = properties ?? throw new ArgumentNullException(nameof(properties));
             foreach (var property in properties)
-            {
                 switch (property)
                 {
                     case PropertyPrimitive prim:
@@ -198,7 +177,6 @@ namespace Allard.Configinator.Schema
                     default:
                         throw new InvalidOperationException("Unknown property type");
                 }
-            }
         }
     }
 }

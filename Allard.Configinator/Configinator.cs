@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 using Allard.Configinator.Configuration;
@@ -12,20 +11,22 @@ namespace Allard.Configinator
 {
     public class Configinator
     {
-        private readonly SchemaParser parser;
-
         /// <summary>
-        /// Work with the storage of configuration values.
+        ///     Work with the storage of configuration values.
         /// </summary>
         private readonly IConfigStore configStore;
 
         /// <summary>
-        /// Works with the storage of space configuration info.
+        ///     Habit configuration store.
         /// </summary>
         private readonly IHabitatRepository habitatRepository;
 
-        private readonly ISchemaMetaRepository schemaMetaRepository;
+        /// <summary>
+        ///     Namespace configuration store.
+        /// </summary>
         private readonly INamespaceRepository namespaceRepository;
+
+        private readonly SchemaParser parser;
         private ConcurrentDictionary<string, Habitat> habitats;
         private ConcurrentDictionary<string, ConfigurationNamespace> namespaces;
 
@@ -45,10 +46,7 @@ namespace Allard.Configinator
 
         private async Task LoadHabitats()
         {
-            if (habitats != null)
-            {
-                return;
-            }
+            if (habitats != null) return;
 
             var spaceMap = (await habitatRepository.GetHabitats())
                 .ToDictionary(s => s.Name);
@@ -63,16 +61,16 @@ namespace Allard.Configinator
 
         public async Task<Habitat> GetHabitatAsync(string habitatName)
         {
+            habitatName = string.IsNullOrWhiteSpace(habitatName)
+                ? throw new ArgumentNullException(nameof(habitatName))
+                : habitatName;
             await LoadHabitats();
             return habitats[habitatName];
         }
 
         private async Task LoadNamespaces()
         {
-            if (namespaces != null)
-            {
-                return;
-            }
+            if (namespaces != null) return;
 
             var x = await namespaceRepository.GetNamespaces();
             var nsTasks = x
@@ -87,6 +85,7 @@ namespace Allard.Configinator
 
         private async Task<ConfigurationNamespace> ToNamespace(NamespaceDto ns)
         {
+            ns = ns ?? throw new ArgumentNullException(nameof(ns));
             var sectionTasks = ns
                 .Sections
                 .Select(async s =>
@@ -105,7 +104,6 @@ namespace Allard.Configinator
             return new ConfigurationNamespace(ns.Name, sections);
         }
 
-
         public async Task<IEnumerable<ConfigurationNamespace>> GetNamespaces()
         {
             await LoadNamespaces();
@@ -114,20 +112,33 @@ namespace Allard.Configinator
 
         public async Task<ConfigurationNamespace> GetNamespaceAsync(string nameSpace)
         {
+            nameSpace = string.IsNullOrWhiteSpace(nameSpace)
+                ? throw new ArgumentNullException(nameof(nameSpace))
+                : nameSpace;
             await LoadNamespaces();
             return namespaces[nameSpace];
         }
 
         public async Task SetValueAsync(ConfigurationSectionValue value)
         {
+            value = value ?? throw new ArgumentNullException(nameof(value));
             // TODO: validate habitat and config section are valid.
-
             await configStore.SetValueAsync(value);
         }
 
-        public async Task<ConfigurationSectionValue> GetValueAsync(string habitat, string nameSpace,
+        public async Task<ConfigurationSectionValue> GetValueAsync(
+            string habitat,
+            string nameSpace,
             string configSection)
         {
+            habitat = string.IsNullOrWhiteSpace(habitat) ? throw new ArgumentNullException(nameof(habitat)) : habitat;
+            nameSpace = string.IsNullOrWhiteSpace(nameSpace)
+                ? throw new ArgumentNullException(nameof(nameSpace))
+                : nameSpace;
+            configSection = string.IsNullOrWhiteSpace(configSection)
+                ? throw new ArgumentNullException(nameof(configSection))
+                : configSection;
+
             // todo: prevent circular references
             var h = await GetHabitatAsync(habitat);
             var ns = await GetNamespaceAsync(nameSpace);
@@ -136,7 +147,7 @@ namespace Allard.Configinator
             // get the base values
             var baseValues = h
                 .Bases
-                .Select(async h => { return await GetValueAsync(h, nameSpace, configSection); })
+                .Select(async hab => await GetValueAsync(hab, nameSpace, configSection))
                 .ToList();
 
             // get the requested value
@@ -148,10 +159,7 @@ namespace Allard.Configinator
             var all = baseValues
                 .Where(b => b.Result?.Value != null)
                 .Select(b => b.Result.Value).ToList();
-            if (value.Result?.Value != null)
-            {
-                all.Add(value.Result.Value);
-            }
+            if (value.Result?.Value != null) all.Add(value.Result.Value);
 
             all.Reverse();
 

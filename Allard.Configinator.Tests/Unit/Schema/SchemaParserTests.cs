@@ -26,19 +26,16 @@ namespace Allard.Configinator.Tests.Unit.Schema
         }
 
         /// <summary>
-        /// Schemas/TestTypes/Types contains a bunch of Schema Types.
-        /// Schemas/TestTypes/ExpectedResolution contains yml files that
-        /// describe how each of the types in /Types should resolve.
-        ///
-        /// This test iterates the types files and parses them.
-        /// It compares the results to the ExpectedResolution files.
-        ///
-        /// This is an easy way to test the parsing without writing
-        /// a million asserts per file.
-        ///
-        /// IE:
-        /// Actual = parse(Types/x.yml)
-        /// Expected = ExpectedResolution/xyml
+        ///     Schemas/TestTypes/Types contains a bunch of Schema Types.
+        ///     Schemas/TestTypes/ExpectedResolution contains yml files that
+        ///     describe how each of the types in /Types should resolve.
+        ///     This test iterates the types files and parses them.
+        ///     It compares the results to the ExpectedResolution files.
+        ///     This is an easy way to test the parsing without writing
+        ///     a million asserts per file.
+        ///     IE:
+        ///     Actual = parse(Types/x.yml)
+        ///     Expected = ExpectedResolution/xyml
         /// </summary>
         /// <param name="namespaceName"></param>
         /// <returns></returns>
@@ -81,7 +78,8 @@ namespace Allard.Configinator.Tests.Unit.Schema
                 (await YamlUtility.GetYamlFromFile("TestFiles", "Schemas", "TestTypes", "ExpectedResolution",
                     nameSpace + ".yml"))
                 .Single().RootNode;
-            var typesFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFiles", "Schemas", "TestTypes", "Types");
+            var typesFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFiles", "Schemas", "TestTypes",
+                "Types");
             var parser = new SchemaParser(new FileSchemaMetaRepository(typesFolder));
             var expectedTypes = expectedDoc.AsMap("types");
             foreach (var expectedType in expectedTypes)

@@ -28,7 +28,7 @@ namespace Allard.Configinator.Configuration
 
         public Task<Habitat> GetSpace(string name)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 }
