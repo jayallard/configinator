@@ -43,7 +43,4 @@
         <Content Include="TestFiles\Schemas\TestTypes\Types\external.yml" />
         <Content Include="TestFiles\Schemas\TestTypes\Types\inherit-all.yml" />
     </ItemGroup>
-    <ItemGroup>
-      <Folder Include="TestFiles" />
-    </ItemGroup>
 </Project>
