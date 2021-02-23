@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Net.NetworkInformation;
 using System.Text.Json;
 using Allard.Configinator.Schema.Validator;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Allard.Configinator.Schema
 {
@@ -15,16 +18,17 @@ namespace Allard.Configinator.Schema
             this.validatorFactory = validatorFactory ?? throw new ArgumentNullException(nameof(validatorFactory));
         }
 
-        public List<TypeValidationError> Validate(JsonToken document, SchemaParser.ObjectSchemaType type)
+        public List<TypeValidationError> Validate(JToken document, SchemaParser.ObjectSchemaType type)
         {
             // TODO: object validations that have access to the properties. start with primitives only.
             type = type ?? throw new ArgumentNullException(nameof(type));
             var validationErrors = new List<TypeValidationError>();
 
             ValidateObject(validationErrors, document, type);
+            return validationErrors;
         }
 
-        private void ValidateObject(List<TypeValidationError> errors, JsonToken obj, SchemaParser.ObjectSchemaType type)
+        private void ValidateObject(List<TypeValidationError> errors, JToken obj, SchemaParser.ObjectSchemaType type)
         {
             foreach (var p in type.Properties)
             {
@@ -33,7 +37,13 @@ namespace Allard.Configinator.Schema
                     case PropertyPrimitive prim:
                     {
                         var validator = validatorFactory.GetValidator(type.SchemaTypeId);
-                        var value = 
+                        var jsonProperty = ((JProperty) obj)[p.Name];
+                        if (jsonProperty == null)
+                        {
+                            errors.Add(new TypeValidationError("none", p.Name, "property does not exit"));
+                            continue;
+                        }
+
                         continue;
                     }
                     case PropertyGroup group:
@@ -44,11 +54,10 @@ namespace Allard.Configinator.Schema
             }
         }
 
-        private IEnumerable<TypeValidationError> ValidateProperties(List<TypeValidationError> errors, JsonToken json, Property p)
+        private IEnumerable<TypeValidationError> ValidateProperties(List<TypeValidationError> errors, JsonToken json,
+            Property p)
         {
-            
-        } 
-        
-        
+            return new List<TypeValidationError>();
+        }
     }
 }
