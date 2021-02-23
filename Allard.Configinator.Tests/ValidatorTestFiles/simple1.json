@@ -1,0 +1,11 @@
+{
+  "type": "test-schemas/simple",
+  "description": "schema requires Prop1, Prop2, Prop3. We're not providing prop1.",
+  "test-value": {
+    "Prop2": "b",
+    "Prop3": "c"
+  },
+  "expected-failures":[
+    "Core, /@Prop1, Required property doesn't exist: Prop1"
+  ]
+}

@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Net.NetworkInformation;
-using System.Text.Json;
-using Allard.Configinator.Schema.Validator;
+using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using YamlDotNet.Core.Tokens;
 
-namespace Allard.Configinator.Schema
+namespace Allard.Configinator.Schema.Validator
 {
     public class SchemaValidator
     {
@@ -24,25 +22,45 @@ namespace Allard.Configinator.Schema
             type = type ?? throw new ArgumentNullException(nameof(type));
             var validationErrors = new List<TypeValidationError>();
 
-            ValidateObject(validationErrors, document, type);
+            ValidateObject(validationErrors, document, type, "/");
             return validationErrors;
         }
 
-        private void ValidateObject(List<TypeValidationError> errors, JToken obj, SchemaParser.ObjectSchemaType type)
+        private void ValidateObject(
+            List<TypeValidationError> errors, 
+            JToken token, 
+            SchemaParser.ObjectSchemaType type,
+            string path)
         {
+            if (token is not JObject obj)
+            {
+                errors.AddCoreError(path, "Token should be " + JTokenType.Object + ", but is: " + token.Type);
+                return;
+            }
+            
+            // todo: properties in json that aren't in type
             foreach (var p in type.Properties)
             {
                 switch (p)
                 {
                     case PropertyPrimitive prim:
                     {
-                        var validator = validatorFactory.GetValidator(type.SchemaTypeId);
-                        var jsonProperty = ((JProperty) obj)[p.Name];
-                        if (jsonProperty == null)
+                        path = path + (path.Length == 1 ? "@" : "/@") + p.Name;
+                        
+                        // make sure the property exists.
+                        if (!obj.ContainsKey(p.Name))
                         {
-                            errors.Add(new TypeValidationError("none", p.Name, "property does not exit"));
+                            errors.AddCoreError(path, "Required property doesn't exist: " + p.Name);
                             continue;
                         }
+                        
+                        var validator = validatorFactory.GetValidator(type.SchemaTypeId);
+                        
+                        // if (jsonProperty == null)
+                        // {
+                        //     errors.Add(new TypeValidationError("none", p.Name, "property does not exit"));
+                        //     continue;
+                        // }
 
                         continue;
                     }

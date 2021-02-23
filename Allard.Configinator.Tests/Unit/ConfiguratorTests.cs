@@ -5,9 +5,11 @@ using System.Threading.Tasks;
 using Allard.Configinator.Configuration;
 using Allard.Configinator.Schema;
 using FluentAssertions;
+using FluentAssertions.Xml;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
+using YamlDotNet.RepresentationModel;
 
 namespace Allard.Configinator.Tests.Unit
 {

@@ -1,0 +1,9 @@
+---
+"namespace": "test-schemas"
+"types":
+    "simple":
+      "properties":
+        "Prop1": "string"
+        "Prop2": "string"
+        "Prop3": "string"
+          
