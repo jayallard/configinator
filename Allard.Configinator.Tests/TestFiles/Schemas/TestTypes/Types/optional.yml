@@ -1,0 +1,13 @@
+---
+"namespace": "optional"
+"types":
+  "my-type":
+    "properties":
+      "a": 
+        "type": "string"
+        "is-optional": true
+      "b": "string"
+      "c": "string"
+    "optional": ["b"]
+
+    

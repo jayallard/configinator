@@ -23,7 +23,8 @@ namespace Allard.Configinator.Schema
         ///     "my-type":
         ///     these nodes
         /// </summary>
-        private readonly HashSet<string> allowedTypeNodeName = new(new[] {"$base", "properties", "secrets"});
+        private readonly HashSet<string>
+            allowedTypeNodeName = new(new[] {"$base", "properties", "secrets", "optional"});
 
         /// <summary>
         ///     Retrieves the Yaml.
@@ -220,7 +221,10 @@ namespace Allard.Configinator.Schema
                 var propertiesYaml = propertiesContainer.AsMap("properties");
 
                 // the secrets short-cut:  "secrets": ["a", "b", "c"]
-                var secrets = propertiesContainer.AsStringHashSet("secrets");
+                var secretProperties = propertiesContainer.AsStringHashSet("secrets");
+
+                // the optional short-cut: "optional": ["a", "b", "c"]
+                var optionalProperties = propertiesContainer.AsStringHashSet("optional");
 
                 // add properties from the base type.
                 properties.AddRange(await GetReferencedProperties(relativeSchemaId, propertiesContainer));
@@ -239,10 +243,11 @@ namespace Allard.Configinator.Schema
 
                     var propertyName = (string) p.Key;
                     var typeId = NormalizeTypeId(relativeSchemaId, typeIdName);
+                    var isOptional = optionalProperties.Contains(propertyName) || p.Value.AsBoolean("is-optional");
                     if (typeId.IsPrimitive)
                     {
-                        var isSecret = secrets.Contains(propertyName) || p.Value.AsBoolean("is-secret");
-                        properties.Add(new PropertyPrimitive(propertyName, typeId, isSecret));
+                        var isSecret = secretProperties.Contains(propertyName) || p.Value.AsBoolean("is-secret");
+                        properties.Add(new PropertyPrimitive(propertyName, typeId, isSecret, isOptional));
                         continue;
                     }
 
@@ -252,10 +257,10 @@ namespace Allard.Configinator.Schema
                     var propertiesForType = new List<Property>();
                     var type = await schemaParser.GetSchemaType(typeId);
                     propertiesForType.AddRange(type.Properties);
-                    properties.Add(new PropertyGroup(propertyName, typeId, propertiesForType.AsReadOnly()));
+                    properties.Add(new PropertyGroup(propertyName, typeId, isOptional, propertiesForType.AsReadOnly()));
                 }
 
-                EnsureValuesAreValid("Secrets contains invalid property names.", secrets,
+                EnsureValuesAreValid("Secrets contains invalid property names.", secretProperties,
                     properties.Select(p => p.Name).ToHashSet());
                 return properties;
             }

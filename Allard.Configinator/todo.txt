@@ -1,13 +1,29 @@
+
 * don't allow a type to use a type from a different namespace, unless the scope of the other namespace is "global".
     default scope is private.
     
- space validations
+ habit validations
     no circular base references
     no duplicate names
     etc...
  
+ add nested properties back to schema
+    "properties":
+        "a": "string"
+        "b": "string"
+        "c":
+            "properties":
+                "x": "string"
+                "y": "string"
+    the nested proeprty c used to be supported, but i removed it because it doesn't have a type.
+    it doen't need to have a type, though... it's just an object with more properties.
+    it'll just be a proeprty group.
  
- DONE: json merger
  
- validation
+ properties: required/optional
+ 
+ 
+DONE: json merger 
+DONE: validation
+DONE doesn't mean it's actually done... just DONE enough for immediate needs
  

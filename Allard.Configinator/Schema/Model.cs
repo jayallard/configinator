@@ -1,26 +1,23 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using Newtonsoft.Json;
 
 namespace Allard.Configinator.Schema
 {
-    //public record SchemaType(string Name, ReadOnlyCollection<Property> Properties);
-
     [DebuggerDisplay("{Name}")]
-    public abstract record Property(string Name, SchemaTypeId TypeId);
-
-    [DebuggerDisplay("{Name}")]
-    public record PropertyGroup
-        (string Name, SchemaTypeId TypeId, ReadOnlyCollection<Property> Properties) : Property(Name,
-            TypeId);
-
-    [DebuggerDisplay("{Name}")]
-    public record PropertyPrimitive(string Name, SchemaTypeId TypeId, bool IsSecret) : Property(Name, TypeId)
+    public abstract record Property(string Name, SchemaTypeId TypeId, bool IsOptional)
     {
-        public PropertyPrimitive SetSecret(bool isSecret)
-        {
-            return this with {IsSecret = isSecret};
-        }
+        public bool IsRequired => !IsOptional;
+    }
+
+    [DebuggerDisplay("{Name}")]
+    public record PropertyGroup(string Name, SchemaTypeId TypeId, bool IsOptional,
+        ReadOnlyCollection<Property> Properties) : Property(Name, TypeId, IsOptional);
+
+    [DebuggerDisplay("{Name}")]
+    public record PropertyPrimitive(string Name, SchemaTypeId TypeId, bool IsSecret, bool IsOptional) : Property(Name, TypeId, IsOptional)
+    {
     }
 
     /// <summary>
@@ -44,7 +41,7 @@ namespace Allard.Configinator.Schema
                 IsPrimitive = true;
                 return;
             }
-            
+
             var parts = fullId.Split('/');
             NameSpace = parts[0];
             TypeId = parts[1];

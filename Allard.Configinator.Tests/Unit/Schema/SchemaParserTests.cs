@@ -124,6 +124,11 @@ namespace Allard.Configinator.Tests.Unit.Schema
                     var expectedIsSecret = expectedProperty.Value.AsBoolean("is-secret");
                     testOutputHelper.WriteLine(spacing2 + "Secret: " + expectedIsSecret);
                     actualPrim.IsSecret.Should().Be(expectedIsSecret);
+                    
+                    // verify optional
+                    var expectedIsOptional = expectedProperty.Value.AsBoolean("is-optional");
+                    testOutputHelper.WriteLine(spacing2 + "Optional: " + expectedIsOptional);
+                    actualPrim.IsOptional.Should().Be(expectedIsOptional);
                     continue;
                 }
 
