@@ -50,7 +50,7 @@ namespace Allard.Configinator.Tests.Unit.Schema
         public void InvalidSecretThrowsException()
         {
             Func<Task> get = async () =>
-                await TestUtility.CreateSchemaParser().GetSchemaType("invalid-secret-name/invalid-secret-name");
+                await TestUtility.CreateSchemaParser().GetSchemaTypeAsync("invalid-secret-name/invalid-secret-name");
             get
                 .Should()
                 .Throw<InvalidOperationException>()
@@ -80,13 +80,13 @@ namespace Allard.Configinator.Tests.Unit.Schema
                 .Single().RootNode;
             var typesFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFiles", "Schemas", "TestTypes",
                 "Types");
-            var parser = new SchemaParser(new FileSchemaMetaRepository(typesFolder));
+            var parser = new SchemaService(new FileSchemaRepository(typesFolder));
             var expectedTypes = expectedDoc.AsMap("types");
             foreach (var expectedType in expectedTypes)
             {
                 var expectedTypeId = expectedType.Key.AsString();
                 testOutputHelper.WriteLine("Type: " + expectedTypeId);
-                var actualType = await parser.GetSchemaType(expectedTypeId);
+                var actualType = await parser.GetSchemaTypeAsync(expectedTypeId);
                 actualType.SchemaTypeId.FullId.Should().Be(expectedTypeId);
 
                 var expectedProperties = expectedType.Value.AsMap("properties");

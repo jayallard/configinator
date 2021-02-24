@@ -15,14 +15,13 @@
             "properties":
                 "x": "string"
                 "y": "string"
-    the nested proeprty c used to be supported, but i removed it because it doesn't have a type.
+    the nested property c used to be supported, but i removed it because it doesn't have a type.
     it doen't need to have a type, though... it's just an object with more properties.
     it'll just be a proeprty group.
  
  
- properties: required/optional
- 
- 
+
+DONE: properties: required/optional
 DONE: json merger 
 DONE: validation
 DONE doesn't mean it's actually done... just DONE enough for immediate needs

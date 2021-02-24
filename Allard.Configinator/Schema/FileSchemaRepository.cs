@@ -10,7 +10,7 @@ namespace Allard.Configinator.Schema
     /// <summary>
     ///     Retrieves schema yaml from files.
     /// </summary>
-    public class FileSchemaMetaRepository : ISchemaMetaRepository
+    public class FileSchemaRepository : ISchemaRepository
     {
         private readonly string schemaFolder;
 
@@ -18,7 +18,7 @@ namespace Allard.Configinator.Schema
         ///     Initializes a new instance of the fileSchemaRepository class.
         /// </summary>
         /// <param name="schemaFolder">The folder that contains the schema files.</param>
-        public FileSchemaMetaRepository(string schemaFolder)
+        public FileSchemaRepository(string schemaFolder)
         {
             this.schemaFolder = string.IsNullOrWhiteSpace(schemaFolder)
                 ? throw new ArgumentNullException(nameof(schemaFolder))
@@ -47,15 +47,6 @@ namespace Allard.Configinator.Schema
                                                     yaml.Count);
 
             return (YamlMappingNode) yaml[0].RootNode;
-        }
-
-        public Task<IReadOnlySet<string>> GetNamespaces()
-        {
-            return Task.Run<IReadOnlySet<string>>(() =>
-                Directory
-                    .GetFiles(schemaFolder, "*.yml")
-                    .Select(f => Path.GetFileNameWithoutExtension(f))
-                    .ToHashSet());
         }
     }
 }

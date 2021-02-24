@@ -7,7 +7,7 @@ namespace Allard.Configinator.Schema
     /// <summary>
     ///     Manage the storage of schema metadata.
     /// </summary>
-    public interface ISchemaMetaRepository
+    public interface ISchemaRepository
     {
         /// <summary>
         ///     Retrieve the raw yaml of a schema.
@@ -15,7 +15,5 @@ namespace Allard.Configinator.Schema
         /// <param name="nameSpace"></param>
         /// <returns></returns>
         Task<YamlMappingNode> GetSchemaYaml(string nameSpace);
-
-        Task<IReadOnlySet<string>> GetNamespaces();
     }
 }

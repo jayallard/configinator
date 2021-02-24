@@ -37,18 +37,18 @@ namespace Allard.Configinator.Tests.Unit
         ///     Creates a repository object that uses the schema folder.
         /// </summary>
         /// <returns></returns>
-        public static ISchemaMetaRepository CreateSchemaRepository()
+        public static ISchemaRepository CreateSchemaRepository()
         {
-            return new FileSchemaMetaRepository(SchemaFolder);
+            return new FileSchemaRepository(SchemaFolder);
         }
 
         /// <summary>
         ///     Creates a schema parser using the schema folder.
         /// </summary>
         /// <returns></returns>
-        public static SchemaParser CreateSchemaParser()
+        public static ISchemaService CreateSchemaParser()
         {
-            return new(CreateSchemaRepository());
+            return new SchemaService(CreateSchemaRepository());
         }
 
         /// <summary>

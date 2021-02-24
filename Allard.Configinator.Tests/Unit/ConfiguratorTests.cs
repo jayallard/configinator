@@ -30,7 +30,7 @@ namespace Allard.Configinator.Tests.Unit
             var habitatsFile = Path.Combine(baseFolder, "Habitats", "habitats.yml");
 
             var configStore = new MemoryConfigStore();
-            var parser = new SchemaParser(new FileSchemaMetaRepository(schemasFolder));
+            var parser = new SchemaService(new FileSchemaRepository(schemasFolder));
             var spaceRepo = new YamlHabitatsRepository(habitatsFile);
             var namespaceRepo = new YamlNamespaceRepository(namespaceFolder);
             return new Configinator(
@@ -82,7 +82,7 @@ namespace Allard.Configinator.Tests.Unit
             // -----------------------------------------
             testOutputHelper.WriteLine("--------------------------------------------------------");
             testOutputHelper.WriteLine("Namespaces:");
-            var namespaces = (await configinator.GetNamespaces()).ToList();
+            var namespaces = (await configinator.GetNamespacesAsync()).ToList();
             foreach (var ns in namespaces)
             {
                 testOutputHelper.WriteLine(ns.Name);

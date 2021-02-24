@@ -30,7 +30,7 @@ namespace Allard.Configinator.Configuration
         }
     }
 
-    public record ConfigurationSection(ConfigurationSectionId Id, string Path, SchemaParser.ObjectSchemaType Type,
+    public record ConfigurationSection(ConfigurationSectionId Id, string Path, ObjectSchemaType Type,
         string Description);
 
     public record Habitat(string Name, string Description, IReadOnlySet<string> Bases);

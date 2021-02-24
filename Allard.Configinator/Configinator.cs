@@ -26,17 +26,17 @@ namespace Allard.Configinator
         /// </summary>
         private readonly INamespaceRepository namespaceRepository;
 
-        private readonly SchemaParser parser;
+        private readonly ISchemaService service;
         private ConcurrentDictionary<string, Habitat> habitats;
         private ConcurrentDictionary<string, ConfigurationNamespace> namespaces;
 
         public Configinator(
-            SchemaParser parser,
+            ISchemaService service,
             IConfigStore configStore,
             IHabitatRepository habitatRepository,
             INamespaceRepository namespaceRepository)
         {
-            this.parser = parser ?? throw new ArgumentNullException(nameof(parser));
+            this.service = service ?? throw new ArgumentNullException(nameof(service));
             this.configStore = configStore ?? throw new ArgumentNullException(nameof(configStore));
             this.habitatRepository =
                 habitatRepository ?? throw new ArgumentNullException(nameof(habitatRepository));
@@ -47,7 +47,6 @@ namespace Allard.Configinator
         private async Task LoadHabitats()
         {
             if (habitats != null) return;
-
             var spaceMap = (await habitatRepository.GetHabitats())
                 .ToDictionary(s => s.Name);
             habitats = new ConcurrentDictionary<string, Habitat>(spaceMap);
@@ -71,9 +70,8 @@ namespace Allard.Configinator
         private async Task LoadNamespaces()
         {
             if (namespaces != null) return;
-
-            var x = await namespaceRepository.GetNamespaces();
-            var nsTasks = x
+            var nsDtos = await namespaceRepository.GetNamespaces();
+            var nsTasks = nsDtos
                 .Select(async n => await ToNamespace(n))
                 .ToList();
             await Task.WhenAll(nsTasks);
@@ -91,7 +89,7 @@ namespace Allard.Configinator
                 .Select(async s =>
                 {
                     var sectionId = new ConfigurationSectionId(ns.Name, s.Name);
-                    var type = await parser.GetSchemaType(s.Type);
+                    var type = await service.GetSchemaTypeAsync(s.Type);
                     return new ConfigurationSection(sectionId, s.Path, type, s.Description);
                 })
                 .ToList();
@@ -104,7 +102,7 @@ namespace Allard.Configinator
             return new ConfigurationNamespace(ns.Name, sections);
         }
 
-        public async Task<IEnumerable<ConfigurationNamespace>> GetNamespaces()
+        public async Task<IEnumerable<ConfigurationNamespace>> GetNamespacesAsync()
         {
             await LoadNamespaces();
             return namespaces.Values;

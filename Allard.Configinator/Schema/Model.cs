@@ -1,10 +1,15 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using Newtonsoft.Json;
 
 namespace Allard.Configinator.Schema
 {
+    /// <summary>
+    ///     The properties of a type.
+    /// </summary>
+    [DebuggerDisplay("{SchemaTypeId}")]
+    public record ObjectSchemaType(SchemaTypeId SchemaTypeId, ReadOnlyCollection<Property> Properties);
+    
     [DebuggerDisplay("{Name}")]
     public abstract record Property(string Name, SchemaTypeId TypeId, bool IsOptional)
     {

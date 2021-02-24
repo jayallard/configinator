@@ -86,7 +86,7 @@ namespace Allard.Configinator.Schema
             childName = string.IsNullOrWhiteSpace(childName)
                 ? throw new ArgumentNullException(nameof(childName))
                 : childName;
-            
+
             if (parent is YamlMappingNode map)
                 return
                     map.Children.ContainsKey(childName)
@@ -125,6 +125,14 @@ namespace Allard.Configinator.Schema
             node = node ?? throw new ArgumentNullException(nameof(node));
             if (node is YamlScalarNode scalarNode) return (string) scalarNode;
             return null;
+        }
+
+        public static string AsRequiredString(this YamlNode node, string nodeName)
+        {
+            var value = node.AsString(nodeName);
+            return string.IsNullOrWhiteSpace(value)
+                ? throw new InvalidOperationException("Required node is missing or does not have a value: " + nodeName)
+                : value;
         }
 
         /// <summary>

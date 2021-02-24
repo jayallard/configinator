@@ -6,18 +6,18 @@ using Newtonsoft.Json.Linq;
 
 namespace Allard.Configinator.Schema.Validator
 {
-    public class SchemaValidator
+    public class SchemaValidator : ISchemaValidator
     {
         private readonly ITypeValidatorFactory validatorFactory;
-        private readonly SchemaParser parser;
+        private readonly ISchemaService service;
 
-        public SchemaValidator(ITypeValidatorFactory validatorFactory, SchemaParser parser)
+        public SchemaValidator(ITypeValidatorFactory validatorFactory, ISchemaService service)
         {
             this.validatorFactory = validatorFactory ?? throw new ArgumentNullException(nameof(validatorFactory));
-            this.parser = parser ?? throw new ArgumentNullException(nameof(parser));
+            this.service = service ?? throw new ArgumentNullException(nameof(service));
         }
 
-        public async Task<List<TypeValidationError>> Validate(JToken document, SchemaParser.ObjectSchemaType type)
+        public async Task<IList<TypeValidationError>> Validate(JToken document, ObjectSchemaType type)
         {
             document = document ?? throw new ArgumentNullException(nameof(document));
             type = type ?? throw new ArgumentNullException(nameof(type));
@@ -33,7 +33,7 @@ namespace Allard.Configinator.Schema.Validator
         private async Task ValidateObject(
             List<TypeValidationError> errors,
             JToken token,
-            SchemaParser.ObjectSchemaType type,
+            ObjectSchemaType type,
             string path)
         {
             if (token is not JObject obj)
@@ -66,7 +66,7 @@ namespace Allard.Configinator.Schema.Validator
                     }
                     case PropertyGroup group:
                         var objPath = path + (path.Length == 1 ? string.Empty : "/") + property.Name;
-                        var objType = await parser.GetSchemaType(property.TypeId.FullId);
+                        var objType = await service.GetSchemaTypeAsync(property.TypeId.FullId);
                         await ValidateObject(errors, obj[property.Name], objType, objPath);
                         break;
                     default:

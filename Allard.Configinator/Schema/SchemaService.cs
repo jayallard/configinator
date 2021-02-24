@@ -15,7 +15,7 @@ namespace Allard.Configinator.Schema
     /// <summary>
     ///     Converts Yaml to a
     /// </summary>
-    public class SchemaParser
+    public class SchemaService : ISchemaService
     {
         /// <summary>
         ///     The node names that are valid within a type node
@@ -29,7 +29,7 @@ namespace Allard.Configinator.Schema
         /// <summary>
         ///     Retrieves the Yaml.
         /// </summary>
-        private readonly ISchemaMetaRepository metaRepository;
+        private readonly ISchemaRepository repository;
 
         /// <summary>
         ///     Converts YamlProperties to property objects.
@@ -49,10 +49,10 @@ namespace Allard.Configinator.Schema
         /// <summary>
         ///     Initializes an instance of the SchemaParser class.
         /// </summary>
-        /// <param name="metaRepository"></param>
-        public SchemaParser(ISchemaMetaRepository metaRepository)
+        /// <param name="repository"></param>
+        public SchemaService(ISchemaRepository repository)
         {
-            this.metaRepository = metaRepository ?? throw new ArgumentNullException(nameof(metaRepository));
+            this.repository = repository ?? throw new ArgumentNullException(nameof(repository));
             propertyParser = new PropertyParser(this);
         }
 
@@ -74,12 +74,12 @@ namespace Allard.Configinator.Schema
                 : new SchemaTypeId(typeId);
         }
 
-        public async Task<ObjectSchemaType> GetSchemaType(string typeId)
+        public async Task<ObjectSchemaType> GetSchemaTypeAsync(string typeId)
         {
             typeId = string.IsNullOrWhiteSpace(typeId)
                 ? throw new ArgumentNullException(typeId)
                 : typeId;
-            return await GetSchemaType(new SchemaTypeId(typeId));
+            return await GetSchemaTypeAsync(new SchemaTypeId(typeId));
         }
 
         /// <summary>
@@ -87,11 +87,11 @@ namespace Allard.Configinator.Schema
         /// </summary>
         /// <param name="typeId">The id of the schema type to return.</param>
         /// <returns></returns>
-        private async Task<ObjectSchemaType> GetSchemaType(SchemaTypeId typeId)
+        private async Task<ObjectSchemaType> GetSchemaTypeAsync(SchemaTypeId typeId)
         {
             if (schemaTypes.ContainsKey(typeId)) return schemaTypes[typeId];
 
-            var type = await BuildType(typeId);
+            var type = await BuildTypeAsync(typeId);
             schemaTypes[typeId] = type;
             return type;
         }
@@ -101,9 +101,9 @@ namespace Allard.Configinator.Schema
         /// </summary>
         /// <param name="schemaTypeId"></param>
         /// <returns></returns>
-        private async Task<ObjectSchemaType> BuildType(SchemaTypeId schemaTypeId)
+        private async Task<ObjectSchemaType> BuildTypeAsync(SchemaTypeId schemaTypeId)
         {
-            var sourceSchema = await GetYaml(schemaTypeId.NameSpace);
+            var sourceSchema = await GetYamlAsync(schemaTypeId.NameSpace);
             var typesYaml = (YamlMappingNode) sourceSchema["types"];
             var (_, value) = typesYaml.Single(t => (string) t.Key == schemaTypeId.TypeId);
             EnsureValuesAreValid("TYPE node has invalid children.", value.ChildNames(), allowedTypeNodeName);
@@ -121,11 +121,10 @@ namespace Allard.Configinator.Schema
         /// <param name="schemaId"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        private async Task<YamlMappingNode> GetYaml(string schemaId)
+        private async Task<YamlMappingNode> GetYamlAsync(string schemaId)
         {
             if (sourceYaml.ContainsKey(schemaId)) return sourceYaml[schemaId];
-
-            var source = await metaRepository.GetSchemaYaml(schemaId);
+            var source = await repository.GetSchemaYaml(schemaId);
 
             // make sure the id from the source matches the requested id.
             var nameSpace = (string) source["namespace"];
@@ -163,12 +162,6 @@ namespace Allard.Configinator.Schema
         }
 
         /// <summary>
-        ///     The properties of a type.
-        /// </summary>
-        [DebuggerDisplay("{SchemaTypeId}")]
-        public record ObjectSchemaType(SchemaTypeId SchemaTypeId, ReadOnlyCollection<Property> Properties);
-
-        /// <summary>
         ///     Parses properties for paths and for types.
         ///     It collects properties from base type
         ///     and reference types, etc. The whole gambit.
@@ -178,15 +171,15 @@ namespace Allard.Configinator.Schema
             /// <summary>
             ///     Used to retrieve other types.
             /// </summary>
-            private readonly SchemaParser schemaParser;
+            private readonly SchemaService schemaService;
 
             /// <summary>
             ///     Initializes a new instance of the PropertyParser class.
             /// </summary>
-            /// <param name="schemaParser"></param>
-            public PropertyParser(SchemaParser schemaParser)
+            /// <param name="schemaService"></param>
+            public PropertyParser(SchemaService schemaService)
             {
-                this.schemaParser = schemaParser;
+                this.schemaService = schemaService;
             }
 
             /// <summary>
@@ -202,7 +195,7 @@ namespace Allard.Configinator.Schema
                 if (baseTypeName == null) return new List<Property>();
 
                 var id = NormalizeTypeId(schemaId, baseTypeName);
-                var baseType = await schemaParser.GetSchemaType(id);
+                var baseType = await schemaService.GetSchemaTypeAsync(id);
                 return baseType.Properties;
             }
 
@@ -212,7 +205,7 @@ namespace Allard.Configinator.Schema
             /// <param name="relativeSchemaId"></param>
             /// <param name="propertiesContainer"></param>
             /// <returns></returns>
-            public async Task<IEnumerable<Property>> GetProperties(string relativeSchemaId,
+            internal async Task<IEnumerable<Property>> GetProperties(string relativeSchemaId,
                 YamlNode propertiesContainer)
             {
                 var properties = new List<Property>();
@@ -255,7 +248,7 @@ namespace Allard.Configinator.Schema
                     // append additional properties added at
                     // the schema level.
                     var propertiesForType = new List<Property>();
-                    var type = await schemaParser.GetSchemaType(typeId);
+                    var type = await schemaService.GetSchemaTypeAsync(typeId);
                     propertiesForType.AddRange(type.Properties);
                     properties.Add(new PropertyGroup(propertyName, typeId, isOptional, propertiesForType.AsReadOnly()));
                 }

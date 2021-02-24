@@ -16,24 +16,24 @@ namespace Allard.Configinator.Tests.Unit.Schema.Validator
     {
         private readonly string folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ValidatorTestFiles");
         private readonly ITestOutputHelper testOutputHelper;
-        private readonly ISchemaMetaRepository schemaRepository;
-        private readonly SchemaParser parser;
+        private readonly ISchemaRepository schemaRepository;
+        private readonly ISchemaService service;
         
         public SchemaValidatorTests(ITestOutputHelper testOutputHelper)
         {
             this.testOutputHelper = testOutputHelper;
-            schemaRepository = new FileSchemaMetaRepository(folder);
-            parser = new SchemaParser(schemaRepository);
+            schemaRepository = new FileSchemaRepository(folder);
+            service = new SchemaService(schemaRepository);
 
         }
 
         [Theory]
         [MemberData(nameof(GetTests))]
-        public async Task Validate(SchemaParser.ObjectSchemaType type, JToken json,
+        public async Task Validate(ObjectSchemaType type, JToken json,
             List<TypeValidationError> expectedResponses)
         {
             var factory = new ValidatorFactoryServices();
-            var validator = new SchemaValidator(factory, parser);
+            var validator = new SchemaValidator(factory, service);
             var results = await validator.Validate(json, type);
             results.Count.Should().Be(expectedResponses.Count);
             for (var i = 0; i < results.Count; i++)
@@ -45,8 +45,8 @@ namespace Allard.Configinator.Tests.Unit.Schema.Validator
         public static IEnumerable<object[]> GetTests()
         {
             var folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ValidatorTestFiles");
-            var schemaRepo = new FileSchemaMetaRepository(folder);
-            var schemaParser = new SchemaParser(schemaRepo);
+            var schemaRepo = new FileSchemaRepository(folder);
+            var schemaParser = new SchemaService(schemaRepo);
             return Directory
                 .GetFiles(folder, "*.json")
                 .SelectMany(fileName =>
@@ -60,7 +60,7 @@ namespace Allard.Configinator.Tests.Unit.Schema.Validator
                             return new object[]
                             {
                                 // blocking... hack.
-                                schemaParser.GetSchemaType(type).Result,
+                                schemaParser.GetSchemaTypeAsync(type).Result,
                                 t["test-value"],
                                 t["expected-failures"]
                                     .ToArray()
