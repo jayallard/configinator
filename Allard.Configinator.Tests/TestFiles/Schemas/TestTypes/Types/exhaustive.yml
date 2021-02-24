@@ -1,4 +1,5 @@
 ---
+"$$doc": "schema"
 "namespace": "exhaustive"
 "types":
   "exhaustive":

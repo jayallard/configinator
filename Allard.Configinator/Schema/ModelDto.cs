@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Allard.Configinator.Schema
 {
@@ -8,6 +9,7 @@ namespace Allard.Configinator.Schema
     /// </summary>
     public static class ModelDto
     {
+        [DebuggerDisplay("{TypeName}")]
         public class TypeDto
         {
             public string Namespace { get; set; }
@@ -18,6 +20,7 @@ namespace Allard.Configinator.Schema
             public HashSet<string> Optional { get; set; }
         }
 
+        [DebuggerDisplay("{PropertyName}: {TypeName}")]
         public class PropertyDto
         {
             public string TypeName { get; set; }

@@ -1,4 +1,5 @@
 ---
+"$$doc": "schema"
 "namespace": "optional"
 "types":
   "optional/my-type":
@@ -18,5 +19,10 @@
           "blah":
             "type": "string"
             "is-optional": true
-  
+  "optional/nested":
+    "properties":
+      "blah":
+        "type": "string"
+        "is-optional": "true"
+        
 

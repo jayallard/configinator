@@ -1,4 +1,5 @@
 ---
+"$$doc": "schema"
 "namespace": "exhaustive"
 "types":
   "exhaustive/exhaustive":
@@ -32,4 +33,9 @@
           "other-local":
             "type": "string"
       
+        
+  "exhaustive/other":
+    "properties":
+      "other-local":
+        "type": "string"
         

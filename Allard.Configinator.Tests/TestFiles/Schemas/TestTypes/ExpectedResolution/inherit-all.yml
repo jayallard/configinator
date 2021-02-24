@@ -1,4 +1,5 @@
 ---
+"$$doc": "schema"
 "namespace": "inherit-all"
 "types":
   "inherit-all/my-type":
