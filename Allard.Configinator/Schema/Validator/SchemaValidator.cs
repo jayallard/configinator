@@ -1,32 +1,33 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using YamlDotNet.Core.Tokens;
 
 namespace Allard.Configinator.Schema.Validator
 {
     public class SchemaValidator
     {
         private readonly ITypeValidatorFactory validatorFactory;
+        private readonly SchemaParser parser;
 
-        public SchemaValidator(ITypeValidatorFactory validatorFactory)
+        public SchemaValidator(ITypeValidatorFactory validatorFactory, SchemaParser parser)
         {
             this.validatorFactory = validatorFactory ?? throw new ArgumentNullException(nameof(validatorFactory));
+            this.parser = parser ?? throw new ArgumentNullException(nameof(parser));
         }
 
-        public List<TypeValidationError> Validate(JToken document, SchemaParser.ObjectSchemaType type)
+        public async Task<List<TypeValidationError>> Validate(JToken document, SchemaParser.ObjectSchemaType type)
         {
             // TODO: object validations that have access to the properties. start with primitives only.
             type = type ?? throw new ArgumentNullException(nameof(type));
             var validationErrors = new List<TypeValidationError>();
 
-            ValidateObject(validationErrors, document, type, "/");
+            await ValidateObject(validationErrors, document, type, "/");
             return validationErrors;
         }
 
-        private void ValidateObject(
+        private async Task ValidateObject(
             List<TypeValidationError> errors, 
             JToken token, 
             SchemaParser.ObjectSchemaType type,
@@ -41,30 +42,31 @@ namespace Allard.Configinator.Schema.Validator
             // todo: properties in json that aren't in type
             foreach (var p in type.Properties)
             {
+                // make sure the property exists.
+                if (!obj.ContainsKey(p.Name))
+                {
+                    errors.AddCoreError(path, "Required property doesn't exist: " + p.Name);
+                    continue;
+                }
+
                 switch (p)
                 {
                     case PropertyPrimitive prim:
                     {
-                        path = path + (path.Length == 1 ? "@" : "/@") + p.Name;
-                        
-                        // make sure the property exists.
-                        if (!obj.ContainsKey(p.Name))
+                        var propPath = path + (path.Length == 1 ? "@" : "/@") + p.Name;
+                        var validator = validatorFactory.GetValidator(type.SchemaTypeId);
+                        if (validator == null)
                         {
-                            errors.AddCoreError(path, "Required property doesn't exist: " + p.Name);
                             continue;
                         }
                         
-                        var validator = validatorFactory.GetValidator(type.SchemaTypeId);
-                        
-                        // if (jsonProperty == null)
-                        // {
-                        //     errors.Add(new TypeValidationError("none", p.Name, "property does not exit"));
-                        //     continue;
-                        // }
-
+                        // todo: validator
                         continue;
                     }
                     case PropertyGroup group:
+                        var objPath = path + (path.Length == 1 ? string.Empty : "/") + p.Name;
+                        var objType = await parser.GetSchemaType(p.TypeId.FullId);
+                        ValidateObject(errors, obj[p.Name], objType, objPath);
                         break;
                     default:
                         throw new InvalidOperationException("Unknown property type: " + p.GetType().FullName);

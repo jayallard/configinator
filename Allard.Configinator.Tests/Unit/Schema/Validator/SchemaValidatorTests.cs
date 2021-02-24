@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Allard.Configinator.Schema;
 using Allard.Configinator.Schema.Validator;
 using FluentAssertions;
@@ -12,40 +14,67 @@ namespace Allard.Configinator.Tests.Unit.Schema.Validator
 {
     public class SchemaValidatorTests
     {
+        private readonly string folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ValidatorTestFiles");
         private readonly ITestOutputHelper testOutputHelper;
-
+        private readonly ISchemaMetaRepository schemaRepository;
+        private readonly SchemaParser parser;
+        
         public SchemaValidatorTests(ITestOutputHelper testOutputHelper)
         {
             this.testOutputHelper = testOutputHelper;
+            schemaRepository = new FileSchemaMetaRepository(folder);
+            parser = new SchemaParser(schemaRepository);
+
         }
 
-        /// <summary>
-        /// Schema defines 3 properties in the object.
-        /// The json is missing 1.
-        /// </summary>
-        [Fact]
-        public void RootPrimitiveProperties()
+        [Theory]
+        [MemberData(nameof(GetTests))]
+        public async Task Validate(SchemaParser.ObjectSchemaType type, JToken json,
+            List<TypeValidationError> expectedResponses)
         {
             var factory = new ValidatorFactoryServices();
-            var validator = new SchemaValidator(factory);
-            var typeId = new SchemaTypeId("test/test");
-            var stringId = new SchemaTypeId("string");
-            var properties = new List<Property>
-                {
-                    new PropertyPrimitive("Prop1", stringId, false),
-                    new PropertyPrimitive("Prop2", stringId, false),
-                    new PropertyPrimitive("Prop3", stringId, false),
-                }
-                .AsReadOnly();
+            var validator = new SchemaValidator(factory, parser);
+            var results = await validator.Validate(json, type);
+            results.Count.Should().Be(expectedResponses.Count);
+            for (var i = 0; i < results.Count; i++)
+            {
+                results[i].Should().Be(expectedResponses[i]);
+            }
+        }
 
-            var type = new SchemaParser.ObjectSchemaType(typeId, properties);
-            var json = JToken.Parse("{ \"Prop2\": \"b\", \"Prop3\": \"c\" }");
-            
-            var results = validator.Validate(json, type);
-            results.Count.Should().Be(1);
-            results.First().Should()
-                .Be(new TypeValidationError("Core", "/@Prop1", "Required property doesn't exist: Prop1"));
-            testOutputHelper.WriteLine(results.Single().ToString());
+        public static IEnumerable<object[]> GetTests()
+        {
+            var folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ValidatorTestFiles");
+            var schemaRepo = new FileSchemaMetaRepository(folder);
+            var schemaParser = new SchemaParser(schemaRepo);
+            return Directory
+                .GetFiles(folder, "*.json")
+                .SelectMany(fileName =>
+                {
+                    var json = JsonUtility.GetFile(fileName);
+                    var type = (string) json["type"];
+                    return json["tests"]
+                        .ToArray()
+                        .Select(t =>
+                        {
+                            return new object[]
+                            {
+                                // blocking... hack.
+                                schemaParser.GetSchemaType(type).Result,
+                                t["test-value"],
+                                t["expected-failures"]
+                                    .ToArray()
+                                    .Select(e =>
+                                    {
+                                        var parts = ((string) e).Split("||");
+                                        return new TypeValidationError(
+                                            parts[0].Trim(),
+                                            parts[1].Trim(),
+                                            parts[2].Trim());
+                                    }).ToList()
+                            };
+                        });
+                });
         }
     }
 }

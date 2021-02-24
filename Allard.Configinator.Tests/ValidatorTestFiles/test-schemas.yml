@@ -6,4 +6,10 @@
         "Prop1": "string"
         "Prop2": "string"
         "Prop3": "string"
+        "nested": "./nested"
+    "nested":
+      "properties":
+        "Prop1": "string"
+        "Prop2": "string"
+        "Prop3": "string"
           
