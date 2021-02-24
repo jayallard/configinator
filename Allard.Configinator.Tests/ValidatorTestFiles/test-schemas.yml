@@ -12,4 +12,14 @@
         "Prop1": "string"
         "Prop2": "string"
         "Prop3": "string"
+    "required-test-type":
+      "properties":
+        "Prop1": "string"
+        "Optional":
+          "type": "./nested"
+          "is-optional": true
+        "Required":
+          "type": "./nested"
+          "is-optional": false
+  
           

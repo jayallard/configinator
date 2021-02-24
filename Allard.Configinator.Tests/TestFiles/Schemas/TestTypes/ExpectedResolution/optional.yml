@@ -11,3 +11,12 @@
         "is-optional": true
       "c":
         "type": "string"
+      "d":
+        "type": "optional/nested"
+        "is-optional": false
+        "properties":
+          "blah":
+            "type": "string"
+            "is-optional": true
+  
+

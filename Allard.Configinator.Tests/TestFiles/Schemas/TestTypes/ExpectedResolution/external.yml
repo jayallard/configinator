@@ -24,16 +24,5 @@
         "is-secret": true
       "host":
         "type": "string"
-    "other-kafka":
-      "type": "external/kafka-ssl"
-      "properties":
-        # from kafka
-        "bootstrap-servers":
-          "type": "string"
-        # from kafka-ssl
-        "something":
-          "type": "string"
-        "something-secret":
-          "type": "string"
-          "is-secret": true
+
               

@@ -8,6 +8,12 @@
         "is-optional": true
       "b": "string"
       "c": "string"
+      "d": "./nested"
     "optional": ["b"]
+  "nested":
+    "properties":
+      "blah": 
+        "type": "string"
+        "is-optional": true
 
     
