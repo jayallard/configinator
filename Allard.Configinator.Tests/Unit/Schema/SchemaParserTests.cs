@@ -72,6 +72,29 @@ namespace Allard.Configinator.Tests.Unit.Schema
                 .Select(f => new object[] {f});
         }
 
+        private async Task VerifyNew(string nameSpace)
+        {
+            var expectedDoc =
+                (await YamlUtility.GetYamlFromFile("TestFiles", "Schemas", "TestTypes", "ExpectedResolution",
+                    nameSpace + ".yml"))
+                .Single().RootNode;
+            var typesFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFiles", "Schemas", "TestTypes",
+                "Types");
+            var parser = new SchemaService(new FileSchemaRepository(typesFolder));
+            var expectedTypes = expectedDoc.AsMap("types");
+            foreach (var expectedType in expectedTypes)
+            {
+                var expectedTypeId = expectedType.Key.AsString();
+                testOutputHelper.WriteLine("Type: " + expectedTypeId);
+                var actualType = await parser.GetSchemaTypeAsync(expectedTypeId);
+                actualType.SchemaTypeId.FullId.Should().Be(expectedTypeId);
+
+                var expectedProperties = expectedType.Value.AsMap("properties");
+                VerifyProperties(expectedProperties, actualType.Properties.ToList());
+            }
+        }
+
+
         private async Task Verify(string nameSpace)
         {
             var expectedDoc =

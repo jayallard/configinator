@@ -15,5 +15,9 @@ namespace Allard.Configinator.Schema
         /// <param name="nameSpace"></param>
         /// <returns></returns>
         Task<YamlMappingNode> GetSchemaYaml(string nameSpace);
+
+        Task<IEnumerable<ModelDto.TypeDto>> GetTypes(string nameSpace);
+        Task<IEnumerable<ModelDto.TypeDto>> GetSchemaTypes();
+        
     }
 }

@@ -27,7 +27,8 @@ namespace Allard.Configinator.Tests.Unit.Schema
             var yamlStream = new YamlStream(yaml);
 
             var deserialized = YamlSchemaDeserializer
-                .Deserialize(new[] {yamlStream});
+                .Deserialize(yamlStream.Documents)
+                .ToList();
 
             deserialized.Count.Should().Be(2);
             

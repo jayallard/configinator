@@ -48,5 +48,25 @@ namespace Allard.Configinator.Schema
 
             return (YamlMappingNode) yaml[0].RootNode;
         }
+
+        public async Task<IEnumerable<ModelDto.TypeDto>> GetSchemaTypes()
+        {
+            var yamlTasks = Directory
+                .GetFiles(schemaFolder, "*.yml")
+                .Select(async f => await YamlUtility.GetYamlFromFile(f));
+            var yamlDocs = await Task.WhenAll(yamlTasks);
+            return yamlDocs.SelectMany(YamlSchemaDeserializer.Deserialize);
+        }
+
+        public async Task<IEnumerable<ModelDto.TypeDto>> GetTypes(string nameSpace)
+        {
+            nameSpace = string.IsNullOrWhiteSpace(nameSpace)
+                ? throw new ArgumentNullException(nameof(nameSpace))
+                : nameSpace;
+            var yaml = await YamlUtility.GetYamlFromFile(schemaFolder, nameSpace + ".yml");
+            return YamlSchemaDeserializer
+                .Deserialize(yaml)
+                .Where(y => y.Namespace == nameSpace);
+        }
     }
 }

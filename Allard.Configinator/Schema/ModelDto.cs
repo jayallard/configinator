@@ -2,6 +2,10 @@ using System.Collections.Generic;
 
 namespace Allard.Configinator.Schema
 {
+    /// <summary>
+    /// Classes used for the transfer of information about schemas.
+    /// IE: Data may be stored in this format in a database or in the file system.
+    /// </summary>
     public static class ModelDto
     {
         public class TypeDto
