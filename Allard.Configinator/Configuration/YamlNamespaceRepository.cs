@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Allard.Configinator.Schema;
+using YamlDotNet.RepresentationModel;
 
 namespace Allard.Configinator.Configuration
 {
@@ -20,19 +21,18 @@ namespace Allard.Configinator.Configuration
 
         public async Task<IEnumerable<NamespaceDto>> GetNamespaces()
         {
+            // return (await YamlUtility.GetYamlFromFile(yamlFile))
+            //     .Where(y => y.RootNode.AsString("$$doc") == "habitat")
+            //     .SelectMany(y => Deserializers.DeserializeHabitat(y.RootNode.AsMap()));
+
             var files = Directory
                 .GetFiles(namespaceFolder, "*.yml")
-                .Select(async f =>
-                {
-                    var yaml = (await YamlUtility.GetYamlFromFile(f))
-                        .Single()
-                        .RootNode
-                        .AsMap();
-                    return Deserializers.DeserializeNamespace(yaml);
-                })
-                .ToList();
+                .Select(async f => (await YamlUtility.GetYamlFromFile(f)));
             await Task.WhenAll(files);
-            return files.Select(f => f.Result);
+            return files
+                .SelectMany(f => f.Result)
+                .Where(f => f.RootNode.AsString("$$doc") == "namespace")
+                .Select(f => Deserializers.DeserializeNamespace(f.RootNode.AsMap()));
         }
     }
 }

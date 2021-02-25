@@ -19,16 +19,9 @@ namespace Allard.Configinator.Configuration
 
         public async Task<IEnumerable<Habitat>> GetHabitats()
         {
-            var yaml = (await YamlUtility.GetYamlFromFile(yamlFile))
-                .Single()
-                .RootNode
-                .AsMap();
-            return Deserializers.DeserializeHabitat(yaml);
-        }
-
-        public Task<Habitat> GetSpace(string name)
-        {
-            throw new NotImplementedException();
+            return (await YamlUtility.GetYamlFromFile(yamlFile))
+                .Where(y => y.RootNode.AsString("$$doc") == "habitat")
+                .SelectMany(y => Deserializers.DeserializeHabitat(y.RootNode.AsMap()));
         }
     }
 }

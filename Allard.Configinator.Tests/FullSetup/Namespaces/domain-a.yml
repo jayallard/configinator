@@ -1,5 +1,6 @@
 ---
 "namespace": "domain-a"
+"$$doc": "namespace"
 "configuration-sections":
   "service-1":
     "path": "/a/b/c/service-1" 
