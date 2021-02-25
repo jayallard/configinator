@@ -1,5 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Allard.Configinator.Schema.Validator
 {
     public class ValidatorFactoryServices : ITypeValidatorFactory

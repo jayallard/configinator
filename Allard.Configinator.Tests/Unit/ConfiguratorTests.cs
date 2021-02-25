@@ -5,11 +5,9 @@ using System.Threading.Tasks;
 using Allard.Configinator.Configuration;
 using Allard.Configinator.Schema;
 using FluentAssertions;
-using FluentAssertions.Xml;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
-using YamlDotNet.RepresentationModel;
 
 namespace Allard.Configinator.Tests.Unit
 {
@@ -24,15 +22,13 @@ namespace Allard.Configinator.Tests.Unit
 
         private Configinator CreateConfiginator()
         {
-            var baseFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FullSetup");
-            var schemasFolder = Path.Combine(baseFolder, "Schemas");
-            var namespaceFolder = Path.Combine(baseFolder, "Namespaces");
-            var habitatsFile = Path.Combine(baseFolder, "Habitats", "habitats.yml");
+            var baseFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFiles", "FullSetup");
+            var habitatsFile = Path.Combine(baseFolder, "habitats.yml");
 
             var configStore = new MemoryConfigStore();
-            var parser = new SchemaService(new FileSchemaRepository(schemasFolder));
+            var parser = new SchemaService(new FileSchemaRepository(baseFolder));
             var spaceRepo = new YamlHabitatsRepository(habitatsFile);
-            var namespaceRepo = new YamlNamespaceRepository(namespaceFolder);
+            var namespaceRepo = new YamlNamespaceRepository(baseFolder);
             return new Configinator(
                 parser,
                 configStore,
@@ -41,14 +37,22 @@ namespace Allard.Configinator.Tests.Unit
         }
 
         [Fact]
-        public async Task ValueOverrides()
+        public async Task MergeValues()
         {
-            // dev-jay2 is based on dev-jay and development.
-            // set values for dev-jay and development,
-            // and see that overrides work.
-            const string dev = "{ \"host\": \"dev\", \"user-id\": \"boom\", \"password\": \"dev-pw\" }";
-            const string jay1 = "{ \"host\": \"jay1\" }";
+            // habitats.yml defines that dev-jay2 overrides development and dev-jay1.
+            // write values to all 3, then get the values from dev-jay2.
+            // see that the returned values it he 
+            const string dev =
+                "{ \"host\": \"dev\", \"user-id\": \"boom\", \"password\": \"dev-pw\", \"remove-me\": \"please\" }";
+            const string jay1 = "{ \"host\": \"jay1\", \"remove-me\": null }";
             const string jay2 = "{ \"host\": \"jay2\", \"password\": \"jay2-pw\" }";
+
+            // host is set in jay2
+            // password is set in jay2
+            // userid is from dev (jay1 doesn't have it)
+            // remove-me is defined in dev, but nulled-out in jay1, so doesn't exist in jay-2.
+            const string expectedMergeResult =
+                "{ \"host\": \"jay2\", \"password\": \"jay2-pw\", \"user-id\": \"boom\" }";
 
             var configinator = CreateConfiginator();
             await CreateValueAsync(configinator, "development", "domain-a", "service-1", dev);
@@ -56,11 +60,10 @@ namespace Allard.Configinator.Tests.Unit
             await CreateValueAsync(configinator, "dev-jay2", "domain-a", "service-1", jay2);
 
             var value = await configinator.GetValueAsync("dev-jay2", "domain-a", "service-1");
-            var expectedValue = "{ \"host\": \"jay2\", \"password\": \"jay2-pw\", \"user-id\": \"boom\" }";
 
             Assert.True(JToken.DeepEquals(
                 JToken.Parse(value.Value),
-                JToken.Parse(expectedValue)
+                JToken.Parse(expectedMergeResult)
             ));
         }
 

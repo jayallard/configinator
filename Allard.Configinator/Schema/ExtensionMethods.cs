@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using YamlDotNet.RepresentationModel;
 
@@ -178,8 +176,8 @@ namespace Allard.Configinator.Schema
                         writer.WriteString(prim.Name, "string");
                         continue;
                     case PropertyGroup group:
-                        writer.WriteStartObject(@group.Name);
-                        WriteProperties(writer, @group.Properties);
+                        writer.WriteStartObject(group.Name);
+                        WriteProperties(writer, group.Properties);
                         writer.WriteEndObject();
                         continue;
                     default:

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using YamlDotNet.RepresentationModel;
 
 namespace Allard.Configinator.Schema
 {

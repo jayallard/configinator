@@ -9,7 +9,7 @@ namespace Allard.Configinator.Schema
     /// </summary>
     [DebuggerDisplay("{SchemaTypeId}")]
     public record ObjectSchemaType(SchemaTypeId SchemaTypeId, ReadOnlyCollection<Property> Properties);
-    
+
     [DebuggerDisplay("{Name}")]
     public abstract record Property(string Name, SchemaTypeId TypeId, bool IsOptional)
     {
@@ -21,7 +21,8 @@ namespace Allard.Configinator.Schema
         ReadOnlyCollection<Property> Properties) : Property(Name, TypeId, IsOptional);
 
     [DebuggerDisplay("{Name}")]
-    public record PropertyPrimitive(string Name, SchemaTypeId TypeId, bool IsSecret, bool IsOptional) : Property(Name, TypeId, IsOptional)
+    public record PropertyPrimitive(string Name, SchemaTypeId TypeId, bool IsSecret, bool IsOptional) : Property(Name,
+        TypeId, IsOptional)
     {
     }
 

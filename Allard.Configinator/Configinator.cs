@@ -54,10 +54,7 @@ namespace Allard.Configinator
 
         public async Task<IEnumerable<Habitat>> GetHabitats()
         {
-            if (habitats == null)
-            {
-                await LoadHabitats();
-            }
+            if (habitats == null) await LoadHabitats();
 
             return habitats.Values;
         }
@@ -153,7 +150,7 @@ namespace Allard.Configinator
                 .ToList();
 
             // get the requested value
-            var value = configStore.GetValue(h, cs);
+            var value = configStore.GetValueAsync(h, cs);
             await Task.WhenAll(baseValues).ConfigureAwait(false);
             await value;
 

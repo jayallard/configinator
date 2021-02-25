@@ -38,7 +38,7 @@ namespace Allard.Configinator
                 // if no documents, then nothing to do.
                 case 0:
                     return null;
-                
+
                 // if only one document, then nothing to merge,
                 // so do nothing and return the 1 doc.
                 case 1:
@@ -73,10 +73,7 @@ namespace Allard.Configinator
                     return;
                 }
 
-                if (source.Type != target.Type)
-                {
-                    throw new Exception("different types");
-                }
+                if (source.Type != target.Type) throw new Exception("different types");
 
                 switch (source)
                 {

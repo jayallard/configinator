@@ -19,7 +19,7 @@ namespace Allard.Configinator.Configuration
         // key = path
         private readonly ConcurrentDictionary<string, ConfigurationSectionValue> repo = new();
 
-        public Task<ConfigurationSectionValue> GetValue(Habitat habitat, ConfigurationSection section)
+        public Task<ConfigurationSectionValue> GetValueAsync(Habitat habitat, ConfigurationSection section)
         {
             habitat = habitat ?? throw new ArgumentNullException(nameof(habitat));
             section = section ?? throw new ArgumentNullException(nameof(section));
@@ -44,7 +44,7 @@ namespace Allard.Configinator.Configuration
             try
             {
                 readWriteLock.WaitOne();
-                var existing = await GetValue(value.Habitat, value.ConfigurationSection);
+                var existing = await GetValueAsync(value.Habitat, value.ConfigurationSection);
                 if (existing != null && existing.ETag != value.ETag) throw new Exception("etag change");
 
                 var etag =

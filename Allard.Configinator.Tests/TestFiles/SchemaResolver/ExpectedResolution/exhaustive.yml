@@ -7,8 +7,7 @@
       "my-kafka":
         "type": "external/kafka"
         "properties":
-          "bootstrap-servers":
-            "type": "string"
+          "bootstrap-servers": "string"
       "my-sql":
         "type": "external/mssql"
         "properties":
@@ -18,28 +17,21 @@
           "password":
             "type": "string"
             "is-secret": true
-          "host":
-            "type": "string"
+          "host": "string"
       "other-kafka":
         "type": "exhaustive/other"
         "properties":
-          "bootstrap-servers":
-            "type": "string"
-          "something":
-            "type": "string"
+          "bootstrap-servers": "string"
+          "something": "string"
           "something-secret":
             "type": "string"
             "is-secret": true   
-          "other-local":
-            "type": "string"
+          "other-local": "string"
   "exhaustive/other":
     "properties":
-      "other-local":
-        "type": "string"
-      "bootstrap-servers":
-        "type": "string"
-      "something":
-        "type": "string"
+      "other-local": "string"
+      "bootstrap-servers": "string"
+      "something": "string"
       "something-secret":
         "type": "string"
         "is-secret": true

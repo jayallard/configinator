@@ -33,7 +33,7 @@ namespace Allard.Configinator.Configuration
         public static NamespaceDto DeserializeNamespace(YamlMappingNode namespaceNode)
         {
             namespaceNode = namespaceNode ?? throw new ArgumentNullException(nameof(namespaceNode));
-            return new()
+            return new NamespaceDto()
             {
                 Name = namespaceNode.AsString("namespace"),
                 Sections = namespaceNode

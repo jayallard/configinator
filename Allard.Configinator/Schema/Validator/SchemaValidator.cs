@@ -8,8 +8,8 @@ namespace Allard.Configinator.Schema.Validator
 {
     public class SchemaValidator : ISchemaValidator
     {
-        private readonly ITypeValidatorFactory validatorFactory;
         private readonly ISchemaService service;
+        private readonly ITypeValidatorFactory validatorFactory;
 
         public SchemaValidator(ITypeValidatorFactory validatorFactory, ISchemaService service)
         {
@@ -45,10 +45,7 @@ namespace Allard.Configinator.Schema.Validator
             // todo: properties in json that aren't in type
             foreach (var property in type.Properties)
             {
-                if (!HasValue(errors, obj, property, path))
-                {
-                    continue;
-                }
+                if (!HasValue(errors, obj, property, path)) continue;
 
                 switch (property)
                 {
@@ -56,10 +53,7 @@ namespace Allard.Configinator.Schema.Validator
                     {
                         var propPath = path + (path.Length == 1 ? "@" : "/@") + property.Name;
                         var validator = validatorFactory.GetValidator(type.SchemaTypeId);
-                        if (validator == null)
-                        {
-                            continue;
-                        }
+                        if (validator == null) continue;
 
                         // todo: validator
                         continue;
@@ -80,26 +74,18 @@ namespace Allard.Configinator.Schema.Validator
             // make sure the property exists.
             if (!obj.ContainsKey(property.Name))
             {
-                if (property.IsRequired)
-                {
-                    errors.AddCoreError(path, "Required property doesn't exist: " + property.Name);
-                }
+                if (property.IsRequired) errors.AddCoreError(path, "Required property doesn't exist: " + property.Name);
 
                 return false;
             }
 
             // if required, make sure the property has a value.
             var value = obj[property.Name];
-            if (value.Type != JTokenType.Null)
-            {
-                return true;
-            }
+            if (value.Type != JTokenType.Null) return true;
 
             if (property.IsRequired)
-            {
                 errors.AddCoreError(path,
                     "Required property doesn't exists but doesn't have a value: " + property.Name);
-            }
 
             return false;
         }

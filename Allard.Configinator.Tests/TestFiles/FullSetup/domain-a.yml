@@ -1,9 +1,20 @@
 ---
+"$$doc": "schema"
+"namespace": "domain-a"
+"types":
+  "demo1":
+    "properties":
+      "user-id": "string"
+      "password": "string"
+      "url": "string"
+    "secrets": ["user-id", "password"]
+
+---
 "namespace": "domain-a"
 "$$doc": "namespace"
 "configuration-sections":
   "service-1":
-    "path": "/a/b/c/service-1" 
+    "path": "/a/b/c/service-1"
     "type": "domain-a/demo1"
     "description": ""
   "service-2":

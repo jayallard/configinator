@@ -86,7 +86,7 @@ namespace Allard.Configinator.Tests.Unit
 
         public static IEnumerable<object[]> GetMergeTests()
         {
-            var folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "JsonMergeFiles");
+            var folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFiles", "JsonMerge");
             return Directory.GetFiles(folder, "*.json")
                 .Select(f =>
                 {

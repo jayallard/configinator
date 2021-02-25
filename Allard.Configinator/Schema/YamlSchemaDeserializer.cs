@@ -7,7 +7,7 @@ namespace Allard.Configinator.Schema
     public static class YamlSchemaDeserializer
     {
         /// <summary>
-        /// Deserializes schema yaml into objects.
+        ///     Deserializes schema yaml into objects.
         /// </summary>
         /// <param name="docs"></param>
         /// <returns></returns>

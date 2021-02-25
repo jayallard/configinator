@@ -5,27 +5,20 @@ using System.Threading.Tasks;
 namespace Allard.Configinator.Schema
 {
     /// <summary>
-    /// Convert schema DTOs to actual scheme objects.
-    /// The DTOs contain basic information about each individual type,
-    /// as loaded from a file or other source.
-    /// This does the work of putting creating full-formed schemas.
+    ///     Convert schema DTOs to actual scheme objects.
+    ///     The DTOs contain basic information about each individual type,
+    ///     as loaded from a file or other source.
+    ///     This does the work of putting creating full-formed schemas.
     /// </summary>
     public class SchemaResolver
     {
-        // TODO: prevent ciruclar references.
-        
-        public static async Task<IEnumerable<ObjectSchemaType>> ConvertAsync(IEnumerable<ModelDto.TypeDto> dto)
-        {
-            return await new SchemaResolver(dto).ConvertAsync();
-        }
-
         /// <summary>
-        /// The DTOs.
+        ///     The DTOs.
         /// </summary>
         private readonly Dictionary<SchemaTypeId, ModelDto.TypeDto> inputByTypeId;
-        
+
         /// <summary>
-        /// The schema types.
+        ///     The schema types.
         /// </summary>
         private readonly Dictionary<SchemaTypeId, ObjectSchemaType> outputByTypeId = new();
 
@@ -33,16 +26,20 @@ namespace Allard.Configinator.Schema
         {
             inputByTypeId = dto.ToDictionary(d => new SchemaTypeId(d.Namespace + "/" + d.TypeName));
         }
+        // TODO: prevent ciruclar references.
+
+        public static async Task<IEnumerable<ObjectSchemaType>> ConvertAsync(IEnumerable<ModelDto.TypeDto> dto)
+        {
+            return await new SchemaResolver(dto).ConvertAsync();
+        }
 
         public async Task<IEnumerable<ObjectSchemaType>> ConvertAsync()
         {
             foreach (var (id, dto) in inputByTypeId)
             {
                 if (IsResolved(id))
-                {
                     // already done. move along.
                     continue;
-                }
 
                 outputByTypeId[id] = await BuildResolvedType(dto);
             }
@@ -54,13 +51,10 @@ namespace Allard.Configinator.Schema
         {
             return outputByTypeId.ContainsKey(id);
         }
-        
+
         private async Task<ObjectSchemaType> GetResolvedType(SchemaTypeId id)
         {
-            if (outputByTypeId.ContainsKey(id))
-            {
-                return outputByTypeId[id];
-            }
+            if (outputByTypeId.ContainsKey(id)) return outputByTypeId[id];
 
             var dto = inputByTypeId[id];
             var type = await BuildResolvedType(dto);
@@ -72,7 +66,7 @@ namespace Allard.Configinator.Schema
         {
             var typeId = new SchemaTypeId(dto.Namespace + "/" + dto.TypeName);
             var properties = new List<Property>();
-            
+
             // get the properties from the base type.
             if (dto.BaseTypeName != null)
             {
@@ -96,8 +90,8 @@ namespace Allard.Configinator.Schema
                 var isSecret = property.IsSecret || dto.Secrets.Contains(property.PropertyName);
                 if (propertyTypeId.IsPrimitive)
                 {
-                    results.Add(new PropertyPrimitive(property.PropertyName, 
-                        propertyTypeId, 
+                    results.Add(new PropertyPrimitive(property.PropertyName,
+                        propertyTypeId,
                         isSecret,
                         isOptional));
                     continue;

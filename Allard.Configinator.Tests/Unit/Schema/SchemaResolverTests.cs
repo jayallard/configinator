@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -25,11 +24,13 @@ namespace Allard.Configinator.Tests.Unit.Schema
         {
             var baseFolder = Path
                 .Combine(AppDomain.CurrentDomain.BaseDirectory,
-                    "TestFiles", "Schemas", "TestTypes");
+                    "TestFiles", "SchemaResolver" +
+                                 "");
 
             // used to validate the results
             var expectedDto = (await GetDtos(Path.Combine(baseFolder, "ExpectedResolution"))).ToList();
 
+            // these are what will be resolved into schemas.
             var actualDto = (await GetDtos(Path.Combine(baseFolder, "Types"))).ToList();
             var actuals = (await SchemaResolver.ConvertAsync(actualDto)).ToList();
 
@@ -76,14 +77,6 @@ namespace Allard.Configinator.Tests.Unit.Schema
         {
             var repo = new FileSchemaRepository(folder);
             return await repo.GetSchemaTypes();
-
-            // var yamlTasks = Directory
-            //     .GetFiles(folder)
-            //     .Select(async f => await YamlUtility.GetYamlFromFile(f));
-            // var yaml = await Task.WhenAll(yamlTasks);
-            // return yaml
-            //     .SelectMany(YamlSchemaDeserializer.Deserialize)
-            //     .ToList();
         }
     }
 }

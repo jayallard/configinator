@@ -31,7 +31,7 @@ namespace Allard.Configinator.Tests.Unit.Schema
                 .ToList();
 
             deserialized.Count.Should().Be(2);
-            
+
             var exhaustive = deserialized[0];
             exhaustive.Namespace.Should().Be("exhaustive");
             exhaustive.Properties.Count.Should().Be(3);

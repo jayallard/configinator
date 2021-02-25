@@ -8,11 +8,11 @@ namespace Allard.Configinator.Schema.Validator
         {
             AddError(errors, "Core", path, errorMessage);
         }
-        
-        public static void AddError(this IList<TypeValidationError> errors, string validatorName, string path, string errorMessage)
+
+        public static void AddError(this IList<TypeValidationError> errors, string validatorName, string path,
+            string errorMessage)
         {
             errors.Add(new TypeValidationError(validatorName, path, errorMessage));
         }
-
     }
 }

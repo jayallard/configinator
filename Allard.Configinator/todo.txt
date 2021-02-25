@@ -26,4 +26,15 @@ DONE: properties: required/optional
 DONE: json merger 
 DONE: validation
 DONE doesn't mean it's actually done... just DONE enough for immediate needs
- 
+
+
+scratch
+----------------------------
+how should the objects work?
+
+configinator
+    ConfigSectionValue: getvalue
+    setvalue
+
+
+

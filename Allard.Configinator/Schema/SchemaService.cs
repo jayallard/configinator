@@ -9,9 +9,17 @@ namespace Allard.Configinator.Schema
     {
         private readonly ISchemaRepository repository;
         private Dictionary<string, ObjectSchemaType> types;
+
         public SchemaService(ISchemaRepository repository)
         {
-           this.repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            this.repository = repository ?? throw new ArgumentNullException(nameof(repository));
+        }
+
+        public async Task<ObjectSchemaType> GetSchemaTypeAsync(string typeId)
+        {
+            if (types == null) await Load();
+
+            return types[typeId];
         }
 
         private async Task Load()
@@ -19,16 +27,6 @@ namespace Allard.Configinator.Schema
             var typesDto = await repository.GetSchemaTypes();
             var resolved = await SchemaResolver.ConvertAsync(typesDto);
             types = resolved.ToDictionary(r => r.SchemaTypeId.FullId);
-        }
-
-        public async Task<ObjectSchemaType> GetSchemaTypeAsync(string typeId)
-        {
-            if (types == null)
-            {
-                await Load();
-            }
-
-            return types[typeId];
         }
     }
 }

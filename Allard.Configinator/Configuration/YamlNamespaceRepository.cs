@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Allard.Configinator.Schema;
-using YamlDotNet.RepresentationModel;
 
 namespace Allard.Configinator.Configuration
 {
@@ -27,7 +26,7 @@ namespace Allard.Configinator.Configuration
 
             var files = Directory
                 .GetFiles(namespaceFolder, "*.yml")
-                .Select(async f => (await YamlUtility.GetYamlFromFile(f)));
+                .Select(async f => await YamlUtility.GetYamlFromFile(f));
             await Task.WhenAll(files);
             return files
                 .SelectMany(f => f.Result)

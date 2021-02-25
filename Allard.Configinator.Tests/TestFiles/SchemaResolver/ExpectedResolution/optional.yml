@@ -10,8 +10,7 @@
       "b":
         "type": "string"
         "is-optional": true
-      "c":
-        "type": "string"
+      "c": "string"
       "d":
         "type": "optional/nested"
         "is-optional": false

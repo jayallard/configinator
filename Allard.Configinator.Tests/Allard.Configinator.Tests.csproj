@@ -25,16 +25,7 @@
       <ProjectReference Include="..\Allard.Configinator\Allard.Configinator.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <Content Include="FullSetup\**\*">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
         <Content Include="TestFiles\**\*">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <Content Include="JsonMergeFiles\**\*">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <Content Include="ValidatorTestFiles\**\*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
     </ItemGroup>
