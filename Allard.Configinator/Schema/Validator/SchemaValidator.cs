@@ -13,19 +13,16 @@ namespace Allard.Configinator.Schema.Validator
 
         public SchemaValidator(ITypeValidatorFactory validatorFactory, ISchemaService service)
         {
-            this.validatorFactory = validatorFactory ?? throw new ArgumentNullException(nameof(validatorFactory));
-            this.service = service ?? throw new ArgumentNullException(nameof(service));
+            this.validatorFactory = validatorFactory.EnsureValue(nameof(validatorFactory));
+            this.service = service.EnsureValue(nameof(service));
         }
 
         public async Task<IList<TypeValidationError>> Validate(JToken document, ObjectSchemaType type)
         {
-            document = document ?? throw new ArgumentNullException(nameof(document));
-            type = type ?? throw new ArgumentNullException(nameof(type));
+            document.EnsureValue(nameof(document));
+            type.EnsureValue(nameof(type));
 
-            // TODO: object validations that have access to the properties. start with primitives only.
-            type = type ?? throw new ArgumentNullException(nameof(type));
             var validationErrors = new List<TypeValidationError>();
-
             await ValidateObject(validationErrors, document, type, "/");
             return validationErrors;
         }
@@ -88,12 +85,6 @@ namespace Allard.Configinator.Schema.Validator
                     "Required property doesn't exists but doesn't have a value: " + property.Name);
 
             return false;
-        }
-
-        private IEnumerable<TypeValidationError> ValidateProperties(List<TypeValidationError> errors, JsonToken json,
-            Property p)
-        {
-            return new List<TypeValidationError>();
         }
     }
 }

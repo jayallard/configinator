@@ -6,13 +6,11 @@ namespace Allard.Configinator.Schema.Validator
         {
             // todo: register. obviously this shouldn't be
             // hard coded. 
-            switch (typeId.FullId)
+            return typeId.FullId switch
             {
-                case "string":
-                    return new StringValidator();
-                default:
-                    return null;
-            }
+                "string" => new StringValidator(),
+                _ => null
+            };
         }
     }
 }

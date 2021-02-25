@@ -22,9 +22,7 @@ namespace Allard.Configinator.Schema
 
     [DebuggerDisplay("{Name}")]
     public record PropertyPrimitive(string Name, SchemaTypeId TypeId, bool IsSecret, bool IsOptional) : Property(Name,
-        TypeId, IsOptional)
-    {
-    }
+        TypeId, IsOptional);
 
     /// <summary>
     ///     Identity for a schema.
@@ -35,10 +33,7 @@ namespace Allard.Configinator.Schema
     {
         public SchemaTypeId(string fullId)
         {
-            fullId = string.IsNullOrWhiteSpace(fullId)
-                ? throw new ArgumentNullException(nameof(fullId))
-                : fullId;
-
+            fullId.EnsureValue(nameof(fullId));
             if (!fullId.Contains("/"))
             {
                 NameSpace = string.Empty;

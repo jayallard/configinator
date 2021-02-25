@@ -2,26 +2,25 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Allard.Configinator.Configuration;
 using Allard.Configinator.Schema;
 
-namespace Allard.Configinator.Configuration
+namespace Allard.Configinator.Habitats
 {
-    public class YamlHabitatsRepository : IHabitatRepository
+    public class HabitatsRepositoryYamlFile : IHabitatRepository
     {
         private readonly string yamlFile;
 
-        public YamlHabitatsRepository(string yamlFile)
+        public HabitatsRepositoryYamlFile(string yamlFile)
         {
-            this.yamlFile = string.IsNullOrWhiteSpace(yamlFile)
-                ? throw new ArgumentNullException(nameof(yamlFile))
-                : yamlFile;
+            this.yamlFile = yamlFile.EnsureValue(nameof(yamlFile));
         }
 
         public async Task<IEnumerable<Habitat>> GetHabitats()
         {
             return (await YamlUtility.GetYamlFromFile(yamlFile))
                 .Where(y => y.RootNode.AsString("$$doc") == "habitat")
-                .SelectMany(y => Deserializers.DeserializeHabitat(y.RootNode.AsMap()));
+                .SelectMany(y => HabitatYamlDeserializer.Deserialize(y.RootNode.AsMap()));
         }
     }
 }

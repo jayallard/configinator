@@ -28,7 +28,7 @@ namespace Allard.Configinator.Configuration
                 readWriteLock.WaitOne();
                 return repo.TryGetValue(path, out var value)
                     ? Task.FromResult(new ConfigurationValue(path, value.ETag, value.Value))
-                    : Task.FromResult<ConfigurationValue>(null);
+                    : Task.FromResult(new ConfigurationValue(path, null, null));
             }
             finally
             {
@@ -43,10 +43,10 @@ namespace Allard.Configinator.Configuration
             {
                 readWriteLock.WaitOne();
                 var existing = await GetValueAsync(value.Path);
-                if (existing != null && existing.ETag != value.ETag) throw new Exception("etag change");
+                if (existing.ETag != null && existing.ETag != value.ETag) throw new Exception("etag change");
 
                 var etag =
-                    existing == null || existing.Value != value.Value
+                    existing.ETag == null || existing.Value != value.Value
                         ? Guid.NewGuid().ToString()
                         : existing.ETag;
 

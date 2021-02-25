@@ -8,9 +8,7 @@ namespace Allard.Configinator
     {
         public static JObject GetFile(string fileName)
         {
-            fileName = string.IsNullOrWhiteSpace(fileName)
-                ? throw new ArgumentNullException(nameof(fileName))
-                : fileName;
+            fileName.EnsureValue(nameof(fileName));
             return JObject.Parse(File.ReadAllText(fileName));
         }
     }

@@ -9,7 +9,7 @@ namespace Allard.Configinator.Schema
     /// <summary>
     ///     Retrieves schema yaml from files.
     /// </summary>
-    public class FileSchemaRepository : ISchemaRepository
+    public class SchemaRepositoryYamlFiles : ISchemaRepository
     {
         private readonly string schemaFolder;
 
@@ -17,14 +17,12 @@ namespace Allard.Configinator.Schema
         ///     Initializes a new instance of the fileSchemaRepository class.
         /// </summary>
         /// <param name="schemaFolder">The folder that contains the schema files.</param>
-        public FileSchemaRepository(string schemaFolder)
+        public SchemaRepositoryYamlFiles(string schemaFolder)
         {
-            this.schemaFolder = string.IsNullOrWhiteSpace(schemaFolder)
-                ? throw new ArgumentNullException(nameof(schemaFolder))
-                : schemaFolder;
+            this.schemaFolder = schemaFolder.EnsureValue(nameof(schemaFolder));
         }
 
-        public async Task<IEnumerable<ModelDto.TypeDto>> GetSchemaTypes()
+        public async Task<IEnumerable<TypeDto>> GetSchemaTypes()
         {
             var yamlTasks = Directory
                 .GetFiles(schemaFolder, "*.yml")

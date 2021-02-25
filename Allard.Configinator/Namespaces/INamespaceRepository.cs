@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Allard.Configinator.Configuration
+namespace Allard.Configinator.Namespaces
 {
     public interface INamespaceRepository
     {

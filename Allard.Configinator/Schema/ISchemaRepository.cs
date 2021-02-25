@@ -8,6 +8,6 @@ namespace Allard.Configinator.Schema
     /// </summary>
     public interface ISchemaRepository
     {
-        Task<IEnumerable<ModelDto.TypeDto>> GetSchemaTypes();
+        Task<IEnumerable<TypeDto>> GetSchemaTypes();
     }
 }

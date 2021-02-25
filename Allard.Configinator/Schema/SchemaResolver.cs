@@ -15,20 +15,20 @@ namespace Allard.Configinator.Schema
         /// <summary>
         ///     The DTOs.
         /// </summary>
-        private readonly Dictionary<SchemaTypeId, ModelDto.TypeDto> inputByTypeId;
+        private readonly Dictionary<SchemaTypeId, TypeDto> inputByTypeId;
 
         /// <summary>
         ///     The schema types.
         /// </summary>
         private readonly Dictionary<SchemaTypeId, ObjectSchemaType> outputByTypeId = new();
 
-        private SchemaResolver(IEnumerable<ModelDto.TypeDto> dto)
+        private SchemaResolver(IEnumerable<TypeDto> dto)
         {
             inputByTypeId = dto.ToDictionary(d => new SchemaTypeId(d.Namespace + "/" + d.TypeName));
         }
         // TODO: prevent ciruclar references.
 
-        public static async Task<IEnumerable<ObjectSchemaType>> ConvertAsync(IEnumerable<ModelDto.TypeDto> dto)
+        public static async Task<IEnumerable<ObjectSchemaType>> ConvertAsync(IEnumerable<TypeDto> dto)
         {
             return await new SchemaResolver(dto).ConvertAsync();
         }
@@ -62,7 +62,7 @@ namespace Allard.Configinator.Schema
             return type;
         }
 
-        private async Task<ObjectSchemaType> BuildResolvedType(ModelDto.TypeDto dto)
+        private async Task<ObjectSchemaType> BuildResolvedType(TypeDto dto)
         {
             var typeId = new SchemaTypeId(dto.Namespace + "/" + dto.TypeName);
             var properties = new List<Property>();
@@ -80,7 +80,7 @@ namespace Allard.Configinator.Schema
             return new ObjectSchemaType(typeId, properties.AsReadOnly());
         }
 
-        private async Task<List<Property>> GetProperties(string relativeNamespace, ModelDto.TypeDto dto)
+        private async Task<List<Property>> GetProperties(string relativeNamespace, TypeDto dto)
         {
             var results = new List<Property>();
             foreach (var property in dto.Properties)

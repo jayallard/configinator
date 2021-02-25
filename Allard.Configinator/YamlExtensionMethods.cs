@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using Allard.Configinator.Schema;
 using YamlDotNet.RepresentationModel;
 
-namespace Allard.Configinator.Schema
+namespace Allard.Configinator
 {
-    public static class ExtensionMethods
+    public static class YamlExtensionMethods
     {
         /// <summary>
         ///     Returns the value of a child node as a string.
@@ -17,10 +18,8 @@ namespace Allard.Configinator.Schema
         /// <returns></returns>
         public static string AsString(this YamlNode node, string name, string defaultValue = null)
         {
-            node = node ?? throw new ArgumentNullException(nameof(node));
-            name = string.IsNullOrWhiteSpace(name)
-                ? throw new ArgumentNullException(nameof(node))
-                : name;
+            node.EnsureValue(nameof(node));
+            name.EnsureValue(nameof(name));
 
             if (node is YamlMappingNode map)
                 return
@@ -38,7 +37,7 @@ namespace Allard.Configinator.Schema
         /// <returns></returns>
         public static bool AsBoolean(this YamlNode node)
         {
-            node = node ?? throw new ArgumentNullException(nameof(node));
+            node.EnsureValue(nameof(node));
             return bool.Parse((string) node);
         }
 
@@ -80,11 +79,8 @@ namespace Allard.Configinator.Schema
         /// <returns></returns>
         public static YamlMappingNode AsMap(this YamlNode parent, string childName)
         {
-            parent = parent ?? throw new ArgumentNullException(nameof(parent));
-            childName = string.IsNullOrWhiteSpace(childName)
-                ? throw new ArgumentNullException(nameof(childName))
-                : childName;
-
+            parent.EnsureValue(nameof(parent));
+            childName.EnsureValue(nameof(childName));
             if (parent is YamlMappingNode map)
                 return
                     map.Children.ContainsKey(childName)
@@ -100,19 +96,6 @@ namespace Allard.Configinator.Schema
         }
 
         /// <summary>
-        ///     Returns a set of the name of the children of the node.
-        ///     If the node is not a YamlMappingNode, it returns an empty set.
-        /// </summary>
-        /// <param name="node"></param>
-        /// <returns></returns>
-        public static IReadOnlySet<string> ChildNames(this YamlNode node)
-        {
-            node = node ?? throw new ArgumentNullException(nameof(node));
-            if (node is YamlMappingNode mapping) return mapping.Children.Select(p => (string) p.Key).ToHashSet();
-            return new HashSet<string>();
-        }
-
-        /// <summary>
         ///     Returns the node as a string value.
         ///     If the node is not a YamlScalarNode, it returns null.
         /// </summary>
@@ -120,7 +103,7 @@ namespace Allard.Configinator.Schema
         /// <returns></returns>
         public static string AsString(this YamlNode node)
         {
-            node = node ?? throw new ArgumentNullException(nameof(node));
+            node.EnsureValue(nameof(node));
             if (node is YamlScalarNode scalarNode) return (string) scalarNode;
             return null;
         }
@@ -145,10 +128,8 @@ namespace Allard.Configinator.Schema
         /// <returns></returns>
         public static HashSet<string> AsStringHashSet(this YamlNode parent, string childName)
         {
-            parent = parent ?? throw new ArgumentNullException(nameof(parent));
-            childName = string.IsNullOrWhiteSpace(childName)
-                ? throw new ArgumentNullException(nameof(childName))
-                : childName;
+            parent.EnsureValue(nameof(parent));
+            childName.EnsureValue(nameof(childName));
             if (parent is YamlMappingNode map)
                 return
                     map.Children.ContainsKey(childName)
@@ -166,9 +147,9 @@ namespace Allard.Configinator.Schema
         /// <exception cref="InvalidOperationException"></exception>
         private static void WriteProperties(Utf8JsonWriter writer, IEnumerable<Property> properties)
         {
-            writer = writer ?? throw new ArgumentNullException(nameof(writer));
-            properties = properties ?? throw new ArgumentNullException(nameof(properties));
-            foreach (var property in properties)
+            writer.EnsureValue(nameof(writer));
+            var props = properties.EnsureValue(nameof(properties)).ToList();
+            foreach (var property in props)
                 switch (property)
                 {
                     case PropertyPrimitive prim:

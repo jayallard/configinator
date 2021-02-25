@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Allard.Configinator.Configuration;
+using Allard.Configinator.Habitats;
+using Allard.Configinator.Namespaces;
 using Allard.Configinator.Schema;
 using FluentAssertions;
 using Newtonsoft.Json.Linq;
@@ -26,11 +28,11 @@ namespace Allard.Configinator.Tests.Unit
             var habitatsFile = Path.Combine(baseFolder, "habitats.yml");
 
             var configStore = new MemoryConfigStore();
-            var parser = new SchemaService(new FileSchemaRepository(baseFolder));
-            var spaceRepo = new YamlHabitatsRepository(habitatsFile);
-            var namespaceRepo = new YamlNamespaceRepository(baseFolder);
+            var schemaService = new SchemaService(new SchemaRepositoryYamlFiles(baseFolder));
+            var spaceRepo = new HabitatsRepositoryYamlFile(habitatsFile);
+            var namespaceRepo = new NamespaceRepositoryYamlFiles(baseFolder);
             return new Configinator(
-                parser,
+                schemaService,
                 configStore,
                 spaceRepo,
                 namespaceRepo);
@@ -58,8 +60,7 @@ namespace Allard.Configinator.Tests.Unit
             await CreateValueAsync(configinator, "development", "domain-a", "service-1", dev);
             await CreateValueAsync(configinator, "dev-jay1", "domain-a", "service-1", jay1);
             await CreateValueAsync(configinator, "dev-jay2", "domain-a", "service-1", jay2);
-
-            var value = await configinator.GetValueAsync("dev-jay2", "domain-a", "service-1");
+            var value = await configinator.GetValueAsync(new ConfigurationId("dev-jay2", "domain-a", "service-1"));
 
             Assert.True(JToken.DeepEquals(
                 JToken.Parse(value.Value),
@@ -71,11 +72,16 @@ namespace Allard.Configinator.Tests.Unit
             string configSection,
             string value)
         {
-            var v = await configinator.GetValueAsync(habitat, nameSpace, configSection);
-            v.SetValue(value);
-            await configinator.SetValueAsync(v);
+            var v = await configinator.GetValueAsync(new ConfigurationId(habitat, nameSpace, configSection));
+            await configinator.SetValueAsync(v.SetValue(value));
         }
 
+        public void ProtoPure()
+        {
+            var configinator = CreateConfiginator();
+        }
+
+        /*
         [Fact]
         public async Task Proto()
         {
@@ -110,17 +116,18 @@ namespace Allard.Configinator.Tests.Unit
             // -----------------------------------------
             testOutputHelper.WriteLine("--------------------------------------------------------");
             testOutputHelper.WriteLine("Get/Set Values:");
-            var value = await configinator.GetValueAsync("dev-jay2", "domain-a", "service-1");
+            var value = await configinator.GetValueAsync(new ConfigId("dev-jay2", "domain-a", "service-1"));
             value.Value.Should().BeNull();
-            value.SetValue("{ \"hello\": \"world\" }");
+            value = value.SetValue("{ \"hello\": \"world\" }");
             testOutputHelper.WriteLine("\tNo existing value, as expected");
 
             await configinator.SetValueAsync(value);
             testOutputHelper.WriteLine("\tSet value");
 
-            var value2 = await configinator.GetValueAsync("dev-jay2", "domain-a", "service-1");
+            var value2 = await configinator.GetValueAsync(new ConfigId("dev-jay2", "domain-a", "service-1"));
             Assert.True(JToken.DeepEquals(JToken.Parse(value.Value), JToken.Parse(value2.Value)));
             testOutputHelper.WriteLine("\tRead value: " + value2.Value);
         }
+    */
     }
 }

@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Allard.Configinator.Configuration;
+using Allard.Configinator.Habitats;
+using Allard.Configinator.Namespaces;
 using Allard.Configinator.Schema;
 using Newtonsoft.Json.Linq;
 
@@ -36,40 +38,31 @@ namespace Allard.Configinator
             IHabitatRepository habitatRepository,
             INamespaceRepository namespaceRepository)
         {
-            this.service = service ?? throw new ArgumentNullException(nameof(service));
-            this.configStore = configStore ?? throw new ArgumentNullException(nameof(configStore));
-            this.habitatRepository =
-                habitatRepository ?? throw new ArgumentNullException(nameof(habitatRepository));
-            this.namespaceRepository = namespaceRepository ??
-                                       throw new ArgumentNullException(nameof(namespaceRepository));
+            this.service = service.EnsureValue(nameof(service));
+            this.configStore = configStore.EnsureValue(nameof(configStore));
+            this.habitatRepository = habitatRepository.EnsureValue(nameof(habitatRepository));
+            this.namespaceRepository = namespaceRepository.EnsureValue(nameof(namespaceRepository));
         }
 
         private async Task LoadHabitats()
         {
             if (habitats != null) return;
-            var spaceMap = (await habitatRepository.GetHabitats())
+            var values = (await habitatRepository.GetHabitats())
                 .ToDictionary(s => s.Name);
-            habitats = new ConcurrentDictionary<string, Habitat>(spaceMap);
+            habitats = new ConcurrentDictionary<string, Habitat>(values);
         }
 
-        public async Task<IEnumerable<Habitat>> GetHabitats()
+        private async Task<Habitat> GetHabitatAsync(string habitatName)
         {
-            if (habitats == null) await LoadHabitats();
-
-            return habitats.Values;
-        }
-
-        public async Task<Habitat> GetHabitatAsync(string habitatName)
-        {
-            habitatName = string.IsNullOrWhiteSpace(habitatName)
-                ? throw new ArgumentNullException(nameof(habitatName))
-                : habitatName;
+            // todo: move to habitat service
+            habitatName.EnsureValue(nameof(habitatName));
             await LoadHabitats();
             return habitats[habitatName];
         }
 
         private async Task LoadNamespaces()
         {
+            // todo: move to namespace service
             if (namespaces != null) return;
             var nsDtos = await namespaceRepository.GetNamespaces();
             var nsTasks = nsDtos
@@ -84,7 +77,6 @@ namespace Allard.Configinator
 
         private async Task<ConfigurationNamespace> ToNamespace(NamespaceDto ns)
         {
-            ns = ns ?? throw new ArgumentNullException(nameof(ns));
             var sectionTasks = ns
                 .Sections
                 .Select(async s =>
@@ -103,66 +95,73 @@ namespace Allard.Configinator
             return new ConfigurationNamespace(ns.Name, sections);
         }
 
-        public async Task<IEnumerable<ConfigurationNamespace>> GetNamespacesAsync()
+        private async Task<ConfigurationNamespace> GetNamespaceAsync(string nameSpace)
         {
-            await LoadNamespaces();
-            return namespaces.Values;
-        }
-
-        public async Task<ConfigurationNamespace> GetNamespaceAsync(string nameSpace)
-        {
-            nameSpace = string.IsNullOrWhiteSpace(nameSpace)
-                ? throw new ArgumentNullException(nameof(nameSpace))
-                : nameSpace;
             await LoadNamespaces();
             return namespaces[nameSpace];
+        }
+
+        private async Task<string> GetPath(ConfigurationId id)
+        {
+            var ns = await GetNamespaceAsync(id.Namespace);
+            var cs = ns.GetConfigurationSection(id.ConfigurationSection);
+            var habitat = await GetHabitatAsync(id.Habitat);
+            return cs.Path.Replace("{{habitat}}", habitat.Name);
         }
 
         public async Task SetValueAsync(ConfigurationSectionValue value)
         {
             value.EnsureValue(nameof(value));
-            
-            await configStore.SetValueAsync(new ConfigurationValue("", "", ""));
+            var path = await GetPath(value.Id);
+            await configStore.SetValueAsync(new ConfigurationValue(path, value.Etag, value.Value));
         }
 
-        public async Task<ConfigurationSectionValue> GetValueAsync(
-            string habitat,
-            string nameSpace,
-            string configSection)
+        public async Task<ConfigurationSectionValue> GetValueAsync(ConfigurationId id)
         {
-            habitat.EnsureValue(nameof(habitat));
-            habitat.EnsureValue(nameof(nameSpace));
-            habitat.EnsureValue(nameof(configSection));
+            id.EnsureValue(nameof(id));
 
-            // todo: prevent circular references
-            var h = await GetHabitatAsync(habitat);
-            var ns = await GetNamespaceAsync(nameSpace);
-            var cs = ns.ConfigurationSections.Single(c => c.Id.Name == configSection);
+            var habitat = await GetHabitatAsync(id.Habitat);
 
-            // get the base values
-            var baseValues = h
+            // --------------------------------------------------
+            // get the values from the base paths.
+            // --------------------------------------------------
+            var baseValues = habitat
                 .Bases
-                .Select(async hab => await GetValueAsync(hab, nameSpace, configSection))
+                .Select(async baseHabitat =>
+                {
+                    var baseId = new ConfigurationId(baseHabitat, id.Namespace, id.ConfigurationSection);
+                    return await GetValueAsync(baseId);
+                })
                 .ToList();
 
-            // get the requested value
-            var value = configStore.GetValueAsync("/");
+            // --------------------------------------------------
+            // get the value from the requested path,
+            // then wait for the base queries to finish.
+            // --------------------------------------------------
+            var value = await configStore.GetValueAsync(await GetPath(id));
             await Task.WhenAll(baseValues).ConfigureAwait(false);
-            await value;
 
-            // todo: base can't have null values. no point inheriting if it doesn't exist.
+            // --------------------------------------------------
+            // put them all together, then merge.
+            // --------------------------------------------------
             var all = baseValues
                 .Where(b => b.Result?.Value != null)
-                .Select(b => b.Result.Value).ToList();
-            if (value.Result?.Value != null) all.Add(value.Result.Value);
+                .Select(b => b.Result.Value)
+                .ToList();
+            if (value.Value != null)
+            {
+                all.Add(value.Value);
+            }
 
             all.Reverse();
 
             var docs = all.Select(JToken.Parse).ToList();
             var final = new JsonMerger(docs).Merge()?.ToString();
 
+            // TODO: etag only represents the bottom most layer - misleading. if top level changes,
+            // then value is different, but etag is the same.
             // TODO: indicate that the value doesn't exist.
-            return new ConfigurationSectionValue("h", "cs", string.Empty, final);
+            return new ConfigurationSectionValue(id, value.ETag, final);
         }
     }
 }

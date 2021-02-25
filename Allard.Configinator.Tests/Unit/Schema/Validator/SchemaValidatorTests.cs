@@ -21,7 +21,7 @@ namespace Allard.Configinator.Tests.Unit.Schema.Validator
 
         public SchemaValidatorTests()
         {
-            ISchemaRepository schemaRepository = new FileSchemaRepository(Folder);
+            ISchemaRepository schemaRepository = new SchemaRepositoryYamlFiles(Folder);
             service = new SchemaService(schemaRepository);
         }
 
@@ -41,7 +41,7 @@ namespace Allard.Configinator.Tests.Unit.Schema.Validator
 
         public static IEnumerable<object[]> GetTests()
         {
-            var schemaRepo = new FileSchemaRepository(Folder);
+            var schemaRepo = new SchemaRepositoryYamlFiles(Folder);
             var schemaParser = new SchemaService(schemaRepo);
             return Directory
                 .GetFiles(Folder, "*.json")

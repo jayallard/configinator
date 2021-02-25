@@ -1,6 +1,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Allard.Configinator.Configuration;
+using Allard.Configinator.Habitats;
+using Allard.Configinator.Namespaces;
 using Allard.Configinator.Schema;
 using FluentAssertions;
 using Xunit;
@@ -15,8 +17,8 @@ namespace Allard.Configinator.Tests.Unit.Configuration
             var yaml = (await YamlUtility.GetYamlFromFile("TestFiles", "Habitats", "good.yml"))
                 .Single()
                 .RootNode;
-            var habitats = Deserializers
-                .DeserializeHabitat(yaml.AsMap())
+            var habitats = HabitatYamlDeserializer
+                .Deserialize(yaml.AsMap())
                 .ToDictionary(s => s.Name);
             habitats.Count.Should().Be(4);
 

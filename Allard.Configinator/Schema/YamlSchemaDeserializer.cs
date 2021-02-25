@@ -11,7 +11,7 @@ namespace Allard.Configinator.Schema
         /// </summary>
         /// <param name="docs"></param>
         /// <returns></returns>
-        public static IEnumerable<ModelDto.TypeDto> Deserialize(IEnumerable<YamlDocument> docs)
+        public static IEnumerable<TypeDto> Deserialize(IEnumerable<YamlDocument> docs)
         {
             // the deserializer doesn't apply any logic, it simply deserializes into DTOs
             // and lets the consumer work it out.
@@ -23,7 +23,7 @@ namespace Allard.Configinator.Schema
                 .Select(d => d.RootNode.AsMap())
                 .Where(d => d.AsString("$$doc") == "schema")
                 .SelectMany(d => d.AsMap("types")
-                    .Select(type => new ModelDto.TypeDto
+                    .Select(type => new TypeDto
                     {
                         Namespace = d.AsRequiredString("namespace"),
                         TypeName = (string) type.Key,
@@ -36,7 +36,7 @@ namespace Allard.Configinator.Schema
                 .ToList();
         }
 
-        private static IList<ModelDto.PropertyDto> GetProperties(YamlMappingNode propertiesContainer)
+        private static IList<PropertyDto> GetProperties(YamlMappingNode propertiesContainer)
         {
             return propertiesContainer
                 .AsMap("properties")
@@ -49,9 +49,9 @@ namespace Allard.Configinator.Schema
 
                     var nestedProperties = isObject
                         ? GetProperties(p.Value.AsMap())
-                        : new List<ModelDto.PropertyDto>();
+                        : new List<PropertyDto>();
 
-                    return new ModelDto.PropertyDto
+                    return new PropertyDto
                     {
                         IsOptional = p.Value.AsBoolean("is-optional"),
                         IsSecret = p.Value.AsBoolean("is-secret"),

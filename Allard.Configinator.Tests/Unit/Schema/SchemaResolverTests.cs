@@ -48,7 +48,7 @@ namespace Allard.Configinator.Tests.Unit.Schema
             testOutputHelper.WriteLine("");
         }
 
-        private void VerifyProperties(IList<ModelDto.PropertyDto> expectedProperties,
+        private void VerifyProperties(IList<PropertyDto> expectedProperties,
             ICollection<Property> actual)
         {
             actual.Count.Should().Be(expectedProperties.Count);
@@ -73,9 +73,9 @@ namespace Allard.Configinator.Tests.Unit.Schema
             }
         }
 
-        private static async Task<IEnumerable<ModelDto.TypeDto>> GetDtos(string folder)
+        private static async Task<IEnumerable<TypeDto>> GetDtos(string folder)
         {
-            var repo = new FileSchemaRepository(folder);
+            var repo = new SchemaRepositoryYamlFiles(folder);
             return await repo.GetSchemaTypes();
         }
     }
