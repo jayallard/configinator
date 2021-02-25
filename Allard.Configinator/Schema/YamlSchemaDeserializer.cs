@@ -30,27 +30,38 @@ namespace Allard.Configinator.Schema
                         BaseTypeName = (string) type.Value.AsString("$base"),
                         Secrets = type.Value.AsStringHashSet("secrets"),
                         Optional = type.Value.AsStringHashSet("optional"),
-                        Properties = type
-                            .Value
-                            .AsMap("properties")
-                            .Select(p =>
-                            {
-                                var isObject = p.Value is YamlMappingNode;
-                                var typeName = isObject
-                                    ? p.Value.AsString("type")
-                                    : (string) p.Value;
-
-                                return new ModelDto.PropertyDto
-                                {
-                                    IsOptional = p.Value.AsBoolean("is-optional"),
-                                    IsSecret = p.Value.AsBoolean("is-secret"),
-                                    PropertyName = (string) p.Key,
-                                    TypeName = typeName
-                                };
-                            }).ToList()
+                        Properties = GetProperties(type.Value.AsMap())
                     })
                 )
                 .ToList();
+        }
+
+        private static IList<ModelDto.PropertyDto> GetProperties(YamlMappingNode propertiesContainer)
+        {
+            return propertiesContainer
+                .AsMap("properties")
+                .Select(p =>
+                {
+                    var isObject = p.Value is YamlMappingNode;
+                    var typeName = isObject
+                        ? p.Value.AsString("type")
+                        : (string) p.Value;
+
+                    var nestedProperties = isObject
+                        ? GetProperties(p.Value.AsMap())
+                        : new List<ModelDto.PropertyDto>();
+
+                    return new ModelDto.PropertyDto
+                    {
+                        IsOptional = p.Value.AsBoolean("is-optional"),
+                        IsSecret = p.Value.AsBoolean("is-secret"),
+                        Secrets = p.Value.AsStringHashSet("secrets"),
+                        Optional = p.Value.AsStringHashSet("optional"),
+                        PropertyName = (string) p.Key,
+                        TypeName = typeName,
+                        Properties = nestedProperties
+                    };
+                }).ToList();
         }
     }
 }

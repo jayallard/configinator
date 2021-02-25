@@ -14,9 +14,9 @@
     "properties":
       "other-local":
         "type": "string"
-        "boo": "string"
-        "name": "string"
-        "planet": "string"
+      "boo": "string"
+      "name": "string"
+      "planet": "string"
     "secrets": ["boo", "type"]
     "optional": ["planet"]
 

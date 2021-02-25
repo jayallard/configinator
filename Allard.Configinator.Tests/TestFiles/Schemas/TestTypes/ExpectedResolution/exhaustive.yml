@@ -32,10 +32,16 @@
             "is-secret": true   
           "other-local":
             "type": "string"
-      
-        
   "exhaustive/other":
     "properties":
       "other-local":
         "type": "string"
+      "bootstrap-servers":
+        "type": "string"
+      "something":
+        "type": "string"
+      "something-secret":
+        "type": "string"
+        "is-secret": true
+
         

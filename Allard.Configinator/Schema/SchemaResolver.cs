@@ -4,19 +4,19 @@ using System.Threading.Tasks;
 
 namespace Allard.Configinator.Schema
 {
-    public class SchemaLoader
+    public class SchemaResolver
     {
         public static async Task<IEnumerable<ObjectSchemaType>> Convert(IEnumerable<ModelDto.TypeDto> dto)
         {
-            return await new SchemaLoader(dto).Convert();
+            return await new SchemaResolver(dto).Convert();
         }
 
         private readonly Dictionary<SchemaTypeId, ModelDto.TypeDto> inputByTypeId;
-        private readonly Dictionary<SchemaTypeId, ObjectSchemaType> outputByTypeId;
+        private readonly Dictionary<SchemaTypeId, ObjectSchemaType> outputByTypeId = new();
 
-        private SchemaLoader(IEnumerable<ModelDto.TypeDto> dto)
+        private SchemaResolver(IEnumerable<ModelDto.TypeDto> dto)
         {
-            inputByTypeId = dto.ToDictionary(d => new SchemaTypeId(d.TypeName));
+            inputByTypeId = dto.ToDictionary(d => new SchemaTypeId(d.Namespace + "/" + d.TypeName));
         }
 
         public async Task<IEnumerable<ObjectSchemaType>> Convert()
@@ -55,8 +55,19 @@ namespace Allard.Configinator.Schema
 
         private async Task<ObjectSchemaType> BuildResolvedType(ModelDto.TypeDto dto)
         {
-            var typeId = new SchemaTypeId(dto.TypeName);
-            var properties = await GetProperties(dto.Namespace, dto);
+            var typeId = new SchemaTypeId(dto.Namespace + "/" + dto.TypeName);
+            var properties = new List<Property>();
+            
+            // get the properties from the base type.
+            if (dto.BaseTypeName != null)
+            {
+                var baseId = NormalizeTypeId(dto.Namespace, dto.BaseTypeName);
+                var baseType = await GetResolvedType(baseId);
+                properties.AddRange(baseType.Properties);
+            }
+
+            // get the properties for this type.
+            properties.AddRange(await GetProperties(dto.Namespace, dto));
             return new ObjectSchemaType(typeId, properties.AsReadOnly());
         }
 
@@ -66,15 +77,19 @@ namespace Allard.Configinator.Schema
             foreach (var property in dto.Properties)
             {
                 var propertyTypeId = NormalizeTypeId(relativeNamespace, property.TypeName);
+                var isOptional = property.IsOptional || dto.Optional.Contains(property.PropertyName);
+                var isSecret = property.IsSecret || dto.Secrets.Contains(property.PropertyName);
                 if (propertyTypeId.IsPrimitive)
                 {
-                    results.Add(new PropertyPrimitive(property.PropertyName, propertyTypeId, property.IsSecret,
-                        property.IsOptional));
+                    results.Add(new PropertyPrimitive(property.PropertyName, 
+                        propertyTypeId, 
+                        isSecret,
+                        isOptional));
                     continue;
                 }
 
                 var childType = await GetResolvedType(propertyTypeId);
-                results.Add(new PropertyGroup(property.PropertyName, propertyTypeId, property.IsOptional,
+                results.Add(new PropertyGroup(property.PropertyName, propertyTypeId, isOptional,
                     childType.Properties));
             }
 
