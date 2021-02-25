@@ -15,9 +15,10 @@
             "properties":
                 "x": "string"
                 "y": "string"
-    the nested property c used to be supported, but i removed it because it doesn't have a type.
-    it doen't need to have a type, though... it's just an object with more properties.
-    it'll just be a proeprty group.
+
+ validate yml structure and contents
+    optional[] and secrets[] ust have valid propertyy names
+    make sure node name are valid at every level
  
  
 

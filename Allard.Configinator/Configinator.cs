@@ -54,7 +54,11 @@ namespace Allard.Configinator
 
         public async Task<IEnumerable<Habitat>> GetHabitats()
         {
-            await LoadHabitats();
+            if (habitats == null)
+            {
+                await LoadHabitats();
+            }
+
             return habitats.Values;
         }
 

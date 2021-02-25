@@ -4,14 +4,29 @@ using System.Threading.Tasks;
 
 namespace Allard.Configinator.Schema
 {
+    /// <summary>
+    /// Convert schema DTOs to actual scheme objects.
+    /// The DTOs contain basic information about each individual type,
+    /// as loaded from a file or other source.
+    /// This does the work of putting creating full-formed schemas.
+    /// </summary>
     public class SchemaResolver
     {
-        public static async Task<IEnumerable<ObjectSchemaType>> Convert(IEnumerable<ModelDto.TypeDto> dto)
+        // TODO: prevent ciruclar references.
+        
+        public static async Task<IEnumerable<ObjectSchemaType>> ConvertAsync(IEnumerable<ModelDto.TypeDto> dto)
         {
-            return await new SchemaResolver(dto).Convert();
+            return await new SchemaResolver(dto).ConvertAsync();
         }
 
+        /// <summary>
+        /// The DTOs.
+        /// </summary>
         private readonly Dictionary<SchemaTypeId, ModelDto.TypeDto> inputByTypeId;
+        
+        /// <summary>
+        /// The schema types.
+        /// </summary>
         private readonly Dictionary<SchemaTypeId, ObjectSchemaType> outputByTypeId = new();
 
         private SchemaResolver(IEnumerable<ModelDto.TypeDto> dto)
@@ -19,7 +34,7 @@ namespace Allard.Configinator.Schema
             inputByTypeId = dto.ToDictionary(d => new SchemaTypeId(d.Namespace + "/" + d.TypeName));
         }
 
-        public async Task<IEnumerable<ObjectSchemaType>> Convert()
+        public async Task<IEnumerable<ObjectSchemaType>> ConvertAsync()
         {
             foreach (var (id, dto) in inputByTypeId)
             {

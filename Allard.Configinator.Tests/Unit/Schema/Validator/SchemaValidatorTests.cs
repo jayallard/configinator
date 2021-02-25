@@ -29,7 +29,9 @@ namespace Allard.Configinator.Tests.Unit.Schema.Validator
 
         [Theory]
         [MemberData(nameof(GetTests))]
-        public async Task Validate(ObjectSchemaType type, JToken json,
+        public async Task Validate(
+            ObjectSchemaType type, 
+            JToken json,
             List<TypeValidationError> expectedResponses)
         {
             var factory = new ValidatorFactoryServices();

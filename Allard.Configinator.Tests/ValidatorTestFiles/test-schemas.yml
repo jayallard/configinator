@@ -1,4 +1,5 @@
 ---
+"$$doc": "schema"
 "namespace": "test-schemas"
 "types":
     "simple":

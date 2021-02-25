@@ -1,4 +1,5 @@
 ---
+"$$doc": "schema"
 "namespace": "domain-a"
 "types":
   "demo1":

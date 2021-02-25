@@ -1,4 +1,5 @@
 ---
+"$$doc": "schema"
 "namespace": "Sample1"
 "configuration-sections":
   "service-1":

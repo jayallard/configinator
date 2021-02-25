@@ -31,7 +31,7 @@ namespace Allard.Configinator.Tests.Unit.Schema
             var expectedDto = (await GetDtos(Path.Combine(baseFolder, "ExpectedResolution"))).ToList();
 
             var actualDto = (await GetDtos(Path.Combine(baseFolder, "Types"))).ToList();
-            var actuals = (await SchemaResolver.Convert(actualDto)).ToList();
+            var actuals = (await SchemaResolver.ConvertAsync(actualDto)).ToList();
 
             actuals.Count.Should().Be(expectedDto.Count);
             foreach (var expected in expectedDto)
