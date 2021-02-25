@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Allard.Configinator.Configuration;
 using FluentAssertions;
@@ -12,18 +11,15 @@ namespace Allard.Configinator.Tests.Unit.Configuration
         [Fact]
         public async Task WriteRead()
         {
+            const string path = "/a/b/c";
             var mem = new MemoryConfigStore();
 
-            var configId = new ConfigurationSectionId("WriteReadTest", "blah");
-            var configSection = new ConfigurationSection(configId, "path", null, null);
-            var space = new Habitat("name", "description", new HashSet<string>());
-
             // write
-            var config = new ConfigurationSectionValue(space, configSection, "A", "config");
+            var config = new ConfigurationValue(path, "a", "config");
             await mem.SetValueAsync(config);
 
             // read
-            var read = await mem.GetValueAsync(space, configSection);
+            var read = await mem.GetValueAsync(path);
             read.Value.Should().Be("config");
             read.ETag.Should().NotBe("A");
         }
@@ -31,22 +27,19 @@ namespace Allard.Configinator.Tests.Unit.Configuration
         [Fact]
         public async Task WriteFailsIfEtagChanges()
         {
+            const string path = "/a/b/c";
             var mem = new MemoryConfigStore();
-
-            var configId = new ConfigurationSectionId("WriteReadTest", "blah");
-            var configSection = new ConfigurationSection(configId, "path", null, null);
-            var space = new Habitat("name", "description", new HashSet<string>());
-
+            
             // initialize
-            var config = new ConfigurationSectionValue(space, configSection, "A", "config");
+            var config = new ConfigurationValue(path, "a", "config");
             await mem.SetValueAsync(config);
 
             // read
-            var read1 = await mem.GetValueAsync(space, configSection);
-            var read2 = await mem.GetValueAsync(space, configSection);
+            var read1 = await mem.GetValueAsync(path);
+            var read2 = await mem.GetValueAsync(path);
 
-            read1.SetValue("write1");
-            read2.SetValue("read2");
+            read1 = read1.SetValue("write1");
+            read2 = read2.SetValue("read2");
 
             // this will work
             await mem.SetValueAsync(read1);
@@ -61,44 +54,38 @@ namespace Allard.Configinator.Tests.Unit.Configuration
         [Fact]
         public async Task EtagDoesntChangeIfNoChange()
         {
+            const string path = "/a/b/c";
             var mem = new MemoryConfigStore();
-
-            var configId = new ConfigurationSectionId("EtagDoesntChangeIfNoChange", "blah");
-            var configSection = new ConfigurationSection(configId, "path", null, null);
-            var space = new Habitat("name", "description", new HashSet<string>());
-
+            
             // initialize
-            var config = new ConfigurationSectionValue(space, configSection, "A", "config");
+            var config = new ConfigurationValue(path, "A", "config");
             await mem.SetValueAsync(config);
 
             // read, then write.
-            var read = await mem.GetValueAsync(space, configSection);
+            var read = await mem.GetValueAsync(path);
             await mem.SetValueAsync(read);
 
             // read again. see the etag is the same.
-            var read2 = await mem.GetValueAsync(space, configSection);
+            var read2 = await mem.GetValueAsync(path);
             read2.ETag.Should().Be(read.ETag);
         }
 
         [Fact]
         public async Task EtagChangesIfValueChanges()
         {
+            const string path = "/a/b/c";
             var mem = new MemoryConfigStore();
 
-            var configId = new ConfigurationSectionId("EtagChangesIfValueChanges", "blah");
-            var configSection = new ConfigurationSection(configId, "path", null, null);
-            var habitat = new Habitat("name", "description", new HashSet<string>());
-
             // initialize
-            var config = new ConfigurationSectionValue(habitat, configSection, "A", "config");
+            var config = new ConfigurationValue(path, "A", "config");
             await mem.SetValueAsync(config);
 
             // read, change the value, write
-            var read = (await mem.GetValueAsync(habitat, configSection)).SetValue("blah blah blah");
+            var read = (await mem.GetValueAsync(path)).SetValue("blah blah blah");
             await mem.SetValueAsync(read);
 
             // read again. see the etag is the same.
-            var read2 = await mem.GetValueAsync(habitat, configSection);
+            var read2 = await mem.GetValueAsync(path);
             read2.ETag.Should().NotBe(read.ETag);
         }
     }

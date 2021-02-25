@@ -8,7 +8,7 @@ namespace Allard.Configinator.Configuration
 
     public class ConfigurationSectionValue
     {
-        public ConfigurationSectionValue(Habitat habitat, ConfigurationSection configurationSection, string eTag,
+        public ConfigurationSectionValue(string habitat, string configurationSection, string eTag,
             string value)
         {
             Habitat = habitat ?? throw new ArgumentNullException(nameof(habitat));
@@ -18,8 +18,8 @@ namespace Allard.Configinator.Configuration
             Value = value;
         }
 
-        public Habitat Habitat { get; }
-        public ConfigurationSection ConfigurationSection { get; }
+        public string Habitat { get; }
+        public string ConfigurationSection { get; }
         public string ETag { get; }
         public string Value { get; private set; }
 

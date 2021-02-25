@@ -120,9 +120,9 @@ namespace Allard.Configinator
 
         public async Task SetValueAsync(ConfigurationSectionValue value)
         {
-            value = value ?? throw new ArgumentNullException(nameof(value));
-            // TODO: validate habitat and config section are valid.
-            await configStore.SetValueAsync(value);
+            value.EnsureValue(nameof(value));
+            
+            await configStore.SetValueAsync(new ConfigurationValue("", "", ""));
         }
 
         public async Task<ConfigurationSectionValue> GetValueAsync(
@@ -130,13 +130,9 @@ namespace Allard.Configinator
             string nameSpace,
             string configSection)
         {
-            habitat = string.IsNullOrWhiteSpace(habitat) ? throw new ArgumentNullException(nameof(habitat)) : habitat;
-            nameSpace = string.IsNullOrWhiteSpace(nameSpace)
-                ? throw new ArgumentNullException(nameof(nameSpace))
-                : nameSpace;
-            configSection = string.IsNullOrWhiteSpace(configSection)
-                ? throw new ArgumentNullException(nameof(configSection))
-                : configSection;
+            habitat.EnsureValue(nameof(habitat));
+            habitat.EnsureValue(nameof(nameSpace));
+            habitat.EnsureValue(nameof(configSection));
 
             // todo: prevent circular references
             var h = await GetHabitatAsync(habitat);
@@ -150,7 +146,7 @@ namespace Allard.Configinator
                 .ToList();
 
             // get the requested value
-            var value = configStore.GetValueAsync(h, cs);
+            var value = configStore.GetValueAsync("/");
             await Task.WhenAll(baseValues).ConfigureAwait(false);
             await value;
 
@@ -166,7 +162,7 @@ namespace Allard.Configinator
             var final = new JsonMerger(docs).Merge()?.ToString();
 
             // TODO: indicate that the value doesn't exist.
-            return new ConfigurationSectionValue(h, cs, string.Empty, final);
+            return new ConfigurationSectionValue("h", "cs", string.Empty, final);
         }
     }
 }

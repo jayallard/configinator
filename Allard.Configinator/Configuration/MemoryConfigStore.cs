@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using Allard.Configinator.Schema;
 
 namespace Allard.Configinator.Configuration
 {
@@ -17,20 +18,17 @@ namespace Allard.Configinator.Configuration
         private readonly Mutex readWriteLock = new();
 
         // key = path
-        private readonly ConcurrentDictionary<string, ConfigurationSectionValue> repo = new();
+        private readonly ConcurrentDictionary<string, ConfigurationValue> repo = new();
 
-        public Task<ConfigurationSectionValue> GetValueAsync(Habitat habitat, ConfigurationSection section)
+        public Task<ConfigurationValue> GetValueAsync(string path)
         {
-            habitat = habitat ?? throw new ArgumentNullException(nameof(habitat));
-            section = section ?? throw new ArgumentNullException(nameof(section));
+            path.EnsureValue(nameof(path));
             try
             {
                 readWriteLock.WaitOne();
-                var key = habitat.Name + "::" + section.Path;
-                return repo.TryGetValue(key, out var value)
-                    ? Task.FromResult(new ConfigurationSectionValue(value.Habitat, value.ConfigurationSection,
-                        value.ETag, value.Value))
-                    : Task.FromResult<ConfigurationSectionValue>(null);
+                return repo.TryGetValue(path, out var value)
+                    ? Task.FromResult(new ConfigurationValue(path, value.ETag, value.Value))
+                    : Task.FromResult<ConfigurationValue>(null);
             }
             finally
             {
@@ -38,13 +36,13 @@ namespace Allard.Configinator.Configuration
             }
         }
 
-        public async Task SetValueAsync(ConfigurationSectionValue value)
+        public async Task SetValueAsync(ConfigurationValue value)
         {
-            value = value ?? throw new ArgumentNullException(nameof(value));
+            value.EnsureValue(nameof(value));
             try
             {
                 readWriteLock.WaitOne();
-                var existing = await GetValueAsync(value.Habitat, value.ConfigurationSection);
+                var existing = await GetValueAsync(value.Path);
                 if (existing != null && existing.ETag != value.ETag) throw new Exception("etag change");
 
                 var etag =
@@ -52,8 +50,7 @@ namespace Allard.Configinator.Configuration
                         ? Guid.NewGuid().ToString()
                         : existing.ETag;
 
-                var key = value.Habitat.Name + "::" + value.ConfigurationSection.Path;
-                repo[key] = new ConfigurationSectionValue(value.Habitat, value.ConfigurationSection, etag, value.Value);
+                repo[value.Path] = value with {ETag = etag};
             }
             finally
             {

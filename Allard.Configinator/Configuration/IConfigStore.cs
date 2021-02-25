@@ -9,7 +9,7 @@ namespace Allard.Configinator.Configuration
     /// </summary>
     public interface IConfigStore
     {
-        Task<ConfigurationSectionValue> GetValueAsync(Habitat habitat, ConfigurationSection section);
-        Task SetValueAsync(ConfigurationSectionValue value);
+        Task<ConfigurationValue> GetValueAsync(string path);
+        Task SetValueAsync(ConfigurationValue value);
     }
 }
