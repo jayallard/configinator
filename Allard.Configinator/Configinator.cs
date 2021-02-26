@@ -58,6 +58,26 @@ namespace Allard.Configinator
 
         private async Task<ConfigurationSectionValue> GetValueAsync(ConfigurationId id)
         {
+            // given a namespace with 2 bases
+            // namespace = MyTest
+            //      bases = base1, base2
+            //
+            // get base1
+            // get base2
+            // get MyTest
+            //
+            // thing of the highest base like a base class in code.
+            // the overrides of the children win.
+            //
+            // base1 is the highest-most namespace.
+            // base2 overrides it.
+            // MyTest overrides it again.
+            //
+            // thus, when merging:
+            // the target is base1.
+            // the overrides are base2 and MyTest.
+            
+            
             id.EnsureValue(nameof(id));
             var habitat = await habitatService.GetHabitatAsync(id.Habitat).ConfigureAwait(false);
 
@@ -90,7 +110,12 @@ namespace Allard.Configinator
             if (value.Value != null) all.Add(value.Value);
 
             var docs = all.Select(JToken.Parse).ToList();
-            var final = new JsonMerger(docs).Merge()?.ToString();
+            if (docs.Count == 0)
+            {
+                return new ConfigurationSectionValue(id, null, null);
+            }
+            
+            var final = new JsonMerger(docs[0], docs.Skip(1).ToList()).Merge()?.ToString();
 
             // TODO: etag only represents the bottom most layer - misleading. if top level changes,
             // then value is different, but etag is the same.

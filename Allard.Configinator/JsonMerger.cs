@@ -12,28 +12,23 @@ namespace Allard.Configinator
     /// </summary>
     public class JsonMerger
     {
-        // given a list of documents
-        //      a
-        //      b
-        //      c
-        //
-        // merge a into b, then b in to c
-        //
+        private readonly JToken target;
+        private readonly List<JToken> overrides;
 
-        private readonly List<JToken> toMerge;
-
-        public JsonMerger(params JToken[] toMerge)
+        public JsonMerger(JToken target, params JToken[] overrides)
         {
-            this.toMerge = toMerge
-                .EnsureValue(nameof(toMerge))
+            this.target = target.EnsureValue(nameof(target));
+            this.overrides = overrides
+                .EnsureValue(nameof(overrides))
                 .Where(d => d != null)
                 .ToList();
         }
 
-        public JsonMerger(IEnumerable<JToken> toMerge)
+        public JsonMerger(JToken target, IEnumerable<JToken> overrides)
         {
-            this.toMerge = toMerge
-                .EnsureValue(nameof(toMerge))
+            this.target = target.EnsureValue(nameof(target));
+            this.overrides = overrides
+                .EnsureValue(nameof(overrides))
                 .Where(d => d != null)
                 .ToList();
         }
@@ -45,51 +40,47 @@ namespace Allard.Configinator
              get base2
              get getTarget
              
-             apply b2 on top of b1
-             apply t on top of b1
+             apply b2 to b1
+             apply t to b1 
              */
-            
-            switch (toMerge.Count)
-            {
-                // if no documents, then nothing to do.
-                case 0:
-                    return null;
 
-                // if only one document, then nothing to merge,
-                // so do nothing and return the 1 doc.
-                case 1:
-                    return toMerge[0];
+            if (overrides.Count == 0)
+            {
+                // nothing to do
+                return target;
             }
 
             // iterate the input docs using x.
             // merge x into x+1.
-            var target = toMerge[0];
-            for (var i = 1; i < toMerge.Count; i++)
+            foreach (var over in overrides)
             {
-                Merge(toMerge[i], target);
+                Merge(over, target);
             }
 
             return target;
         }
 
-        private void Merge(JToken source, JToken target)
+        private void Merge(JToken overRide, JToken target)
         {
             while (true)
             {
-                Debug.Assert(source != null);
+                Debug.Assert(overRide != null);
                 Debug.Assert(target != null);
 
                 // if the source is null,
                 // then delete if from the target.
-                if (source.Type == JTokenType.Null)
+                if (overRide.Type == JTokenType.Null)
                 {
                     target.Parent?.Remove();
                     return;
                 }
 
-                if (source.Type != target.Type) throw new Exception("different types");
+                if (overRide.Type != target.Type)
+                {
+                    throw new Exception("different types");
+                }
 
-                switch (source)
+                switch (overRide)
                 {
                     case JValue value:
                         ((JValue) target).Value = value.Value;
@@ -98,11 +89,11 @@ namespace Allard.Configinator
                         MergeObject(obj, (JObject) target);
                         return;
                     case JProperty prop:
-                        source = prop.Value;
+                        overRide = prop.Value;
                         target = ((JProperty) target).Value;
                         continue;
                     default:
-                        throw new Exception("unhandled type: " + source.Type);
+                        throw new Exception("unhandled type: " + overRide.Type);
                 }
             }
         }

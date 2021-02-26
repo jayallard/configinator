@@ -66,9 +66,9 @@ namespace Allard.Configinator.Tests.Unit
         [Fact]
         public void SingleLevelObject()
         {
-            var obj = (JObject) MergeFromStrings(
-                "{ \"hello\" : \"world\", \"a\": \"b\" }",
-                "{ \"hello\" : \"mars\" }");
+            var target = "{ \"hello\" : \"world\", \"a\": \"b\" }";
+            var overRide = "{ \"hello\" : \"mars\" }";
+            var obj = (JObject) MergeFromStrings(target, overRide);
             obj.Properties().Count().Should().Be(2);
             
             // second overwrites first
@@ -78,9 +78,9 @@ namespace Allard.Configinator.Tests.Unit
             obj["a"].Value<string>().Should().Be("b");
         }
 
-        private static JToken MergeFromStrings(params string[] json)
+        private static JToken MergeFromStrings(string target, params string[] json)
         {
-            return new JsonMerger(json.Select(JToken.Parse)).Merge();
+            return new JsonMerger(JToken.Parse(target), json.Select(JToken.Parse)).Merge();
         }
 
         [Theory]
@@ -90,7 +90,7 @@ namespace Allard.Configinator.Tests.Unit
             var tests = GetMergeTests().ToList();
             testOutputHelper.WriteLine(tests.Count().ToString());
 
-            var merged = new JsonMerger(testData.Input).Merge();
+            var merged = new JsonMerger(testData.Input[0], testData.Input.Skip(1)).Merge();
             if (JToken.DeepEquals(merged, testData.ExpectedOutput)) return;
 
             testOutputHelper.WriteLine("expected ---------");

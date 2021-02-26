@@ -59,7 +59,9 @@ namespace Allard.Configinator.Tests.Unit
             await CreateValueAsync(configinator, "development", "domain-a", "service-1", dev);
             await CreateValueAsync(configinator, "dev-jay1", "domain-a", "service-1", jay1);
             await CreateValueAsync(configinator, "dev-jay2", "domain-a", "service-1", jay2);
-            var value = await configinator.Configuration.Get(new ConfigurationId("dev-jay2", "domain-a", "service-1"));
+
+            var idToGet = new ConfigurationId("dev-jay2", "domain-a", "service-1");
+            var value = await configinator.Configuration.Get(idToGet);
 
             Assert.True(JToken.DeepEquals(
                 JToken.Parse(value.Value),
