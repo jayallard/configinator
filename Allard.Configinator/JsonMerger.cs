@@ -8,6 +8,7 @@ namespace Allard.Configinator
 {
     /// <summary>
     ///     Merge json documents into one.
+    ///     Given a list of documents: a, b, c
     /// </summary>
     public class JsonMerger
     {
@@ -39,6 +40,15 @@ namespace Allard.Configinator
 
         public JToken Merge()
         {
+            /*
+             get base1
+             get base2
+             get getTarget
+             
+             apply b2 on top of b1
+             apply t on top of b1
+             */
+            
             switch (toMerge.Count)
             {
                 // if no documents, then nothing to do.
@@ -53,15 +63,13 @@ namespace Allard.Configinator
 
             // iterate the input docs using x.
             // merge x into x+1.
-            var source = toMerge[0];
+            var target = toMerge[0];
             for (var i = 1; i < toMerge.Count; i++)
             {
-                var target = toMerge[i];
-                Merge(source, target);
-                source = target;
+                Merge(toMerge[i], target);
             }
 
-            return toMerge.Last();
+            return target;
         }
 
         private void Merge(JToken source, JToken target)

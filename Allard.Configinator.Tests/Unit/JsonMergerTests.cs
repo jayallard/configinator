@@ -46,21 +46,21 @@ namespace Allard.Configinator.Tests.Unit
         public void ScalarNumber()
         {
             var doc = MergeFromStrings("9", "10", "11");
-            doc.Value<int>().Should().Be(9);
+            doc.Value<int>().Should().Be(11);
         }
 
         [Fact]
         public void ScalarString()
         {
             var doc = MergeFromStrings("\"a\"", "\"b\"", "\"c\"", "\"d\"");
-            doc.Value<string>().Should().Be("a");
+            doc.Value<string>().Should().Be("d");
         }
 
         [Fact]
         public void ScalarBoolean()
         {
             MergeFromStrings("true", "false", "true").Value<bool>().Should().BeTrue();
-            MergeFromStrings("false", "false", "true").Value<bool>().Should().BeFalse();
+            MergeFromStrings("false", "false", "true").Value<bool>().Should().BeTrue();
         }
 
         [Fact]
@@ -70,7 +70,11 @@ namespace Allard.Configinator.Tests.Unit
                 "{ \"hello\" : \"world\", \"a\": \"b\" }",
                 "{ \"hello\" : \"mars\" }");
             obj.Properties().Count().Should().Be(2);
-            obj["hello"].Value<string>().Should().Be("world");
+            
+            // second overwrites first
+            obj["hello"].Value<string>().Should().Be("mars");
+            
+            // doesn't exist in second, so first is used
             obj["a"].Value<string>().Should().Be("b");
         }
 

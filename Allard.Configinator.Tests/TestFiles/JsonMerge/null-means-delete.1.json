@@ -1,5 +1,7 @@
 {
   "test1": "hi there",
-  "delete-me": null,
-  "delete-me-too": null
+  "delete-me": {
+    "this": "will go bye bye"
+  },
+  "delete-me-too": "bye bye"
 }

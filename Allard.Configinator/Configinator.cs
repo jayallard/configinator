@@ -89,8 +89,6 @@ namespace Allard.Configinator
                 .ToList();
             if (value.Value != null) all.Add(value.Value);
 
-            all.Reverse();
-
             var docs = all.Select(JToken.Parse).ToList();
             var final = new JsonMerger(docs).Merge()?.ToString();
 

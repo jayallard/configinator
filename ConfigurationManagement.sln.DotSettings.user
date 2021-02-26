@@ -1,7 +1,12 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=0965dc75_002D3e11_002D401c_002Dbef4_002De0ebd1190c4a/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from &amp;lt;Allard.Configinator.Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=18d2fded_002D0e24_002D4dc8_002Dbad1_002D37222386231e/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from &amp;lt;Allard.Configinator.Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;Project Location="/Users/jallard/personal/ConfigurationManagement/Allard.Configinator.Tests" Presentation="&amp;lt;Allard.Configinator.Tests&amp;gt;" /&gt;
 &lt;/SessionState&gt;</s:String>
+	
+	
+	
+	
+	
 	
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=5db46946_002Dde80_002D4651_002Da321_002D645631fbbccc/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from &amp;lt;Allard.Configinator.Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;Project Location="/home/jaya/personal/projects/configinator/Allard.Configinator.Tests" Presentation="&amp;lt;Allard.Configinator.Tests&amp;gt;" /&gt;
@@ -9,6 +14,8 @@
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=7a1657b5_002De0f1_002D46f1_002D835f_002Dd1d74d354dd0/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from &amp;lt;Allard.Configinator.Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;Project Location="/home/jaya/personal/projects/configinator/Allard.Configinator.Tests" Presentation="&amp;lt;Allard.Configinator.Tests&amp;gt;" /&gt;
 &lt;/SessionState&gt;</s:String>
+	
+	
 	
 	
 	
