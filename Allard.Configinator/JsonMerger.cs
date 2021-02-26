@@ -23,12 +23,18 @@ namespace Allard.Configinator
 
         public JsonMerger(params JToken[] toMerge)
         {
-            this.toMerge = toMerge.EnsureValue(nameof(toMerge)).ToList();
+            this.toMerge = toMerge
+                .EnsureValue(nameof(toMerge))
+                .Where(d => d != null)
+                .ToList();
         }
 
         public JsonMerger(IEnumerable<JToken> toMerge)
         {
-            this.toMerge = toMerge.EnsureValue(nameof(toMerge)).ToList();
+            this.toMerge = toMerge
+                .EnsureValue(nameof(toMerge))
+                .Where(d => d != null)
+                .ToList();
         }
 
         public JToken Merge()

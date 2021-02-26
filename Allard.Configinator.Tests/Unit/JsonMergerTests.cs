@@ -19,6 +19,17 @@ namespace Allard.Configinator.Tests.Unit
             this.testOutputHelper = testOutputHelper;
         }
 
+        [Fact]
+        public void SkipNullDocuments()
+        {
+            var doc1 = JToken.Parse("{ \"hello\": \"world\", \"a\": \"b\" }");
+            var doc3 = JToken.Parse("{ \"hello\": \"planet\" }");
+            var expected = JToken.Parse("{ \"hello\": \"planet\", \"a\": \"b\" }");
+            
+            var result = new JsonMerger(doc1, null, doc3).Merge();
+            JToken.DeepEquals(result, expected).Should().BeTrue();
+        }
+
         /// <summary>
         ///     If there's only one document, then there's nothing
         ///     to merge. so, it returns the only doc it received..
@@ -28,6 +39,7 @@ namespace Allard.Configinator.Tests.Unit
         {
             var doc = JToken.Parse("{ \"hello\": \"world\" }");
             var merged = new JsonMerger(doc).Merge();
+            merged.Should().BeEquivalentTo(doc);
         }
 
         [Fact]
@@ -64,7 +76,7 @@ namespace Allard.Configinator.Tests.Unit
 
         private static JToken MergeFromStrings(params string[] json)
         {
-            return new JsonMerger(json.Select(j => JToken.Parse(j))).Merge();
+            return new JsonMerger(json.Select(JToken.Parse)).Merge();
         }
 
         [Theory]
