@@ -62,21 +62,12 @@ namespace Allard.Configinator
             // namespace = MyTest
             //      bases = base1, base2
             //
-            // get base1
-            // get base2
-            // get MyTest
+            // start with base1
+            // base2 overrides base1
+            // MyTest overrides base2
             //
-            // thing of the highest base like a base class in code.
-            // the overrides of the children win.
-            //
-            // base1 is the highest-most namespace.
-            // base2 overrides it.
-            // MyTest overrides it again.
-            //
-            // thus, when merging:
-            // the target is base1.
-            // the overrides are base2 and MyTest.
-            
+            // it's convenient, but not entirely accurate, to think of it as 
+            // a class hierarchy.
             
             id.EnsureValue(nameof(id));
             var habitat = await habitatService.GetHabitatAsync(id.Habitat).ConfigureAwait(false);

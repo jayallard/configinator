@@ -38,6 +38,13 @@ namespace Allard.Configinator.Tests.Unit
         }
 
         [Fact]
+        public async Task Blah()
+        {
+            var configinator = CreateConfiginator();
+            testOutputHelper.WriteLine("");
+        }
+
+        [Fact]
         public async Task MergeValues()
         {
             // habitats.yml defines that dev-jay2 overrides development and dev-jay1.
