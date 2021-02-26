@@ -10,14 +10,14 @@
     "secrets": ["user-id", "password"]
 
 ---
-"namespace": "domain-a"
-"$$doc": "namespace"
+"name": "domain-a"
+"$$doc": "realm"
 "configuration-sections":
   "service-1":
     "path": "/{{habitat}}/a/b/c/service-1"
     "type": "domain-a/demo1"
-    "description": ""
+    "description": null
   "service-2":
-    "path" : "/{{habitat}}/a/b/c/service-1"
+    "path" : "/{{habitat}}/a/b/c/service-2"
     "type" : "domain-a/demo1"
-    "description" : ""
+    "description": null

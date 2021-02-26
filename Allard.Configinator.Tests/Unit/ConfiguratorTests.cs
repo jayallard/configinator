@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Allard.Configinator.Configuration;
 using Allard.Configinator.Habitats;
-using Allard.Configinator.Namespaces;
+using Allard.Configinator.Realms;
 using Allard.Configinator.Schema;
 using FluentAssertions;
 using Newtonsoft.Json.Linq;
@@ -30,11 +30,11 @@ namespace Allard.Configinator.Tests.Unit
             var configStore = new MemoryConfigStore();
             var schemaService = new SchemaService(new SchemaRepositoryYamlFiles(baseFolder));
             var habitatService = new HabitatService(new HabitatsRepositoryYamlFile(habitatsFile));
-            var namespaceService = new NamespaceService(new NamespaceRepositoryYamlFiles(baseFolder), schemaService);
+            var realmService = new RealmService(new RealmRepositoryYamlFiles(baseFolder), schemaService);
             return new Configinator(
                 configStore,
                 habitatService,
-                namespaceService);
+                realmService);
         }
 
         [Fact]
@@ -69,11 +69,11 @@ namespace Allard.Configinator.Tests.Unit
             ));
         }
 
-        private static async Task CreateValueAsync(Configinator configinator, string habitat, string nameSpace,
+        private static async Task CreateValueAsync(Configinator configinator, string habitat, string realm,
             string configSection,
             string value)
         {
-            var v = await configinator.Configuration.Get(new ConfigurationId(habitat, nameSpace, configSection));
+            var v = await configinator.Configuration.Get(new ConfigurationId(habitat, realm, configSection));
             await configinator.Configuration.Set(v.SetValue(value));
         }
 
@@ -82,12 +82,12 @@ namespace Allard.Configinator.Tests.Unit
         {
             var configinator = CreateConfiginator();
             // -----------------------------------------
-            // namespaces
+            // realms
             // -----------------------------------------
             testOutputHelper.WriteLine("--------------------------------------------------------");
-            testOutputHelper.WriteLine("Namespaces:");
-            var namespaces = (await configinator.Namespaces.All()).ToList();
-            foreach (var ns in namespaces)
+            testOutputHelper.WriteLine("Realms:");
+            var realms = (await configinator.Realms.All()).ToList();
+            foreach (var ns in realms)
             {
                 testOutputHelper.WriteLine(ns.Name);
                 foreach (var cs in ns.ConfigurationSections)

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Allard.Configinator.Configuration;
 using Allard.Configinator.Habitats;
-using Allard.Configinator.Namespaces;
+using Allard.Configinator.Realms;
 using Newtonsoft.Json.Linq;
 
 namespace Allard.Configinator
@@ -23,12 +23,12 @@ namespace Allard.Configinator
         public Configinator(
             IConfigStore configStore,
             IHabitatService habitatService,
-            INamespaceService namespaceService)
+            IRealmService realmService)
         {
             this.configStore = configStore.EnsureValue(nameof(configStore));
             this.habitatService = habitatService.EnsureValue(nameof(habitatService));
             Habitats = new HabitatsAccessor(this.habitatService);
-            Namespaces = new NamespaceAccessor(namespaceService.EnsureValue(nameof(namespaceService)));
+            Realms = new RealmAccessor(realmService.EnsureValue(nameof(realmService)));
 
             var setter = new Func<ConfigurationSectionValue, Task>(SetValueAsync);
             var getter = new Func<ConfigurationId, Task<ConfigurationSectionValue>>(GetValueAsync);
@@ -36,13 +36,13 @@ namespace Allard.Configinator
         }
 
         public HabitatsAccessor Habitats { get; }
-        public NamespaceAccessor Namespaces { get; }
+        public RealmAccessor Realms { get; }
 
         public ConfigurationAccessor Configuration { get; }
 
         private async Task<string> GetPathAsync(ConfigurationId id)
         {
-            var ns = await Namespaces.ByName(id.Namespace).ConfigureAwait(false);
+            var ns = await Realms.ByName(id.Realm).ConfigureAwait(false);
             var cs = ns.GetConfigurationSection(id.ConfigurationSection);
             var habitat = await habitatService.GetHabitatAsync(id.Habitat).ConfigureAwait(false);
             return cs.Path.Replace("{{habitat}}", habitat.Name);
@@ -58,8 +58,8 @@ namespace Allard.Configinator
 
         private async Task<ConfigurationSectionValue> GetValueAsync(ConfigurationId id)
         {
-            // given a namespace with 2 bases
-            // namespace = MyTest
+            // given a realm with 2 bases
+            // realm = MyTest
             //      bases = base1, base2
             //
             // start with base1
@@ -79,7 +79,7 @@ namespace Allard.Configinator
                 .Bases
                 .Select(async baseHabitat =>
                 {
-                    var baseId = new ConfigurationId(baseHabitat, id.Namespace, id.ConfigurationSection);
+                    var baseId = new ConfigurationId(baseHabitat, id.Realm, id.ConfigurationSection);
                     return await GetValueAsync(baseId).ConfigureAwait(false);
                 })
                 .ToList();

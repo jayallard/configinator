@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 
-namespace Allard.Configinator.Namespaces
+namespace Allard.Configinator.Realms
 {
-    public class NamespaceDto
+    public class RealmStorageDto
     {
         public string Name { get; set; }
 
-        public List<ConfigurationSection> Sections { get; set; }
+        public List<ConfigurationSectionStorageDto> ConfigurationSections { get; set; }
 
-        public class ConfigurationSection
+        public class ConfigurationSectionStorageDto
         {
             public string Name { get; set; }
             public string Path { get; set; }

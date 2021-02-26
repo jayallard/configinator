@@ -5,7 +5,7 @@ using Allard.Configinator.Schema;
 
 namespace Allard.Configinator
 {
-    public record ConfigurationSectionId(string Namespace, string Name);
+    public record ConfigurationSectionId(string Realm, string Name);
 
     public record ConfigurationSection(ConfigurationSectionId Id, string Path, ObjectSchemaType Type,
         string Description);
@@ -18,9 +18,9 @@ namespace Allard.Configinator
         }
     }
 
-    public record ConfigurationNamespace(string Name, IReadOnlyCollection<ConfigurationSection> ConfigurationSections)
+    public record Realm(string Name, IReadOnlyCollection<ConfigurationSection> ConfigurationSections)
     {
-        // todo: validate all sections are the proper namespace.
+        // todo: validate all sections are the proper realm.
         // todo: dictionary by name
         public ConfigurationSection GetConfigurationSection(string name)
         {

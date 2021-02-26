@@ -1,20 +1,20 @@
 using System.Linq;
 using YamlDotNet.RepresentationModel;
 
-namespace Allard.Configinator.Namespaces
+namespace Allard.Configinator.Realms
 {
-    public static class NamespaceYamlDeserializer
+    public static class RealmYamlDeserializer
     {
-        public static NamespaceDto Deserialize(YamlMappingNode namespaceNode)
+        public static RealmStorageDto Deserialize(YamlMappingNode realmNode)
         {
-            namespaceNode.EnsureValue(nameof(namespaceNode));
-            return new NamespaceDto
+            realmNode.EnsureValue(nameof(realmNode));
+            return new RealmStorageDto
             {
-                Name = namespaceNode.AsString("namespace"),
-                Sections = namespaceNode
+                Name = realmNode.AsString("name"),
+                ConfigurationSections = realmNode
                     .AsMap("configuration-sections")
                     .Children
-                    .Select(section => new NamespaceDto.ConfigurationSection
+                    .Select(section => new RealmStorageDto.ConfigurationSectionStorageDto
                     {
                         Description = section.Value.AsString("description"),
                         Name = (string) section.Key,
