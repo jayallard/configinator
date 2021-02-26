@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
-using Allard.Configinator.Schema;
 using YamlDotNet.RepresentationModel;
 
 namespace Allard.Configinator
@@ -35,7 +33,7 @@ namespace Allard.Configinator
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        public static bool AsBoolean(this YamlNode node)
+        private static bool AsBoolean(this YamlNode node)
         {
             node.EnsureValue(nameof(node));
             return bool.Parse((string) node);
@@ -47,7 +45,7 @@ namespace Allard.Configinator
         /// <param name="parent"></param>
         /// <param name="childName"></param>
         /// <returns></returns>
-        public static YamlNode Child(this YamlNode parent, string childName)
+        private static YamlNode Child(this YamlNode parent, string childName)
         {
             return ((YamlMappingNode) parent)[childName];
         }
@@ -95,19 +93,6 @@ namespace Allard.Configinator
             return (YamlMappingNode) node;
         }
 
-        /// <summary>
-        ///     Returns the node as a string value.
-        ///     If the node is not a YamlScalarNode, it returns null.
-        /// </summary>
-        /// <param name="node"></param>
-        /// <returns></returns>
-        public static string AsString(this YamlNode node)
-        {
-            node.EnsureValue(nameof(node));
-            if (node is YamlScalarNode scalarNode) return (string) scalarNode;
-            return null;
-        }
-
         public static string AsRequiredString(this YamlNode node, string nodeName)
         {
             var value = node.AsString(nodeName);
@@ -137,33 +122,6 @@ namespace Allard.Configinator
                         : new HashSet<string>();
 
             return new HashSet<string>();
-        }
-
-        /// <summary>
-        ///     Emit a collection of properties to a json writer.
-        /// </summary>
-        /// <param name="writer"></param>
-        /// <param name="properties"></param>
-        /// <exception cref="InvalidOperationException"></exception>
-        private static void WriteProperties(Utf8JsonWriter writer, IEnumerable<Property> properties)
-        {
-            writer.EnsureValue(nameof(writer));
-            var props = properties.EnsureValue(nameof(properties)).ToList();
-            foreach (var property in props)
-                switch (property)
-                {
-                    case PropertyPrimitive prim:
-                        // TODO: support other types as they come online
-                        writer.WriteString(prim.Name, "string");
-                        continue;
-                    case PropertyGroup group:
-                        writer.WriteStartObject(group.Name);
-                        WriteProperties(writer, group.Properties);
-                        writer.WriteEndObject();
-                        continue;
-                    default:
-                        throw new InvalidOperationException("Unknown property type");
-                }
         }
     }
 }

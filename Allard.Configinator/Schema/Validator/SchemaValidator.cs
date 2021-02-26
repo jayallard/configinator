@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Allard.Configinator.Schema.Validator
@@ -23,7 +22,7 @@ namespace Allard.Configinator.Schema.Validator
             type.EnsureValue(nameof(type));
 
             var validationErrors = new List<TypeValidationError>();
-            await ValidateObject(validationErrors, document, type, "/");
+            await ValidateObject(validationErrors, document, type, "/").ConfigureAwait(false);
             return validationErrors;
         }
 
@@ -57,8 +56,8 @@ namespace Allard.Configinator.Schema.Validator
                     }
                     case PropertyGroup group:
                         var objPath = path + (path.Length == 1 ? string.Empty : "/") + property.Name;
-                        var objType = await service.GetSchemaTypeAsync(property.TypeId.FullId);
-                        await ValidateObject(errors, obj[property.Name], objType, objPath);
+                        var objType = await service.GetSchemaTypeAsync(property.TypeId.FullId).ConfigureAwait(false);
+                        await ValidateObject(errors, obj[property.Name], objType, objPath).ConfigureAwait(false);
                         break;
                     default:
                         throw new InvalidOperationException("Unknown property type: " + property.GetType().FullName);

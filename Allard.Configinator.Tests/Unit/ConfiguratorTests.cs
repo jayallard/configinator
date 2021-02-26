@@ -29,13 +29,12 @@ namespace Allard.Configinator.Tests.Unit
 
             var configStore = new MemoryConfigStore();
             var schemaService = new SchemaService(new SchemaRepositoryYamlFiles(baseFolder));
-            var spaceRepo = new HabitatsRepositoryYamlFile(habitatsFile);
-            var namespaceRepo = new NamespaceRepositoryYamlFiles(baseFolder);
+            var habitatService = new HabitatService(new HabitatsRepositoryYamlFile(habitatsFile));
+            var namespaceService = new NamespaceService(new NamespaceRepositoryYamlFiles(baseFolder), schemaService);
             return new Configinator(
-                schemaService,
                 configStore,
-                spaceRepo,
-                namespaceRepo);
+                habitatService,
+                namespaceService);
         }
 
         [Fact]
@@ -60,7 +59,7 @@ namespace Allard.Configinator.Tests.Unit
             await CreateValueAsync(configinator, "development", "domain-a", "service-1", dev);
             await CreateValueAsync(configinator, "dev-jay1", "domain-a", "service-1", jay1);
             await CreateValueAsync(configinator, "dev-jay2", "domain-a", "service-1", jay2);
-            var value = await configinator.GetValueAsync(new ConfigurationId("dev-jay2", "domain-a", "service-1"));
+            var value = await configinator.Configuration.Get(new ConfigurationId("dev-jay2", "domain-a", "service-1"));
 
             Assert.True(JToken.DeepEquals(
                 JToken.Parse(value.Value),
@@ -72,16 +71,10 @@ namespace Allard.Configinator.Tests.Unit
             string configSection,
             string value)
         {
-            var v = await configinator.GetValueAsync(new ConfigurationId(habitat, nameSpace, configSection));
-            await configinator.SetValueAsync(v.SetValue(value));
+            var v = await configinator.Configuration.Get(new ConfigurationId(habitat, nameSpace, configSection));
+            await configinator.Configuration.Set(v.SetValue(value));
         }
 
-        public void ProtoPure()
-        {
-            var configinator = CreateConfiginator();
-        }
-
-        /*
         [Fact]
         public async Task Proto()
         {
@@ -91,7 +84,7 @@ namespace Allard.Configinator.Tests.Unit
             // -----------------------------------------
             testOutputHelper.WriteLine("--------------------------------------------------------");
             testOutputHelper.WriteLine("Namespaces:");
-            var namespaces = (await configinator.GetNamespacesAsync()).ToList();
+            var namespaces = (await configinator.Namespaces.All()).ToList();
             foreach (var ns in namespaces)
             {
                 testOutputHelper.WriteLine(ns.Name);
@@ -108,7 +101,7 @@ namespace Allard.Configinator.Tests.Unit
             // -----------------------------------------
             testOutputHelper.WriteLine("--------------------------------------------------------");
             testOutputHelper.WriteLine("Habitats:");
-            var habitats = (await configinator.GetHabitats()).ToList();
+            var habitats = (await configinator.Habitats.All()).ToList();
             foreach (var space in habitats) testOutputHelper.WriteLine("\t" + space.Name);
 
             // -----------------------------------------
@@ -116,18 +109,17 @@ namespace Allard.Configinator.Tests.Unit
             // -----------------------------------------
             testOutputHelper.WriteLine("--------------------------------------------------------");
             testOutputHelper.WriteLine("Get/Set Values:");
-            var value = await configinator.GetValueAsync(new ConfigId("dev-jay2", "domain-a", "service-1"));
+            var value = await configinator.Configuration.Get(new ConfigurationId("dev-jay2", "domain-a", "service-1"));
             value.Value.Should().BeNull();
             value = value.SetValue("{ \"hello\": \"world\" }");
             testOutputHelper.WriteLine("\tNo existing value, as expected");
 
-            await configinator.SetValueAsync(value);
+            await configinator.Configuration.Set(value);
             testOutputHelper.WriteLine("\tSet value");
 
-            var value2 = await configinator.GetValueAsync(new ConfigId("dev-jay2", "domain-a", "service-1"));
+            var value2 = await configinator.Configuration.Get(new ConfigurationId("dev-jay2", "domain-a", "service-1"));
             Assert.True(JToken.DeepEquals(JToken.Parse(value.Value), JToken.Parse(value2.Value)));
             testOutputHelper.WriteLine("\tRead value: " + value2.Value);
         }
-    */
     }
 }

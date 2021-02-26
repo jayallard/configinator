@@ -1,9 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Allard.Configinator.Configuration;
 using Allard.Configinator.Habitats;
-using Allard.Configinator.Namespaces;
-using Allard.Configinator.Schema;
 using FluentAssertions;
 using Xunit;
 

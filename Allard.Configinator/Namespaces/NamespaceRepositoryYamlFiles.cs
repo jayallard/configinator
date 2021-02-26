@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Allard.Configinator.Schema;
 
 namespace Allard.Configinator.Namespaces
 {
@@ -20,9 +18,9 @@ namespace Allard.Configinator.Namespaces
         {
             var files = Directory
                 .GetFiles(namespaceFolder, "*.yml")
-                .Select(async f => await YamlUtility.GetYamlFromFile(f))
+                .Select(async f => await YamlUtility.GetYamlFromFile(f).ConfigureAwait(false))
                 .ToList();
-            await Task.WhenAll(files);
+            await Task.WhenAll(files).ConfigureAwait(false);
             return files
                 .SelectMany(f => f.Result)
                 .Where(f => f.RootNode.AsString("$$doc") == "namespace")

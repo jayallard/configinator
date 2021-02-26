@@ -7,15 +7,17 @@ namespace Allard.Configinator
 {
     public record ConfigurationSectionId(string Namespace, string Name);
 
-    // TODO: change  TYPE to string
     public record ConfigurationSection(ConfigurationSectionId Id, string Path, ObjectSchemaType Type,
         string Description);
 
     public record ConfigurationSectionValue(ConfigurationId Id, string Etag, string Value)
     {
-        public ConfigurationSectionValue SetValue(string value) => this with {Value = value};
+        public ConfigurationSectionValue SetValue(string value)
+        {
+            return this with {Value = value};
+        }
     }
-    
+
     public record ConfigurationNamespace(string Name, IReadOnlyCollection<ConfigurationSection> ConfigurationSections)
     {
         // todo: validate all sections are the proper namespace.
@@ -24,5 +26,5 @@ namespace Allard.Configinator
         {
             return ConfigurationSections.Single(cs => cs.Id.Name == name);
         }
-    };
+    }
 }

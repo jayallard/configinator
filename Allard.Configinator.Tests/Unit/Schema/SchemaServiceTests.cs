@@ -17,7 +17,7 @@ namespace Allard.Configinator.Tests.Unit.Schema
         {
             var schemaService = new SchemaService(new SchemaRepositoryYamlFiles(baseFolder));
             Func<Task> boom = async () => await schemaService.GetSchemaTypeAsync("go boom");
-            boom.Should().Throw<SchemaTypeDoesntExistException>();
+            boom.Should().Throw<SchemaNotFoundException>();
         }
     }
 }

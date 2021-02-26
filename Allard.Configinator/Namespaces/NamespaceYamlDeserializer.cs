@@ -1,6 +1,4 @@
-using System;
 using System.Linq;
-using Allard.Configinator.Schema;
 using YamlDotNet.RepresentationModel;
 
 namespace Allard.Configinator.Namespaces
@@ -10,7 +8,7 @@ namespace Allard.Configinator.Namespaces
         public static NamespaceDto Deserialize(YamlMappingNode namespaceNode)
         {
             namespaceNode.EnsureValue(nameof(namespaceNode));
-            return new NamespaceDto()
+            return new NamespaceDto
             {
                 Name = namespaceNode.AsString("namespace"),
                 Sections = namespaceNode

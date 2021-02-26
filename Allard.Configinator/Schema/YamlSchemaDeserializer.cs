@@ -36,7 +36,7 @@ namespace Allard.Configinator.Schema
                 .ToList();
         }
 
-        private static IList<PropertyDto> GetProperties(YamlMappingNode propertiesContainer)
+        private static IList<PropertyDto> GetProperties(YamlNode propertiesContainer)
         {
             return propertiesContainer
                 .AsMap("properties")

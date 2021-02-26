@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using Allard.Configinator.Schema.Validator;
 
-namespace Allard.Configinator.Schema
+namespace Allard.Configinator.Schema.Validator
 {
     public interface ITypeValidator
     {

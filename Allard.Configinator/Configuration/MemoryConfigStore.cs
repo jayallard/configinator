@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using Allard.Configinator.Schema;
 
 namespace Allard.Configinator.Configuration
 {
@@ -42,7 +41,7 @@ namespace Allard.Configinator.Configuration
             try
             {
                 readWriteLock.WaitOne();
-                var existing = await GetValueAsync(value.Path);
+                var existing = await GetValueAsync(value.Path).ConfigureAwait(false);
                 if (existing.ETag != null && existing.ETag != value.ETag) throw new Exception("etag change");
 
                 var etag =

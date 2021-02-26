@@ -29,7 +29,7 @@ namespace Allard.Configinator.Tests.Unit.Configuration
         {
             const string path = "/a/b/c";
             var mem = new MemoryConfigStore();
-            
+
             // initialize
             var config = new ConfigurationValue(path, "a", "config");
             await mem.SetValueAsync(config);
@@ -56,7 +56,7 @@ namespace Allard.Configinator.Tests.Unit.Configuration
         {
             const string path = "/a/b/c";
             var mem = new MemoryConfigStore();
-            
+
             // initialize
             var config = new ConfigurationValue(path, "A", "config");
             await mem.SetValueAsync(config);

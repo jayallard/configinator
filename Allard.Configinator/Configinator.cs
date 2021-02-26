@@ -1,12 +1,9 @@
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Allard.Configinator.Configuration;
 using Allard.Configinator.Habitats;
 using Allard.Configinator.Namespaces;
-using Allard.Configinator.Schema;
 using Newtonsoft.Json.Linq;
 
 namespace Allard.Configinator
@@ -21,106 +18,48 @@ namespace Allard.Configinator
         /// <summary>
         ///     Habit configuration store.
         /// </summary>
-        private readonly IHabitatRepository habitatRepository;
-
-        /// <summary>
-        ///     Namespace configuration store.
-        /// </summary>
-        private readonly INamespaceRepository namespaceRepository;
-
-        private readonly ISchemaService service;
-        private ConcurrentDictionary<string, Habitat> habitats;
-        private ConcurrentDictionary<string, ConfigurationNamespace> namespaces;
-
+        private readonly IHabitatService habitatService;
+        
         public Configinator(
-            ISchemaService service,
             IConfigStore configStore,
-            IHabitatRepository habitatRepository,
-            INamespaceRepository namespaceRepository)
+            IHabitatService habitatService,
+            INamespaceService namespaceService)
         {
-            this.service = service.EnsureValue(nameof(service));
             this.configStore = configStore.EnsureValue(nameof(configStore));
-            this.habitatRepository = habitatRepository.EnsureValue(nameof(habitatRepository));
-            this.namespaceRepository = namespaceRepository.EnsureValue(nameof(namespaceRepository));
+            this.habitatService = habitatService.EnsureValue(nameof(habitatService));
+            Habitats = new HabitatsAccessor(this.habitatService);
+            Namespaces = new NamespaceAccessor(namespaceService.EnsureValue(nameof(namespaceService)));
+
+            var setter = new Func<ConfigurationSectionValue, Task>(SetValueAsync);
+            var getter = new Func<ConfigurationId, Task<ConfigurationSectionValue>>(GetValueAsync);
+            Configuration = new ConfigurationAccessor(getter, setter);
         }
 
-        private async Task LoadHabitats()
-        {
-            if (habitats != null) return;
-            var values = (await habitatRepository.GetHabitats())
-                .ToDictionary(s => s.Name);
-            habitats = new ConcurrentDictionary<string, Habitat>(values);
-        }
+        public HabitatsAccessor Habitats { get; }
+        public NamespaceAccessor Namespaces { get; }
 
-        private async Task<Habitat> GetHabitatAsync(string habitatName)
-        {
-            // todo: move to habitat service
-            habitatName.EnsureValue(nameof(habitatName));
-            await LoadHabitats();
-            return habitats[habitatName];
-        }
+        public ConfigurationAccessor Configuration { get; }
 
-        private async Task LoadNamespaces()
+        private async Task<string> GetPathAsync(ConfigurationId id)
         {
-            // todo: move to namespace service
-            if (namespaces != null) return;
-            var nsDtos = await namespaceRepository.GetNamespaces();
-            var nsTasks = nsDtos
-                .Select(async n => await ToNamespace(n))
-                .ToList();
-            await Task.WhenAll(nsTasks);
-            var values = nsTasks
-                .Select(t => t.Result)
-                .ToDictionary(d => d.Name);
-            namespaces = new ConcurrentDictionary<string, ConfigurationNamespace>(values);
-        }
-
-        private async Task<ConfigurationNamespace> ToNamespace(NamespaceDto ns)
-        {
-            var sectionTasks = ns
-                .Sections
-                .Select(async s =>
-                {
-                    var sectionId = new ConfigurationSectionId(ns.Name, s.Name);
-                    var type = await service.GetSchemaTypeAsync(s.Type);
-                    return new ConfigurationSection(sectionId, s.Path, type, s.Description);
-                })
-                .ToList();
-
-            await Task.WhenAll(sectionTasks);
-            var sections = sectionTasks
-                .Select(t => t.Result)
-                .ToList()
-                .AsReadOnly();
-            return new ConfigurationNamespace(ns.Name, sections);
-        }
-
-        private async Task<ConfigurationNamespace> GetNamespaceAsync(string nameSpace)
-        {
-            await LoadNamespaces();
-            return namespaces[nameSpace];
-        }
-
-        private async Task<string> GetPath(ConfigurationId id)
-        {
-            var ns = await GetNamespaceAsync(id.Namespace);
+            var ns = await Namespaces.ByName(id.Namespace).ConfigureAwait(false);
             var cs = ns.GetConfigurationSection(id.ConfigurationSection);
-            var habitat = await GetHabitatAsync(id.Habitat);
+            var habitat = await habitatService.GetHabitatAsync(id.Habitat).ConfigureAwait(false);
             return cs.Path.Replace("{{habitat}}", habitat.Name);
         }
 
-        public async Task SetValueAsync(ConfigurationSectionValue value)
+        private async Task SetValueAsync(ConfigurationSectionValue value)
         {
             value.EnsureValue(nameof(value));
-            var path = await GetPath(value.Id);
-            await configStore.SetValueAsync(new ConfigurationValue(path, value.Etag, value.Value));
+            var path = await GetPathAsync(value.Id).ConfigureAwait(false);
+            await configStore.SetValueAsync(new ConfigurationValue(path, value.Etag, value.Value))
+                .ConfigureAwait(false);
         }
 
-        public async Task<ConfigurationSectionValue> GetValueAsync(ConfigurationId id)
+        private async Task<ConfigurationSectionValue> GetValueAsync(ConfigurationId id)
         {
             id.EnsureValue(nameof(id));
-
-            var habitat = await GetHabitatAsync(id.Habitat);
+            var habitat = await habitatService.GetHabitatAsync(id.Habitat).ConfigureAwait(false);
 
             // --------------------------------------------------
             // get the values from the base paths.
@@ -130,7 +69,7 @@ namespace Allard.Configinator
                 .Select(async baseHabitat =>
                 {
                     var baseId = new ConfigurationId(baseHabitat, id.Namespace, id.ConfigurationSection);
-                    return await GetValueAsync(baseId);
+                    return await GetValueAsync(baseId).ConfigureAwait(false);
                 })
                 .ToList();
 
@@ -138,7 +77,7 @@ namespace Allard.Configinator
             // get the value from the requested path,
             // then wait for the base queries to finish.
             // --------------------------------------------------
-            var value = await configStore.GetValueAsync(await GetPath(id));
+            var value = await configStore.GetValueAsync(await GetPathAsync(id).ConfigureAwait(false));
             await Task.WhenAll(baseValues).ConfigureAwait(false);
 
             // --------------------------------------------------
@@ -148,10 +87,7 @@ namespace Allard.Configinator
                 .Where(b => b.Result?.Value != null)
                 .Select(b => b.Result.Value)
                 .ToList();
-            if (value.Value != null)
-            {
-                all.Add(value.Value);
-            }
+            if (value.Value != null) all.Add(value.Value);
 
             all.Reverse();
 

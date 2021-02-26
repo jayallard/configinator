@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -26,8 +25,8 @@ namespace Allard.Configinator.Schema
         {
             var yamlTasks = Directory
                 .GetFiles(schemaFolder, "*.yml")
-                .Select(async f => await YamlUtility.GetYamlFromFile(f));
-            var yamlDocs = await Task.WhenAll(yamlTasks);
+                .Select(async f => await YamlUtility.GetYamlFromFile(f).ConfigureAwait(false));
+            var yamlDocs = await Task.WhenAll(yamlTasks).ConfigureAwait(false);
             return yamlDocs
                 .SelectMany(YamlSchemaDeserializer.Deserialize);
         }
