@@ -20,10 +20,9 @@ namespace Allard.Configinator
             name.EnsureValue(nameof(name));
 
             if (node is YamlMappingNode map)
-                return
-                    map.Children.ContainsKey(name)
-                        ? (string) map[name]
-                        : defaultValue;
+                return map.Children.TryGetValue(name, out var value)
+                    ? (string) value
+                    : defaultValue;
 
             return defaultValue;
         }
@@ -61,8 +60,8 @@ namespace Allard.Configinator
         {
             if (parent is YamlMappingNode map)
                 return
-                    map.Children.ContainsKey(childName)
-                        ? map.Child(childName).AsBoolean()
+                    map.Children.TryGetValue(childName, out var value)
+                        ? value.AsBoolean()
                         : defaultValue;
 
             return defaultValue;
@@ -81,8 +80,8 @@ namespace Allard.Configinator
             childName.EnsureValue(nameof(childName));
             if (parent is YamlMappingNode map)
                 return
-                    map.Children.ContainsKey(childName)
-                        ? (YamlMappingNode) map.Child(childName)
+                    map.Children.TryGetValue(childName, out var value)
+                        ? (YamlMappingNode) value
                         : new YamlMappingNode();
 
             return new YamlMappingNode();
@@ -117,10 +116,9 @@ namespace Allard.Configinator
             childName.EnsureValue(nameof(childName));
             if (parent is YamlMappingNode map)
                 return
-                    map.Children.ContainsKey(childName)
-                        ? ((YamlSequenceNode) map[childName]).Select(i => (string) i).ToHashSet()
+                    map.Children.TryGetValue(childName, out var value)
+                        ? ((YamlSequenceNode) value).Select(i => (string) i).ToHashSet()
                         : new HashSet<string>();
-
             return new HashSet<string>();
         }
     }

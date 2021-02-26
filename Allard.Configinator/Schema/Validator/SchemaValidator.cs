@@ -68,17 +68,14 @@ namespace Allard.Configinator.Schema.Validator
         private static bool HasValue(List<TypeValidationError> errors, JObject obj, Property property, string path)
         {
             // make sure the property exists.
-            if (!obj.ContainsKey(property.Name))
+            if (!obj.TryGetValue(property.Name, out var value))
             {
                 if (property.IsRequired) errors.AddCoreError(path, "Required property doesn't exist: " + property.Name);
-
                 return false;
             }
 
             // if required, make sure the property has a value.
-            var value = obj[property.Name];
             if (value.Type != JTokenType.Null) return true;
-
             if (property.IsRequired)
                 errors.AddCoreError(path,
                     "Required property doesn't exists but doesn't have a value: " + property.Name);
