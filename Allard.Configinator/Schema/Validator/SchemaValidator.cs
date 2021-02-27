@@ -7,13 +7,11 @@ namespace Allard.Configinator.Schema.Validator
 {
     public class SchemaValidator : ISchemaValidator
     {
-        private readonly ISchemaService service;
         private readonly ITypeValidatorFactory validatorFactory;
 
-        public SchemaValidator(ITypeValidatorFactory validatorFactory, ISchemaService service)
+        public SchemaValidator(ITypeValidatorFactory validatorFactory)
         {
             this.validatorFactory = validatorFactory.EnsureValue(nameof(validatorFactory));
-            this.service = service.EnsureValue(nameof(service));
         }
 
         public async Task<IList<TypeValidationError>> Validate(JToken document, ObjectSchemaType type)
@@ -56,8 +54,8 @@ namespace Allard.Configinator.Schema.Validator
                     }
                     case PropertyGroup group:
                         var objPath = path + (path.Length == 1 ? string.Empty : "/") + property.Name;
-                        var objType = await service.GetSchemaTypeAsync(property.TypeId.FullId).ConfigureAwait(false);
-                        await ValidateObject(errors, obj[property.Name], objType, objPath).ConfigureAwait(false);
+                        //var objType = await service.GetSchemaTypeAsync(property.SchemaType.FullId).ConfigureAwait(false);
+                        await ValidateObject(errors, obj[property.Name], group.SchemaType, objPath).ConfigureAwait(false);
                         break;
                     default:
                         throw new InvalidOperationException("Unknown property type: " + property.GetType().FullName);

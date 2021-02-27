@@ -4,11 +4,11 @@ namespace Allard.Configinator.Schema
 {
     public class SchemaNotFoundException : Exception
     {
-        public SchemaNotFoundException(string typeName)
+        public SchemaNotFoundException(string typeId):base("Schema not found for type: " + typeId)
         {
-            TypeName = typeName;
+            TypeId = typeId;
         }
 
-        public string TypeName { get; }
+        public string TypeId { get; }
     }
 }

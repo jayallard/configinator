@@ -11,18 +11,18 @@ namespace Allard.Configinator.Schema
     public record ObjectSchemaType(SchemaTypeId SchemaTypeId, ReadOnlyCollection<Property> Properties);
 
     [DebuggerDisplay("{Name}")]
-    public abstract record Property(string Name, SchemaTypeId TypeId, bool IsOptional)
+    public abstract record Property(string Name, ObjectSchemaType SchemaType, bool IsOptional)
     {
         public bool IsRequired => !IsOptional;
     }
 
     [DebuggerDisplay("{Name}")]
-    public record PropertyGroup(string Name, SchemaTypeId TypeId, bool IsOptional,
-        ReadOnlyCollection<Property> Properties) : Property(Name, TypeId, IsOptional);
+    public record PropertyGroup(string Name, ObjectSchemaType SchemaType, bool IsOptional,
+        ReadOnlyCollection<Property> Properties) : Property(Name, SchemaType, IsOptional);
 
     [DebuggerDisplay("{Name}")]
-    public record PropertyPrimitive(string Name, SchemaTypeId TypeId, bool IsSecret, bool IsOptional) : Property(Name,
-        TypeId, IsOptional);
+    public record PropertyPrimitive(string Name, ObjectSchemaType SchemaType, bool IsSecret, bool IsOptional) : Property(Name,
+        SchemaType, IsOptional);
 
     /// <summary>
     ///     Identity for a schema.

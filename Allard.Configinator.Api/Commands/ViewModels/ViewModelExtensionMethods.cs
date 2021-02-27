@@ -63,7 +63,7 @@ namespace Allard.Configinator.Api.Commands.ViewModels
             {
                 IsRequired = property.IsRequired,
                 Name = property.Name,
-                TypeId = property.TypeId.FullId
+                TypeId = property.SchemaType.SchemaTypeId.FullId
             };            
             
             if (property is PropertyPrimitive prim)

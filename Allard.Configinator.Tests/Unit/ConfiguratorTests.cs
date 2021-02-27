@@ -6,6 +6,7 @@ using Allard.Configinator.Configuration;
 using Allard.Configinator.Habitats;
 using Allard.Configinator.Realms;
 using Allard.Configinator.Schema;
+using Allard.Configinator.Schema.Validator;
 using FluentAssertions;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -28,7 +29,7 @@ namespace Allard.Configinator.Tests.Unit
             var habitatsFile = Path.Combine(baseFolder, "habitats.yml");
 
             var configStore = new MemoryConfigStore();
-            var schemaService = new SchemaService(new SchemaRepositoryYamlFiles(baseFolder));
+            var schemaService = new SchemaService(new SchemaRepositoryYamlFiles(baseFolder), new SchemaValidator(new ValidatorFactoryServices()));
             var habitatService = new HabitatService(new HabitatsRepositoryYamlFile(habitatsFile));
             var realmService = new RealmService(new RealmRepositoryYamlFiles(baseFolder), schemaService);
             return new Configinator(

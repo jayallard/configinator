@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 
 namespace Allard.Configinator.Schema
@@ -56,8 +57,19 @@ namespace Allard.Configinator.Schema
         private async Task<ObjectSchemaType> GetResolvedType(SchemaTypeId id)
         {
             if (outputByTypeId.ContainsKey(id)) return outputByTypeId[id];
+            if (!inputByTypeId.TryGetValue(id, out var dto))
+            {
+                // TODO: this is hack to get it working with string.
+                var builtIn = BuiltInTypes.Get(id);
+                if (builtIn == null)
+                {
+                    throw new SchemaNotFoundException(id.FullId);
+                }
 
-            var dto = inputByTypeId[id];
+                outputByTypeId[id] = builtIn;
+                return builtIn;
+            }
+
             var type = await BuildResolvedType(dto).ConfigureAwait(false);
             outputByTypeId[id] = type;
             return type;
@@ -87,19 +99,20 @@ namespace Allard.Configinator.Schema
             foreach (var property in dto.Properties)
             {
                 var propertyTypeId = NormalizeTypeId(relativeNamespace, property.TypeName);
+                var propertyType = await GetResolvedType(propertyTypeId);
                 var isOptional = property.IsOptional || dto.Optional.Contains(property.PropertyName);
                 var isSecret = property.IsSecret || dto.Secrets.Contains(property.PropertyName);
                 if (propertyTypeId.IsPrimitive)
                 {
                     results.Add(new PropertyPrimitive(property.PropertyName,
-                        propertyTypeId,
+                        propertyType,
                         isSecret,
                         isOptional));
                     continue;
                 }
 
                 var childType = await GetResolvedType(propertyTypeId).ConfigureAwait(false);
-                results.Add(new PropertyGroup(property.PropertyName, propertyTypeId, isOptional,
+                results.Add(new PropertyGroup(property.PropertyName, propertyType, isOptional,
                     childType.Properties));
             }
 

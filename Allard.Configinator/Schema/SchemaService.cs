@@ -1,17 +1,20 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Allard.Configinator.Schema.Validator;
 
 namespace Allard.Configinator.Schema
 {
     public class SchemaService : ISchemaService
     {
         private readonly ISchemaRepository repository;
+        private readonly ISchemaValidator validator;
         private Dictionary<string, ObjectSchemaType> types;
 
-        public SchemaService(ISchemaRepository repository)
+        public SchemaService(ISchemaRepository repository, ISchemaValidator validator)
         {
             this.repository = repository.EnsureValue(nameof(repository));
+            this.validator = validator.EnsureValue(nameof(validator));
         }
 
         public async Task<ObjectSchemaType> GetSchemaTypeAsync(string typeId)

@@ -22,7 +22,7 @@ namespace Allard.Configinator.Tests.Unit.Schema.Validator
         public SchemaValidatorTests()
         {
             ISchemaRepository schemaRepository = new SchemaRepositoryYamlFiles(Folder);
-            service = new SchemaService(schemaRepository);
+            service = new SchemaService(schemaRepository, new SchemaValidator(new ValidatorFactoryServices()));
         }
 
         [Theory]
@@ -33,7 +33,7 @@ namespace Allard.Configinator.Tests.Unit.Schema.Validator
             List<TypeValidationError> expectedResponses)
         {
             var factory = new ValidatorFactoryServices();
-            var validator = new SchemaValidator(factory, service);
+            var validator = new SchemaValidator(factory);
             var results = await validator.Validate(json, type);
             results.Count.Should().Be(expectedResponses.Count);
             for (var i = 0; i < results.Count; i++) results[i].Should().Be(expectedResponses[i]);
@@ -42,7 +42,7 @@ namespace Allard.Configinator.Tests.Unit.Schema.Validator
         public static IEnumerable<object[]> GetTests()
         {
             var schemaRepo = new SchemaRepositoryYamlFiles(Folder);
-            var schemaParser = new SchemaService(schemaRepo);
+            var schemaParser = new SchemaService(schemaRepo, new SchemaValidator(new ValidatorFactoryServices()));
             return Directory
                 .GetFiles(Folder, "*.json")
                 .SelectMany(fileName =>

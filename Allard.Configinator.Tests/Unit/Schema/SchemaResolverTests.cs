@@ -34,7 +34,7 @@ namespace Allard.Configinator.Tests.Unit.Schema
             var actualDto = (await GetDtos(Path.Combine(baseFolder, "Types"))).ToList();
             var actuals = (await SchemaResolver.ConvertAsync(actualDto)).ToList();
 
-            actuals.Count.Should().Be(expectedDto.Count);
+            actuals.Count.Should().Be(expectedDto.Count + BuiltInTypes.Count);
             foreach (var expected in expectedDto)
             {
                 // actual
@@ -56,7 +56,9 @@ namespace Allard.Configinator.Tests.Unit.Schema
             {
                 var actualProperty = actual.Single(a => a.Name == expectedProperty.PropertyName);
                 actualProperty.IsOptional.Should().Be(expectedProperty.IsOptional);
-                actualProperty.TypeId.Should().Be(new SchemaTypeId(expectedProperty.TypeName));
+
+                var expectedId = new SchemaTypeId(expectedProperty.TypeName);
+                actualProperty.SchemaType.SchemaTypeId.Should().Be(expectedId);
                 if (expectedProperty.Properties.Count == 0)
                 {
                     // primitive
