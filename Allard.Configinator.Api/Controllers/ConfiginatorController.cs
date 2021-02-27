@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Allard.Configinator.Realms;
+using Allard.Configinator.Api.Commands;
+using Allard.Configinator.Api.Commands.ViewModels;
 using Allard.Configinator.Schema;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Server.IIS.Core;
 
 namespace Allard.Configinator.Api.Controllers
 {
@@ -13,42 +13,40 @@ namespace Allard.Configinator.Api.Controllers
     [Route("/api/v1")]
     public class ConfiginatorController
     {
-        private readonly Configinator configinator;
-        
-        // todo: add accessor to configinator
-        private readonly ISchemaService schemaService;
-        
+        private readonly IMediator mediator;
 
-        public ConfiginatorController(Configinator configinator, ISchemaService schemaService)
+        public ConfiginatorController(IMediator mediator)
         {
-            this.configinator = configinator;
-            this.schemaService = schemaService;
+            this.mediator = mediator;
         }
 
         [HttpGet]
-        [Route("/types/{typeId}")]
-        public async Task<ObjectSchemaType> GetType(string typeId)
+        [Route("types/{typeId}")]
+        public async Task<SchemaTypeViewModel> GetType(string typeId)
         {
-            return await schemaService.GetSchemaTypeAsync(WebUtility.UrlDecode(typeId));
+            return await mediator.Send(new GetSchemaTypeCommand(typeId));
         }
 
         [HttpGet]
-        [Route("/realms")]
-        public async Task<IEnumerable<RealmStorageDto>> GetRealms()
+        [Route("realms")]
+        public async Task<IEnumerable<RealmViewModel>> GetRealms()
         {
-            return (await configinator.Realms.All())
-                .Select(n => new RealmStorageDto
-                {
-                    Name = n.Name,
-                    ConfigurationSections = n.ConfigurationSections.Select(cs => new RealmStorageDto.ConfigurationSectionStorageDto
-                        {
-                            Description = cs.Description,
-                            Name = cs.Id.Name,
-                            Path = cs.Path,
-                            Type = cs.Type.SchemaTypeId.FullId
-                        })
-                        .ToList()
-                });
+            return await mediator.Send(new GetRealmsCommand());
+        }
+        
+        [HttpGet]
+        [Route("realms/{name}")]
+        public async Task<RealmViewModel> GetRealm(string name)
+        {
+            return await mediator.Send(new GetRealmCommand(name));
+        }
+
+        [HttpGet]
+        [Route("realms/{realmName}/sections/{configurationSectionName}")]
+        public async Task<ConfigurationSectionViewModel> GetConfigurationSection(string realmName,
+            string configurationSectionName)
+        {
+            return await mediator.Send(new GetConfigurationSectionCommand(realmName, configurationSectionName));
         }
     }
 }
