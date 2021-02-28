@@ -19,7 +19,8 @@ namespace Allard.Configinator.Api.Commands
 
         public async Task<SchemaTypeViewModel> Handle(GetSchemaTypeCommand request, CancellationToken cancellationToken)
         {
-            return (await schemaService.GetSchemaTypeAsync(request.TypeId)).ToSchemaTypeViewModel(linkHelper);
+            return (await schemaService.GetSchemaTypeAsync(request.SchemaTypeId))
+                .ToSchemaTypeViewModel();
         }
     }
 }

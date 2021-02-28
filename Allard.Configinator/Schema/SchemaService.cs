@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading.Tasks;
 using Allard.Configinator.Schema.Validator;
 
@@ -23,6 +24,12 @@ namespace Allard.Configinator.Schema
             if (types.TryGetValue(typeId, out var type)) return type;
 
             throw new SchemaNotFoundException(typeId);
+        }
+
+        public async Task<IEnumerable<ObjectSchemaType>> GetSchemaTypesAsync()
+        {
+            await Load().ConfigureAwait(false);
+            return types.Values;
         }
 
         private async Task Load()

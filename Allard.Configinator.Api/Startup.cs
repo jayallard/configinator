@@ -7,6 +7,7 @@ using Allard.Configinator.Configuration;
 using Allard.Configinator.Habitats;
 using Allard.Configinator.Realms;
 using Allard.Configinator.Schema;
+using Allard.Configinator.Schema.Validator;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -48,7 +49,9 @@ namespace Allard.Configinator.Api
                     new HabitatsRepositoryYamlFile(Path.Combine(DataFolder, "habitats.yml")))
                 .AddSingleton<IRealmService, RealmService>()
                 .AddSingleton<IRealmRepository>(new RealmRepositoryYamlFiles(DataFolder))
+                .AddSingleton<ISchemaValidator, SchemaValidator>()
                 .AddSingleton<ISchemaService, SchemaService>()
+                .AddSingleton<ITypeValidatorFactory, ValidatorFactoryServices>()
                 .AddSingleton<ISchemaRepository>(new SchemaRepositoryYamlFiles(DataFolder));
 
             // MediatR

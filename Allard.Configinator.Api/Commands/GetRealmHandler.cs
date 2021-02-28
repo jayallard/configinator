@@ -1,7 +1,7 @@
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Allard.Configinator.Api.Commands.ViewModels;
-using Allard.Configinator.Api.Controllers;
 using MediatR;
 
 namespace Allard.Configinator.Api.Commands
@@ -19,7 +19,22 @@ namespace Allard.Configinator.Api.Commands
 
         public async Task<RealmViewModel> Handle(GetRealmCommand request, CancellationToken cancellationToken)
         {
-            return (await configinator.Realms.ByName(request.Name)).ToRealmViewModel(linkHelper);
+            var model = (await configinator.Realms.ByName(request.Name))
+                .ToRealmViewModel();
+            
+            // this sets everything recursively including top realm level.
+            LinkHelper.AddLinksToRealm(linkHelper, model, true);
+            
+            // this overwrites realm level... sloppy. todo: would this all be better as extension methods?
+            model
+                .SetLinks(linkHelper
+                .CreateBuilder()
+                .AddRoot()
+                .AddRealms()
+                .AddRealm(request.Name, true)
+                .Build()
+                .ToList());
+            return model;
         }
     }
 }

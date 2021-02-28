@@ -4,12 +4,12 @@ using MediatR;
 
 namespace Allard.Configinator.Api.Commands
 {
-    public class GetSchemaTypeCommand : IRequest<SchemaTypeViewModel>
+    public record GetSchemaTypeCommand : IRequest<SchemaTypeViewModel>
     {
-        public string TypeId { get; }
+        public string SchemaTypeId { get; }
         public GetSchemaTypeCommand(string typeId)
         {
-            TypeId = HttpUtility.UrlDecode(typeId);
+            SchemaTypeId = HttpUtility.UrlDecode(typeId);
         }
     }
 }

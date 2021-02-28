@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using Allard.Configinator.Api.Commands.ViewModels;
 
-namespace Allard.Configinator.Api.Commands
+namespace Allard.Configinator.Api.Commands.ViewModels
 {
     public class ConfigurationSectionViewModel
     {

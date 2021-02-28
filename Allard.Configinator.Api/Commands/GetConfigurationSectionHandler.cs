@@ -21,7 +21,7 @@ namespace Allard.Configinator.Api.Commands
             var realm = await configinator.Realms.ByName(request.RealmName);
             return realm
                 .GetConfigurationSection(request.ConfigurationSectionName)
-                .ToConfigurationSectionViewModel(linkHelper, true);
+                .ToConfigurationSectionViewModel(realm.Name);
         }
     }
 }

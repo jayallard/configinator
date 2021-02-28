@@ -39,7 +39,7 @@ namespace Allard.Configinator
         public RealmAccessor Realms { get; }
 
         public ConfigurationAccessor Configuration { get; }
-
+        
         private async Task<string> GetPathAsync(ConfigurationId id)
         {
             var ns = await Realms.ByName(id.Realm).ConfigureAwait(false);

@@ -1,8 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Allard.Configinator.Api.Commands;
 using Allard.Configinator.Api.Commands.ViewModels;
+using Allard.Configinator.Api.Controllers.ViewModels;
 using Allard.Configinator.Schema;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -14,22 +17,45 @@ namespace Allard.Configinator.Api.Controllers
     public class ConfiginatorController
     {
         private readonly IMediator mediator;
+        private readonly LinkHelper links;
 
-        public ConfiginatorController(IMediator mediator)
+        public ConfiginatorController(IMediator mediator, LinkHelper links)
         {
             this.mediator = mediator;
+            this.links = links;
+        }
+        
+        [HttpGet]
+        public RootViewModel GetRoot()
+        {
+            return new()
+            {
+                Links = links
+                    .CreateBuilder()
+                    .AddSchemaTypes()
+                    .AddRealms()
+                    .AddRoot(true)
+                    .Build()
+            };
         }
 
         [HttpGet]
-        [Route("types/{typeId}")]
-        public async Task<SchemaTypeViewModel> GetType(string typeId)
+        [Route("schemaTypes")]
+        public async Task<SchemaTypesViewModel> GetSchemaTypes()
+        {
+            return await mediator.Send(new GetSchemaTypesCommand());
+        }
+
+        [HttpGet]
+        [Route("schemaTypes/{typeId}")]
+        public async Task<SchemaTypeViewModel> GetSchemaType(string typeId)
         {
             return await mediator.Send(new GetSchemaTypeCommand(typeId));
         }
 
         [HttpGet]
         [Route("realms")]
-        public async Task<IEnumerable<RealmViewModel>> GetRealms()
+        public async Task<RealmsViewModel> GetRealms()
         {
             return await mediator.Send(new GetRealmsCommand());
         }
