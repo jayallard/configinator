@@ -1,20 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
+using System.IO;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Allard.Configinator.Api.Commands;
 using Allard.Configinator.Api.Commands.ViewModels;
 using Allard.Configinator.Api.Controllers.ViewModels;
-using Allard.Configinator.Schema;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Server.HttpSys;
 
 namespace Allard.Configinator.Api.Controllers
 {
     [ApiController]
     [Route("/api/v1")]
-    public class ConfiginatorController
+    public class ConfiginatorController : Controller
     {
         private readonly IMediator mediator;
         private readonly LinkHelper links;
@@ -24,7 +23,7 @@ namespace Allard.Configinator.Api.Controllers
             this.mediator = mediator;
             this.links = links;
         }
-        
+
         [HttpGet]
         public RootViewModel GetRoot()
         {
@@ -59,7 +58,7 @@ namespace Allard.Configinator.Api.Controllers
         {
             return await mediator.Send(new GetRealmsCommand());
         }
-        
+
         [HttpGet]
         [Route("realms/{name}")]
         public async Task<RealmViewModel> GetRealm(string name)
@@ -73,6 +72,44 @@ namespace Allard.Configinator.Api.Controllers
             string configurationSectionName)
         {
             return await mediator.Send(new GetConfigurationSectionCommand(realmName, configurationSectionName));
+        }
+
+        [HttpGet]
+        [Route("realms/{realmName}/sections/{configurationSectionName}/value/{habitat}")]
+        public async Task<ConfigurationValueResponse> GetConfigurationValue(
+            string realmName,
+            string configurationSectionName,
+            string habitat)
+        {
+            return await mediator.Send(new GetConfigurationValueCommand(habitat, realmName, configurationSectionName));
+        }
+
+        private static string ToJsonString(JsonDocument jdoc)
+        {
+            using var stream = new MemoryStream();
+            using var writer = new Utf8JsonWriter(stream, new JsonWriterOptions {Indented = true});
+            jdoc.WriteTo(writer);
+            writer.Flush();
+            return Encoding.UTF8.GetString(stream.ToArray());
+        }
+        
+        [HttpPut]
+        [Route("realms/{realmName}/sections/{configurationSectionName}/value/{habitat}")]
+        public async Task<Blah> SetConfigurationValue(
+            string realmName,
+            string configurationSectionName,
+            string habitat,
+            [FromBody] JsonDocument value)
+        {
+            return await mediator.Send(
+                new SetConfigurationValueCommand
+                {
+                    PreviousEtag = null,
+                    Habitat = habitat,
+                    Realm = realmName,
+                    ConfigurationSection = configurationSectionName,
+                    Value = ToJsonString(value)
+                });
         }
     }
 }
