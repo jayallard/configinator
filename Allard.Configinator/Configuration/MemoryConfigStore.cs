@@ -35,7 +35,7 @@ namespace Allard.Configinator.Configuration
             }
         }
 
-        public async Task SetValueAsync(ConfigStoreValue value)
+        public async Task<ConfigStoreValue> SetValueAsync(ConfigStoreValue value)
         {
             value.EnsureValue(nameof(value));
             try
@@ -45,13 +45,14 @@ namespace Allard.Configinator.Configuration
                 if (existing.Value == null)
                 {
                     // insert
-                    repo[value.Path] = value with {ETag = Guid.NewGuid().ToString()};
-                    return;
+                    value = value with {ETag = Guid.NewGuid().ToString()};
+                    repo[value.Path] = value; 
+                    return value;
                 }
 
                 if (value.Value == existing.Value)
                     // no change. nothing to do.
-                    return;
+                    return value;
 
                 // update
                 if (value.ETag == null) throw new Exception("etag required");
@@ -59,7 +60,9 @@ namespace Allard.Configinator.Configuration
                 if (value.ETag != existing.ETag)
                     throw new Exception("Invalid etag - the value may have changed since the lst get.");
 
-                repo[value.Path] = value with {ETag = Guid.NewGuid().ToString()};
+                value = value with {ETag = Guid.NewGuid().ToString()};
+                repo[value.Path] = value;
+                return value;
             }
             finally
             {
