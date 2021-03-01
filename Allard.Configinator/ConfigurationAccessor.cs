@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Allard.Configinator.Configuration;
 
 namespace Allard.Configinator
 {

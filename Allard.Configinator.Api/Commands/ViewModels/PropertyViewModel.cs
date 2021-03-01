@@ -5,9 +5,9 @@ namespace Allard.Configinator.Api.Commands.ViewModels
 {
     public class PropertyViewModel
     {
-        public string Name { get; set; }
-        public bool IsRequired { get; set; }
-        public string TypeId { get; set; }
+        public string Name { get; init; }
+        public bool IsRequired { get; init; }
+        public string TypeId { get; init; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public IEnumerable<PropertyViewModel> Properties { get; set; }

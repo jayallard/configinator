@@ -16,7 +16,8 @@ namespace Allard.Configinator.Tests.Unit.Schema
         [Fact]
         public void ThrowExceptionIfSchemaTypeDoesntExist()
         {
-            var schemaService = new SchemaService(new SchemaRepositoryYamlFiles(baseFolder), new SchemaValidator(new ValidatorFactoryServices()));
+            var schemaService = new SchemaService(new SchemaRepositoryYamlFiles(baseFolder),
+                new SchemaValidator(new ValidatorFactoryServices()));
             Func<Task> boom = async () => await schemaService.GetSchemaTypeAsync("go boom");
             boom.Should().Throw<SchemaNotFoundException>();
         }

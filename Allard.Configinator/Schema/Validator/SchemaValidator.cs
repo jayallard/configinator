@@ -55,7 +55,8 @@ namespace Allard.Configinator.Schema.Validator
                     case PropertyGroup group:
                         var objPath = path + (path.Length == 1 ? string.Empty : "/") + property.Name;
                         //var objType = await service.GetSchemaTypeAsync(property.SchemaType.FullId).ConfigureAwait(false);
-                        await ValidateObject(errors, obj[property.Name], group.SchemaType, objPath).ConfigureAwait(false);
+                        await ValidateObject(errors, obj[property.Name], group.SchemaType, objPath)
+                            .ConfigureAwait(false);
                         break;
                     default:
                         throw new InvalidOperationException("Unknown property type: " + property.GetType().FullName);

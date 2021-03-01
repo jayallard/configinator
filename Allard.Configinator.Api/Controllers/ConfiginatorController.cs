@@ -14,8 +14,8 @@ namespace Allard.Configinator.Api.Controllers
     [Route("/api/v1")]
     public class ConfiginatorController : Controller
     {
-        private readonly IMediator mediator;
         private readonly LinkHelper links;
+        private readonly IMediator mediator;
 
         public ConfiginatorController(IMediator mediator, LinkHelper links)
         {
@@ -80,10 +80,12 @@ namespace Allard.Configinator.Api.Controllers
             string configurationSectionName,
             string habitat)
         {
-            var value = await mediator.Send(new GetConfigurationValueCommand(habitat, realmName, configurationSectionName));;
+            var value = await mediator.Send(new GetConfigurationValueCommand(habitat, realmName,
+                configurationSectionName));
+            ;
             return value;
         }
-        
+
         [HttpGet]
         [Route("realms/{realmName}/sections/{configurationSectionName}/value/{habitat}/resolved")]
         public async Task<JsonDocument> GetConfigurationValueResolved(
@@ -91,7 +93,9 @@ namespace Allard.Configinator.Api.Controllers
             string configurationSectionName,
             string habitat)
         {
-            var value = await mediator.Send(new GetConfigurationValueCommand(habitat, realmName, configurationSectionName));;
+            var value = await mediator.Send(new GetConfigurationValueCommand(habitat, realmName,
+                configurationSectionName));
+            ;
             return JsonDocument.Parse(value.ResolvedValue);
         }
 
@@ -103,7 +107,7 @@ namespace Allard.Configinator.Api.Controllers
             writer.Flush();
             return Encoding.UTF8.GetString(stream.ToArray());
         }
-        
+
         [HttpPut]
         [Route("realms/{realmName}/sections/{configurationSectionName}/value/{habitat}")]
         public async Task<Blah> SetConfigurationValue(

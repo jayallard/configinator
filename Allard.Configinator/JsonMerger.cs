@@ -12,8 +12,8 @@ namespace Allard.Configinator
     /// </summary>
     public class JsonMerger
     {
-        private readonly JToken target;
         private readonly List<JToken> overrides;
+        private readonly JToken target;
 
         public JsonMerger(JToken target, params JToken[] overrides)
         {
@@ -44,27 +44,19 @@ namespace Allard.Configinator
              */
 
             if (overrides.Count == 0)
-            {
                 // nothing to do
                 return target;
-            }
 
             // iterate the input docs using x.
             // merge x into x+1.
-            foreach (var over in overrides)
-            {
-                Merge(over, target);
-            }
+            foreach (var over in overrides) Merge(over, target);
 
             return target;
         }
 
         private void Merge(JToken overRide, JToken target)
         {
-            if (overRide == null)
-            {
-                return;
-            }
+            if (overRide == null) return;
 
             while (true)
             {
@@ -79,10 +71,7 @@ namespace Allard.Configinator
                     return;
                 }
 
-                if (overRide.Type != target.Type)
-                {
-                    throw new Exception("different types");
-                }
+                if (overRide.Type != target.Type) throw new Exception("different types");
 
                 switch (overRide)
                 {

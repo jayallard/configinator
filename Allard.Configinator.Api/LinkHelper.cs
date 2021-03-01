@@ -8,7 +8,6 @@ namespace Allard.Configinator.Api
 {
     public class LinkHelper
     {
-        private readonly string baseAddress = "/api/v1/";
         private const string Self = "self";
         private const string SchemaType = "schemaType";
         private const string SchemaTypes = "schemaTypes";
@@ -17,10 +16,26 @@ namespace Allard.Configinator.Api
         private const string ConfigurationSections = "configurationSections";
         private const string ConfigurationSection = "configurationSection";
         private const string Root = "root";
+        private const string BaseAddress = "/api/v1/";
 
         public LinkBuilder CreateBuilder()
         {
-            return new(baseAddress);
+            return new(BaseAddress);
+        }
+
+        public static void AddLinksToRealm(LinkHelper linkHelper, RealmViewModel realm, bool selfRealm)
+        {
+            realm.Links = linkHelper
+                .CreateBuilder()
+                .AddRealm(realm.Name, selfRealm)
+                .Build()
+                .ToList();
+            foreach (var cs in realm.ConfigurationSections)
+                cs.Links = linkHelper
+                    .CreateBuilder()
+                    .AddConfigurationSection(realm.Name, cs.Name)
+                    .Build()
+                    .ToList();
         }
 
         public class LinkBuilder
@@ -40,20 +55,31 @@ namespace Allard.Configinator.Api
                 return this;
             }
 
-            public LinkBuilder AddSchemaType(string typeId, bool self = false) =>
-                Add(Rel(self, SchemaType), HttpMethod.Get, SchemaTypes, typeId);
+            public LinkBuilder AddSchemaType(string typeId, bool self = false)
+            {
+                return Add(Rel(self, SchemaType), HttpMethod.Get, SchemaTypes, typeId);
+            }
 
-            public LinkBuilder AddSchemaTypes(bool self = false) =>
-                Add(Rel(self, SchemaTypes), HttpMethod.Get, SchemaTypes);
+            public LinkBuilder AddSchemaTypes(bool self = false)
+            {
+                return Add(Rel(self, SchemaTypes), HttpMethod.Get, SchemaTypes);
+            }
 
-            public LinkBuilder AddRealms(bool self = false) =>
-                Add(Rel(self, Realms), HttpMethod.Get, Realms);
+            public LinkBuilder AddRealms(bool self = false)
+            {
+                return Add(Rel(self, Realms), HttpMethod.Get, Realms);
+            }
 
-            public LinkBuilder AddRealm(string name, bool self = false) =>
-                Add(Rel(self, Realm), HttpMethod.Get, Realms, name);
+            public LinkBuilder AddRealm(string name, bool self = false)
+            {
+                return Add(Rel(self, Realm), HttpMethod.Get, Realms, name);
+            }
 
-            public LinkBuilder AddConfigurationSection(string realm, string configurationSection, bool self = false) =>
-                Add(Rel(self, ConfigurationSection), HttpMethod.Get, "realms", realm, "sections", configurationSection);
+            public LinkBuilder AddConfigurationSection(string realm, string configurationSection, bool self = false)
+            {
+                return Add(Rel(self, ConfigurationSection), HttpMethod.Get, "realms", realm, "sections",
+                    configurationSection);
+            }
 
             public LinkBuilder AddRoot(bool self = false)
             {
@@ -74,23 +100,6 @@ namespace Allard.Configinator.Api
             public IEnumerable<Link> Build()
             {
                 return links;
-            }
-        }
-
-        public static void AddLinksToRealm(LinkHelper linkHelper, RealmViewModel realm, bool selfRealm)
-        {
-            realm.Links = linkHelper
-                .CreateBuilder()
-                .AddRealm(realm.Name, selfRealm)
-                .Build()
-                .ToList();
-            foreach (var cs in realm.ConfigurationSections)
-            {
-                cs.Links = linkHelper
-                    .CreateBuilder()
-                    .AddConfigurationSection(realm.Name, cs.Name)
-                    .Build()
-                    .ToList();
             }
         }
     }

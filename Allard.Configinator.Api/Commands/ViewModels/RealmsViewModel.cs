@@ -2,9 +2,9 @@ using System.Collections.Generic;
 
 namespace Allard.Configinator.Api.Commands.ViewModels
 {
-    public class RealmsViewModel
+    public record RealmsViewModel
     {
-        public IEnumerable<RealmViewModel> Realms { get; set; }
-        public IEnumerable<Link> Links { get; set; }
+        public IEnumerable<RealmViewModel> Realms { get; init; }
+        public IEnumerable<Link> Links { get; init; }
     }
 }

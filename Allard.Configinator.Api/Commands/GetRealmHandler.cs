@@ -21,19 +21,19 @@ namespace Allard.Configinator.Api.Commands
         {
             var model = (await configinator.Realms.ByName(request.Name))
                 .ToRealmViewModel();
-            
+
             // this sets everything recursively including top realm level.
             LinkHelper.AddLinksToRealm(linkHelper, model, true);
-            
+
             // this overwrites realm level... sloppy. todo: would this all be better as extension methods?
             model
                 .SetLinks(linkHelper
-                .CreateBuilder()
-                .AddRoot()
-                .AddRealms()
-                .AddRealm(request.Name, true)
-                .Build()
-                .ToList());
+                    .CreateBuilder()
+                    .AddRoot()
+                    .AddRealms()
+                    .AddRealm(request.Name, true)
+                    .Build()
+                    .ToList());
             return model;
         }
     }

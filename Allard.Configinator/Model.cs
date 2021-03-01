@@ -3,14 +3,15 @@ using System.Linq;
 using Allard.Configinator.Schema;
 
 namespace Allard.Configinator
-{ 
+{
     public record ConfigurationId(string Habitat, string Realm, string ConfigurationSection);
 
-    public record ConfigurationValue(ConfigurationId Id, string Etag, string ResolvedValue, IEnumerable<ConfigurationValue> Bases)
+    public record ConfigurationValue(ConfigurationId Id, string Etag, string ResolvedValue,
+        IEnumerable<ConfigurationValue> Bases)
     {
         public ConfigurationValueSetter ToSetter(string value)
         {
-            return new (Id, Etag, value);
+            return new(Id, Etag, value);
         }
     }
 
@@ -18,11 +19,7 @@ namespace Allard.Configinator
     {
     }
 
-    
-    
-    
-    
-    
+
     public record ConfigurationSection(ConfigurationSectionId Id, string Path, ObjectSchemaType Type,
         string Description);
 

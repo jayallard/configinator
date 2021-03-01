@@ -9,12 +9,10 @@ namespace Allard.Configinator.Api.Commands
     public class GetSchemaTypeHandler : IRequestHandler<GetSchemaTypeCommand, SchemaTypeViewModel>
     {
         private readonly ISchemaService schemaService;
-        private readonly LinkHelper linkHelper;
 
-        public GetSchemaTypeHandler(ISchemaService schemaService, LinkHelper linkHelper)
+        public GetSchemaTypeHandler(ISchemaService schemaService)
         {
             this.schemaService = schemaService;
-            this.linkHelper = linkHelper;
         }
 
         public async Task<SchemaTypeViewModel> Handle(GetSchemaTypeCommand request, CancellationToken cancellationToken)

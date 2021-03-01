@@ -7,31 +7,42 @@ namespace Allard.Configinator.Api.Commands.ViewModels
     public static class ViewModelExtensionMethods
     {
         public static ConfigurationSectionViewModel
-            ToConfigurationSectionViewModel(this ConfigurationSection section, string realmName) => new()
+            ToConfigurationSectionViewModel(this ConfigurationSection section, string realmName)
         {
-            Name = section.Id.Name,
-            Path = section.Path,
-            Realm = realmName,
-            TypeId = section.Type.SchemaTypeId.FullId,
-        };
+            return new()
+            {
+                Name = section.Id.Name,
+                Path = section.Path,
+                Realm = realmName,
+                TypeId = section.Type.SchemaTypeId.FullId
+            };
+        }
 
-        public static RealmViewModel ToRealmViewModel(this Realm realm) => new()
+        public static RealmViewModel ToRealmViewModel(this Realm realm)
         {
-            Name = realm.Name,
-            ConfigurationSections = realm
-                .ConfigurationSections
-                .Select(cs => cs.ToConfigurationSectionViewModel(realm.Name))
-                .ToList()
-        };
+            return new()
+            {
+                Name = realm.Name,
+                ConfigurationSections = realm
+                    .ConfigurationSections
+                    .Select(cs => cs.ToConfigurationSectionViewModel(realm.Name))
+                    .ToList()
+            };
+        }
 
-        public static SchemaTypeViewModel ToSchemaTypeViewModel(this ObjectSchemaType type) => new()
+        public static SchemaTypeViewModel ToSchemaTypeViewModel(this ObjectSchemaType type)
         {
-            Properties = type.Properties.ToPropertyDtos(),
-            TypeId = type.SchemaTypeId.FullId
-        };
+            return new()
+            {
+                Properties = type.Properties.ToPropertyViewModels(),
+                TypeId = type.SchemaTypeId.FullId
+            };
+        }
 
-        public static IEnumerable<PropertyViewModel> ToPropertyDtos(this IEnumerable<Property> properties)
-            => properties.Select(p => p.ToPropertyViewModel());
+        public static IEnumerable<PropertyViewModel> ToPropertyViewModels(this IEnumerable<Property> properties)
+        {
+            return properties.Select(p => p.ToPropertyViewModel());
+        }
 
         public static PropertyViewModel ToPropertyViewModel(this Property property)
         {
@@ -42,13 +53,10 @@ namespace Allard.Configinator.Api.Commands.ViewModels
                 TypeId = property.SchemaType.SchemaTypeId.FullId
             };
 
-            if (property is PropertyPrimitive)
-            {
-                return result;
-            }
+            if (property is PropertyPrimitive) return result;
 
             var group = (PropertyGroup) property;
-            result.Properties = group.Properties.ToPropertyDtos();
+            result.Properties = group.Properties.ToPropertyViewModels();
             return result;
         }
     }

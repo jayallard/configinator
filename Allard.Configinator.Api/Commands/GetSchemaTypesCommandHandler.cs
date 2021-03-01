@@ -1,19 +1,18 @@
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Allard.Configinator.Api.Commands.ViewModels;
 using Allard.Configinator.Schema;
+using MediatR;
 
 namespace Allard.Configinator.Api.Commands
 {
-    using System.Threading;
-    using System.Threading.Tasks;
-    using MediatR;
-
     namespace Allard.Configinator.Api.Commands
     {
         public class GetSchemaTypesHandler : IRequestHandler<GetSchemaTypesCommand, SchemaTypesViewModel>
         {
-            private readonly ISchemaService schemaService;
             private readonly LinkHelper linkHelper;
+            private readonly ISchemaService schemaService;
 
             public GetSchemaTypesHandler(ISchemaService schemaService, LinkHelper linkHelper)
             {

@@ -28,13 +28,6 @@ DONE: validation
 DONE doesn't mean it's actually done... just DONE enough for immediate needs
 
 
-scratch
-----------------------------
-how should the objects work?
-
-configinator
-    ConfigSectionValue: getvalue
-    setvalue
-
+still not comfortable with the json merger, and the configinator GetValue method that uses it.
 
 

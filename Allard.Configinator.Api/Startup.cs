@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Allard.Configinator.Configuration;
 using Allard.Configinator.Habitats;
 using Allard.Configinator.Realms;
@@ -11,24 +7,21 @@ using Allard.Configinator.Schema.Validator;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 
 namespace Allard.Configinator.Api
 {
     public class Startup
     {
-        public IConfiguration Configuration { get; }
-
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
+
+        public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -37,9 +30,9 @@ namespace Allard.Configinator.Api
             //     @"/home/jaya/personal/projects/configinator/Allard.Configinator.Tests/TestFiles/FullSetup";
             const string DataFolder =
                 @"/Users/jallard/personal/ConfigurationManagement/Allard.Configinator.Tests/TestFiles/FullSetup";
-            
+
             services.AddControllers();
-            
+
             // configinator!
             services
                 .AddSingleton<Configinator>()
@@ -56,10 +49,10 @@ namespace Allard.Configinator.Api
 
             // MediatR
             services.AddMediatR(typeof(Startup).Assembly);
-            
+
             // Link builder - used to construct links in the responses
             services.AddSingleton<LinkHelper>();
-            
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo {Title = "Allard.Configinator.Api", Version = "v1"});

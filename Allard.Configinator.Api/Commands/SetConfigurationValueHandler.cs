@@ -7,12 +7,10 @@ namespace Allard.Configinator.Api.Commands
     public class SetConfigurationValueHandler : IRequestHandler<SetConfigurationValueCommand, Blah>
     {
         private readonly Configinator configinator;
-        private readonly LinkHelper linkHelper;
 
-        public SetConfigurationValueHandler(Configinator configinator, LinkHelper linkHelper)
+        public SetConfigurationValueHandler(Configinator configinator)
         {
             this.configinator = configinator;
-            this.linkHelper = linkHelper;
         }
 
         public async Task<Blah> Handle(SetConfigurationValueCommand request, CancellationToken cancellationToken)

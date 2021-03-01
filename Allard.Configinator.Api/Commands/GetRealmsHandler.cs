@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,10 +35,7 @@ namespace Allard.Configinator.Api.Commands
             };
 
             // set the links
-            foreach (var realm in model.Realms)
-            {
-                LinkHelper.AddLinksToRealm(linkHelper, realm, false);
-            }
+            foreach (var realm in model.Realms) LinkHelper.AddLinksToRealm(linkHelper, realm, false);
 
             return model;
         }

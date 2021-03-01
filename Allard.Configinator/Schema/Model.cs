@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Text.Json.Serialization;
 
 namespace Allard.Configinator.Schema
 {
@@ -21,8 +20,9 @@ namespace Allard.Configinator.Schema
         ReadOnlyCollection<Property> Properties) : Property(Name, SchemaType, IsOptional);
 
     [DebuggerDisplay("{Name}")]
-    public record PropertyPrimitive(string Name, ObjectSchemaType SchemaType, bool IsSecret, bool IsOptional) : Property(Name,
-        SchemaType, IsOptional);
+    public record PropertyPrimitive(string Name, ObjectSchemaType SchemaType, bool IsSecret, bool IsOptional) :
+        Property(Name,
+            SchemaType, IsOptional);
 
     /// <summary>
     ///     Identity for a schema.

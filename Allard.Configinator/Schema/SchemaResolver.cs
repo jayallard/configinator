@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 
 namespace Allard.Configinator.Schema
@@ -27,7 +26,7 @@ namespace Allard.Configinator.Schema
         {
             inputByTypeId = dto.ToDictionary(d => new SchemaTypeId(d.Namespace + "/" + d.TypeName));
         }
-        
+
         // TODO: prevent circular references.
 
         public static async Task<IEnumerable<ObjectSchemaType>> ConvertAsync(IEnumerable<TypeDto> dto)
@@ -61,10 +60,7 @@ namespace Allard.Configinator.Schema
             {
                 // TODO: this is hack to get it working with string.
                 var builtIn = BuiltInTypes.Get(id);
-                if (builtIn == null)
-                {
-                    throw new SchemaNotFoundException(id.FullId);
-                }
+                if (builtIn == null) throw new SchemaNotFoundException(id.FullId);
 
                 outputByTypeId[id] = builtIn;
                 return builtIn;

@@ -25,7 +25,7 @@ namespace Allard.Configinator.Tests.Unit
             var doc1 = JToken.Parse("{ \"hello\": \"world\", \"a\": \"b\" }");
             var doc3 = JToken.Parse("{ \"hello\": \"planet\" }");
             var expected = JToken.Parse("{ \"hello\": \"planet\", \"a\": \"b\" }");
-            
+
             var result = new JsonMerger(doc1, null, doc3).Merge();
             JToken.DeepEquals(result, expected).Should().BeTrue();
         }
@@ -70,10 +70,10 @@ namespace Allard.Configinator.Tests.Unit
             var overRide = "{ \"hello\" : \"mars\" }";
             var obj = (JObject) MergeFromStrings(target, overRide);
             obj.Properties().Count().Should().Be(2);
-            
+
             // second overwrites first
             obj["hello"].Value<string>().Should().Be("mars");
-            
+
             // doesn't exist in second, so first is used
             obj["a"].Value<string>().Should().Be("b");
         }

@@ -7,12 +7,10 @@ namespace Allard.Configinator.Api.Commands
     public class GetConfigurationValueHandler : IRequestHandler<GetConfigurationValueCommand, ConfigurationValue>
     {
         private readonly Configinator configinator;
-        private readonly LinkHelper linkHelper;
 
-        public GetConfigurationValueHandler(Configinator configinator, LinkHelper linkHelper)
+        public GetConfigurationValueHandler(Configinator configinator)
         {
             this.configinator = configinator;
-            this.linkHelper = linkHelper;
         }
 
         public async Task<ConfigurationValue> Handle(GetConfigurationValueCommand request,
