@@ -49,15 +49,15 @@ namespace Allard.Configinator.Configuration
                     return;
                 }
 
+                if (value.Value == existing.Value)
+                {
+                    // no change. nothing to do.
+                    return;
+                }
+                
                 // update
                 if (value.ETag == null)
                 {
-                    if (value.Value == existing.Value)
-                    {
-                        // no change. nothing to do.
-                        return;
-                    }
-
                     throw new Exception("etag required");
                 }
 
@@ -66,7 +66,6 @@ namespace Allard.Configinator.Configuration
                     throw new Exception("Invalid etag - the value may have changed since the lst get.");
                 }
 
-                
                 repo[value.Path] = value with {ETag = Guid.NewGuid().ToString()};
             }
             finally

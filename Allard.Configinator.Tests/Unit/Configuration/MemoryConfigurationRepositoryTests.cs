@@ -48,7 +48,7 @@ namespace Allard.Configinator.Tests.Unit.Configuration
             // changed with the last write
             // so the etag on the write2 doesn't match what's in the repo.
             Func<Task> test = async () => await mem.SetValueAsync(read2);
-            test.Should().Throw<Exception>().WithMessage("etag change");
+            test.Should().Throw<Exception>().WithMessage("Invalid etag - the value may have changed since the lst get.");
         }
 
         [Fact]
@@ -58,7 +58,7 @@ namespace Allard.Configinator.Tests.Unit.Configuration
             var mem = new MemoryConfigStore();
 
             // initialize
-            var config = new Allard.Configinator.Configuration.ConfigStoreValue(path, "A", "config");
+            var config = new ConfigStoreValue(path, "A", "config");
             await mem.SetValueAsync(config);
 
             // read, then write.

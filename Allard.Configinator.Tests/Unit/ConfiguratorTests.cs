@@ -114,7 +114,7 @@ namespace Allard.Configinator.Tests.Unit
             testOutputHelper.WriteLine("--------------------------------------------------------");
             testOutputHelper.WriteLine("Get/Set Values:");
             var value = await configinator.Configuration.Get(new ConfigurationId("dev-jay2", "domain-a", "service-1"));
-            value.ResolvedValue.Should().Be("{}");
+            value.ResolvedValue.Should().BeNull();
             var setter = value.ToSetter("{ \"hello\": \"world\" }");
             testOutputHelper.WriteLine("\tNo existing value, as expected");
 

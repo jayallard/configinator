@@ -69,7 +69,7 @@ namespace Allard.Configinator
             // base2 overrides base1
             // MyTest overrides base2
             //
-            // it's convenient, but not entirely accurate, to think off it as 
+            // it's convenient, but not entirely accurate, to think of it as 
             // a class hierarchy.
 
             id.EnsureValue(nameof(id));
