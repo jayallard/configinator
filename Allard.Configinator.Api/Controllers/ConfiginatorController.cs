@@ -7,7 +7,6 @@ using Allard.Configinator.Api.Commands.ViewModels;
 using Allard.Configinator.Api.Controllers.ViewModels;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Server.HttpSys;
 
 namespace Allard.Configinator.Api.Controllers
 {
@@ -76,12 +75,24 @@ namespace Allard.Configinator.Api.Controllers
 
         [HttpGet]
         [Route("realms/{realmName}/sections/{configurationSectionName}/value/{habitat}")]
-        public async Task<ConfigurationValueResponse> GetConfigurationValue(
+        public async Task<ConfigurationValue> GetConfigurationValue(
             string realmName,
             string configurationSectionName,
             string habitat)
         {
-            return await mediator.Send(new GetConfigurationValueCommand(habitat, realmName, configurationSectionName));
+            var value = await mediator.Send(new GetConfigurationValueCommand(habitat, realmName, configurationSectionName));;
+            return value;
+        }
+        
+        [HttpGet]
+        [Route("realms/{realmName}/sections/{configurationSectionName}/value/{habitat}/resolved")]
+        public async Task<JsonDocument> GetConfigurationValueResolved(
+            string realmName,
+            string configurationSectionName,
+            string habitat)
+        {
+            var value = await mediator.Send(new GetConfigurationValueCommand(habitat, realmName, configurationSectionName));;
+            return JsonDocument.Parse(value.ResolvedValue);
         }
 
         private static string ToJsonString(JsonDocument jdoc)
@@ -99,16 +110,16 @@ namespace Allard.Configinator.Api.Controllers
             string realmName,
             string configurationSectionName,
             string habitat,
-            [FromBody] JsonDocument value)
+            [FromBody] SetValueRequestModel value)
         {
             return await mediator.Send(
                 new SetConfigurationValueCommand
                 {
-                    PreviousEtag = null,
+                    PreviousEtag = value.PreviousETag,
                     Habitat = habitat,
                     Realm = realmName,
                     ConfigurationSection = configurationSectionName,
-                    Value = ToJsonString(value)
+                    Value = value.Value
                 });
         }
     }

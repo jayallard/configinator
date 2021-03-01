@@ -15,7 +15,7 @@ namespace Allard.Configinator.Tests.Unit.Configuration
             var mem = new MemoryConfigStore();
 
             // write
-            var config = new ConfigurationValue(path, "a", "config");
+            var config = new Allard.Configinator.Configuration.ConfigStoreValue(path, "a", "config");
             await mem.SetValueAsync(config);
 
             // read
@@ -31,7 +31,7 @@ namespace Allard.Configinator.Tests.Unit.Configuration
             var mem = new MemoryConfigStore();
 
             // initialize
-            var config = new ConfigurationValue(path, "a", "config");
+            var config = new Allard.Configinator.Configuration.ConfigStoreValue(path, "a", "config");
             await mem.SetValueAsync(config);
 
             // read
@@ -58,7 +58,7 @@ namespace Allard.Configinator.Tests.Unit.Configuration
             var mem = new MemoryConfigStore();
 
             // initialize
-            var config = new ConfigurationValue(path, "A", "config");
+            var config = new Allard.Configinator.Configuration.ConfigStoreValue(path, "A", "config");
             await mem.SetValueAsync(config);
 
             // read, then write.
@@ -77,7 +77,7 @@ namespace Allard.Configinator.Tests.Unit.Configuration
             var mem = new MemoryConfigStore();
 
             // initialize
-            var config = new ConfigurationValue(path, "A", "config");
+            var config = new Allard.Configinator.Configuration.ConfigStoreValue(path, "A", "config");
             await mem.SetValueAsync(config);
 
             // read, change the value, write

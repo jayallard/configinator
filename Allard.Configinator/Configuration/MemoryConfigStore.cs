@@ -17,17 +17,17 @@ namespace Allard.Configinator.Configuration
         private readonly Mutex readWriteLock = new();
 
         // key = path
-        private readonly ConcurrentDictionary<string, ConfigurationValue> repo = new();
+        private readonly ConcurrentDictionary<string, ConfigStoreValue> repo = new();
 
-        public Task<ConfigurationValue> GetValueAsync(string path)
+        public Task<ConfigStoreValue> GetValueAsync(string path)
         {
             path.EnsureValue(nameof(path));
             try
             {
                 readWriteLock.WaitOne();
                 return repo.TryGetValue(path, out var value)
-                    ? Task.FromResult(new ConfigurationValue(path, value.ETag, value.Value))
-                    : Task.FromResult(new ConfigurationValue(path, null, null));
+                    ? Task.FromResult(new ConfigStoreValue(path, value.ETag, value.Value))
+                    : Task.FromResult(new ConfigStoreValue(path, null, null));
             }
             finally
             {
@@ -35,21 +35,39 @@ namespace Allard.Configinator.Configuration
             }
         }
 
-        public async Task SetValueAsync(ConfigurationValue value)
+        public async Task SetValueAsync(ConfigStoreValue value)
         {
             value.EnsureValue(nameof(value));
             try
             {
                 readWriteLock.WaitOne();
                 var existing = await GetValueAsync(value.Path).ConfigureAwait(false);
-                if (existing.ETag != null && existing.ETag != value.ETag) throw new Exception("etag change");
+                if (existing.Value == null)
+                {
+                    // insert
+                    repo[value.Path] = value with {ETag = Guid.NewGuid().ToString()};
+                    return;
+                }
 
-                var etag =
-                    existing.ETag == null || existing.Value != value.Value
-                        ? Guid.NewGuid().ToString()
-                        : existing.ETag;
+                // update
+                if (value.ETag == null)
+                {
+                    if (value.Value == existing.Value)
+                    {
+                        // no change. nothing to do.
+                        return;
+                    }
 
-                repo[value.Path] = value with {ETag = etag};
+                    throw new Exception("etag required");
+                }
+
+                if (value.ETag != existing.ETag)
+                {
+                    throw new Exception("Invalid etag - the value may have changed since the lst get.");
+                }
+
+                
+                repo[value.Path] = value with {ETag = Guid.NewGuid().ToString()};
             }
             finally
             {

@@ -26,11 +26,10 @@ namespace Allard.Configinator
 
         public JsonMerger(JToken target, IEnumerable<JToken> overrides)
         {
-            this.target = target.EnsureValue(nameof(target));
-            this.overrides = overrides
-                .EnsureValue(nameof(overrides))
-                .Where(d => d != null)
-                .ToList();
+            this.target = target ?? new JObject();
+            this.overrides = overrides == null
+                ? new List<JToken>()
+                : overrides.ToList();
         }
 
         public JToken Merge()
@@ -62,6 +61,11 @@ namespace Allard.Configinator
 
         private void Merge(JToken overRide, JToken target)
         {
+            if (overRide == null)
+            {
+                return;
+            }
+
             while (true)
             {
                 Debug.Assert(overRide != null);

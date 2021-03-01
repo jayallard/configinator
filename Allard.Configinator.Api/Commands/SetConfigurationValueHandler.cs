@@ -1,11 +1,6 @@
-using System.IO;
-using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Allard.Configinator.Configuration;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 
 namespace Allard.Configinator.Api.Commands
 {
@@ -22,13 +17,10 @@ namespace Allard.Configinator.Api.Commands
 
         public async Task<Blah> Handle(SetConfigurationValueCommand request, CancellationToken cancellationToken)
         {
+            // todo: wrong types... in progress.
             var id = new ConfigurationId(request.Habitat, request.Realm, request.ConfigurationSection);
-            var value = new ConfigurationSectionValue(
-                id,
-                request.PreviousEtag,
-                request.Value?.ToString());
-
-            await configinator.Configuration.Set(value);
+            var setter = new ConfigurationValueSetter(id, request.PreviousEtag, request.Value);
+            await configinator.Configuration.Set(setter);
             return new Blah();
         }
     }

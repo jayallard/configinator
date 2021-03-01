@@ -29,7 +29,8 @@ namespace Allard.Configinator.Tests.Unit
             var habitatsFile = Path.Combine(baseFolder, "habitats.yml");
 
             var configStore = new MemoryConfigStore();
-            var schemaService = new SchemaService(new SchemaRepositoryYamlFiles(baseFolder), new SchemaValidator(new ValidatorFactoryServices()));
+            var schemaService = new SchemaService(new SchemaRepositoryYamlFiles(baseFolder),
+                new SchemaValidator(new ValidatorFactoryServices()));
             var habitatService = new HabitatService(new HabitatsRepositoryYamlFile(habitatsFile));
             var realmService = new RealmService(new RealmRepositoryYamlFiles(baseFolder), schemaService);
             return new Configinator(
@@ -65,7 +66,7 @@ namespace Allard.Configinator.Tests.Unit
             var value = await configinator.Configuration.Get(idToGet);
 
             Assert.True(JToken.DeepEquals(
-                JToken.Parse(value.Value),
+                JToken.Parse(value.ResolvedValue),
                 JToken.Parse(expectedMergeResult)
             ));
         }
@@ -75,7 +76,7 @@ namespace Allard.Configinator.Tests.Unit
             string value)
         {
             var v = await configinator.Configuration.Get(new ConfigurationId(habitat, realm, configSection));
-            await configinator.Configuration.Set(v.SetValue(value));
+            await configinator.Configuration.Set(v.ToSetter(value));
         }
 
         [Fact]
@@ -113,16 +114,16 @@ namespace Allard.Configinator.Tests.Unit
             testOutputHelper.WriteLine("--------------------------------------------------------");
             testOutputHelper.WriteLine("Get/Set Values:");
             var value = await configinator.Configuration.Get(new ConfigurationId("dev-jay2", "domain-a", "service-1"));
-            value.Value.Should().BeNull();
-            value = value.SetValue("{ \"hello\": \"world\" }");
+            value.ResolvedValue.Should().Be("{}");
+            var setter = value.ToSetter("{ \"hello\": \"world\" }");
             testOutputHelper.WriteLine("\tNo existing value, as expected");
 
-            await configinator.Configuration.Set(value);
+            await configinator.Configuration.Set(setter);
             testOutputHelper.WriteLine("\tSet value");
 
             var value2 = await configinator.Configuration.Get(new ConfigurationId("dev-jay2", "domain-a", "service-1"));
-            Assert.True(JToken.DeepEquals(JToken.Parse(value.Value), JToken.Parse(value2.Value)));
-            testOutputHelper.WriteLine("\tRead value: " + value2.Value);
+            Assert.True(JToken.DeepEquals(JToken.Parse(setter.Value), JToken.Parse(value2.ResolvedValue)));
+            testOutputHelper.WriteLine("\tRead value: " + value2.ResolvedValue);
         }
     }
 }
