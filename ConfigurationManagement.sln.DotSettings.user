@@ -25,6 +25,7 @@
       &lt;TestId&gt;xUnit::52742313-F970-41E4-A62B-0426308BF9EF::net5.0::Allard.Configinator.AwsSecretsManager.Tests.Integration.AwsSecretsManagerConfigStoreTests.Get&lt;/TestId&gt;
       &lt;TestId&gt;xUnit::52742313-F970-41E4-A62B-0426308BF9EF::net5.0::Allard.Configinator.AwsSecretsManager.Tests.Integration.AwsSecretsManagerConfigStoreTests.SetGet&lt;/TestId&gt;
       &lt;TestId&gt;xUnit::52742313-F970-41E4-A62B-0426308BF9EF::net5.0::Allard.Configinator.AwsSecretsManager.Tests.Integration.AwsSecretsManagerConfigStoreTests&lt;/TestId&gt;
+      &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.UnitTest1.Test1&lt;/TestId&gt;
     &lt;/TestAncestor&gt;
   &lt;/Or&gt;
 &lt;/SessionState&gt;</s:String>
