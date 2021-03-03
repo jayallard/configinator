@@ -24,6 +24,10 @@
     &lt;TestAncestor&gt;
       &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.UnitTest1.EventHandlerAction&lt;/TestId&gt;
       &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.UnitTest1.EvenHandlerFunction&lt;/TestId&gt;
+      &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.UnitTest1.Test1&lt;/TestId&gt;
+      &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.UnitTest1&lt;/TestId&gt;
+      &lt;TestId&gt;xUnit::A870290C-0BDD-4A3B-853C-4511E4CF75E4::net5.0::Allard.Configinator.Infrastructure.MongoDb.Tests.UnitTest1.Test1&lt;/TestId&gt;
+      &lt;TestId&gt;xUnit::A870290C-0BDD-4A3B-853C-4511E4CF75E4::net5.0::Allard.Configinator.Infrastructure.MongoDb.Tests.UnitTest1.WriteGet&lt;/TestId&gt;
     &lt;/TestAncestor&gt;
   &lt;/Or&gt;
 &lt;/SessionState&gt;</s:String>

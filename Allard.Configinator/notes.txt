@@ -1,24 +1,2 @@
 docker run --name configinator-mongodb -p 27017:27017 -d mongo
 
-organization
-    types
-        a
-        b
-        c
-    habitats
-        a
-        b
-        c
-    realms
-        types: later
-        habitats: later
-        a        
-            configuration sections
-                a
-                b
-                c
-                
-/{org}/types
-/{org}/realms
-/{org}/realms/{realm}
-/{org}/realms/{realm}                

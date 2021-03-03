@@ -8,4 +8,8 @@
       <PackageReference Include="MongoDB.Driver" Version="2.11.6" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Allard.Configinator.Core\Allard.Configinator.Core.csproj" />
+    </ItemGroup>
+
 </Project>

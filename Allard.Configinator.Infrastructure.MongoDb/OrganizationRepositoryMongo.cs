@@ -1,0 +1,66 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Allard.Configinator.Core;
+using Allard.Configinator.Core.Model;
+using MongoDB.Driver;
+
+namespace Allard.Configinator.Infrastructure.MongoDb
+{
+    public class OrganizationRepositoryMongo : IOrganizationRepository
+    {
+        private readonly MongoClient client;
+        private const string Database = "configinator";
+        private const string Collection = "organization-events";
+
+        public OrganizationRepositoryMongo()
+        {
+            client = new MongoClient("mongodb://localhost:27017");
+            client.GetDatabase(Database).DropCollection(Collection);
+        }
+
+        private IMongoCollection<EventDto> GetCollection()
+        {
+            // i forget what should be cached or not... get everything
+            // fresh until that's worked out.
+            // todo: cache db? cache collection?
+            return client
+                .GetDatabase(Database)
+                .GetCollection<EventDto>("organization-events");
+        }
+
+        public async Task<Organization> GetOrganizationAsync(string id)
+        {
+            var organization = (Organization) Activator.CreateInstance(typeof(Organization), true);
+            var eventAccessor = new EventAccessor(organization);
+
+            await GetCollection()
+                .Find(e => e.OrganizationId == id)
+                //.Sort("{_id: 1")
+                .ForEachAsync(e =>
+                {
+                    eventAccessor.ApplyEvent(e.Event);
+                });
+            return organization;
+        }
+
+        public async Task SaveAsync(Organization organization)
+        {
+            var eventAccessor = new EventAccessor(organization);
+            var events = eventAccessor
+                .GetEvents()
+                .Select(e =>
+                    new EventDto(null, e.EventId, organization.OrganizationId.Id, e.EventDate, e.EventName, e))
+                .ToList();
+            if (events.Count == 0)
+            {
+                return;
+            }
+            await GetCollection()
+                .InsertManyAsync(events);
+            eventAccessor.ClearEvents();
+
+        }
+    }
+}
