@@ -10,25 +10,28 @@
   &lt;Project Location="/home/jaya/personal/projects/configinator/Allard.Configinator.Tests" Presentation="&amp;lt;Allard.Configinator.Tests&amp;gt;" /&gt;
 &lt;/SessionState&gt;</s:String>
 	
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=7a1657b5_002De0f1_002D46f1_002D835f_002Dd1d74d354dd0/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from &amp;lt;Allard.Configinator.Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=7a1657b5_002De0f1_002D46f1_002D835f_002Dd1d74d354dd0/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from &amp;lt;Allard.Configinator.Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;Or&gt;
     &lt;Project Location="/home/jaya/personal/projects/configinator/Allard.Configinator.Tests" Presentation="&amp;lt;Allard.Configinator.Tests&amp;gt;" /&gt;
     &lt;TestAncestor&gt;
       &lt;TestId&gt;xUnit::52742313-F970-41E4-A62B-0426308BF9EF::net5.0::Allard.Configinator.AwsSecretsManager.Tests.Integration.AwsSecretsManagerConfigStoreTests.Get&lt;/TestId&gt;
+      &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.HierarchyValidatorTests.DoubleReferenceThrowsException&lt;/TestId&gt;
+      &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.HierarchyValidatorTests.ReferencesItselfThrowsException&lt;/TestId&gt;
+      &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.HierarchyValidatorTests.CircularReferenceThrowsException&lt;/TestId&gt;
+      &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.HierarchyValidatorTests&lt;/TestId&gt;
     &lt;/TestAncestor&gt;
   &lt;/Or&gt;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=ffbb866e_002Ddd6a_002D4fd7_002D9dc6_002Dab2e6189017e/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from &amp;lt;Allard.Configinator.Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=ffbb866e_002Ddd6a_002D4fd7_002D9dc6_002Dab2e6189017e/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from &amp;lt;Allard.Configinator.Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;Or&gt;
-    &lt;Project Location="/Users/jallard/personal/ConfigurationManagement/Allard.Configinator.Tests" Presentation="&amp;lt;Allard.Configinator.Tests&amp;gt;" /&gt;
+    &lt;Project Location="/home/jaya/personal/projects/configinator/Allard.Configinator.Tests" Presentation="&amp;lt;Allard.Configinator.Tests&amp;gt;" /&gt;
     &lt;TestAncestor&gt;
-      &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.UnitTest1.EventHandlerAction&lt;/TestId&gt;
-      &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.UnitTest1.EvenHandlerFunction&lt;/TestId&gt;
+      &lt;TestId&gt;xUnit::52742313-F970-41E4-A62B-0426308BF9EF::net5.0::Allard.Configinator.AwsSecretsManager.Tests.Integration.AwsSecretsManagerConfigStoreTests.Get&lt;/TestId&gt;
+      &lt;TestId&gt;xUnit::52742313-F970-41E4-A62B-0426308BF9EF::net5.0::Allard.Configinator.AwsSecretsManager.Tests.Integration.AwsSecretsManagerConfigStoreTests.SetGet&lt;/TestId&gt;
+      &lt;TestId&gt;xUnit::52742313-F970-41E4-A62B-0426308BF9EF::net5.0::Allard.Configinator.AwsSecretsManager.Tests.Integration.AwsSecretsManagerConfigStoreTests&lt;/TestId&gt;
       &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.UnitTest1.Test1&lt;/TestId&gt;
-      &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.UnitTest1&lt;/TestId&gt;
-      &lt;TestId&gt;xUnit::A870290C-0BDD-4A3B-853C-4511E4CF75E4::net5.0::Allard.Configinator.Infrastructure.MongoDb.Tests.UnitTest1.Test1&lt;/TestId&gt;
-      &lt;TestId&gt;xUnit::A870290C-0BDD-4A3B-853C-4511E4CF75E4::net5.0::Allard.Configinator.Infrastructure.MongoDb.Tests.UnitTest1.WriteGet&lt;/TestId&gt;
-      &lt;TestId&gt;xUnit::A870290C-0BDD-4A3B-853C-4511E4CF75E4::net5.0::Allard.Configinator.Infrastructure.MongoDb.Tests.UnitTest1.BigAggregate&lt;/TestId&gt;
+      &lt;TestId&gt;xUnit::A870290C-0BDD-4A3B-853C-4511E4CF75E4::net5.0::Allard.Configinator.Infrastructure.MongoDb.Tests.UnitTest1&lt;/TestId&gt;
+      &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.HierarchyValidatorTests.DoubleReferenceThrowsException&lt;/TestId&gt;
     &lt;/TestAncestor&gt;
   &lt;/Or&gt;
 &lt;/SessionState&gt;</s:String>

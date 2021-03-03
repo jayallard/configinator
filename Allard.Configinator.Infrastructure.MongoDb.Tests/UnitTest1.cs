@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Allard.Configinator.Core;
 using Allard.Configinator.Core.Events;
 using Allard.Configinator.Core.Model;
 using FluentAssertions;
