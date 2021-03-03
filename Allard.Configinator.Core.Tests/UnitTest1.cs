@@ -24,7 +24,7 @@ namespace Allard.Configinator.Core.Tests
         public void Test1()
         {
             var id = OrganizationId.NewOrganizationId();
-            var org = new Organization(id);
+            var org = new OrganizationAggregate(id);
             org.OrganizationId.Should().Be(id);
         }
 
@@ -71,7 +71,7 @@ namespace Allard.Configinator.Core.Tests
         public void Build()
         {
             var orgId = OrganizationId.NewOrganizationId();
-            var org = new Organization(orgId);
+            var org = new OrganizationAggregate(orgId);
 
             org.Realms.Should().BeEmpty();
             var realm = org.CreateRealm("Allard-Realm-1");

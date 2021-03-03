@@ -9,7 +9,7 @@ namespace Allard.Configinator.Core.Model
     {
         private readonly List<Habitat> habitats = new();
         
-        internal Organization Organization { get; private set; }
+        internal OrganizationAggregate Organization { get; }
         public RealmId Id { get; }
 
         public IReadOnlyCollection<Habitat> Habitats => habitats.AsReadOnly();
@@ -31,7 +31,7 @@ namespace Allard.Configinator.Core.Model
             return Organization.EventHandlerRegistry.Raise<HabitatCreatedEvent, Habitat>(new HabitatCreatedEvent(Organization.OrganizationId, Id, id));
         }
 
-        public Realm(RealmId id, Organization organization)
+        public Realm(RealmId id, OrganizationAggregate organization)
         {
             this.Organization = organization;
             Id = id;

@@ -15,12 +15,12 @@ namespace Allard.Configinator.Infrastructure.MongoDb
 
         private static FieldInfo GetRegistryFieldFromOrganization()
         {
-            var field = typeof(Organization)
+            var field = typeof(OrganizationAggregate)
                 .GetField("registry", BindingFlags.NonPublic | BindingFlags.Instance);
             if (field == null)
             {
                 throw new InvalidOperationException(
-                    $"'registry' field doesn't exist in the {nameof(Organization)} type.");
+                    $"'registry' field doesn't exist in the {nameof(OrganizationAggregate)} type.");
             }
 
             return field;
@@ -52,10 +52,10 @@ namespace Allard.Configinator.Infrastructure.MongoDb
             return method;
         }
 
-        private readonly Organization organization;
+        private readonly OrganizationAggregate organization;
         private readonly EventHandlerRegistry registry;
 
-        public EventAccessor(Organization organization)
+        public EventAccessor(OrganizationAggregate organization)
         {
             this.organization = organization;
             registry = (EventHandlerRegistry) RegistryField.GetValue(organization);

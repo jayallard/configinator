@@ -6,27 +6,27 @@ using Allard.Configinator.Core.Events;
 
 namespace Allard.Configinator.Core.Model
 {
-    public class Organization : Aggregate<OrganizationId>
+    public class OrganizationAggregate : Aggregate<OrganizationId>
     {
         private readonly List<Realm> realms = new();
         private readonly EventHandlerRegistry registry;
         internal EventHandlerRegistry EventHandlerRegistry => registry;
         public OrganizationId OrganizationId { get; private set; }
 
-        public Organization(OrganizationId id) : this()
+        public OrganizationAggregate(OrganizationId id) : this()
         {
             registry.Raise(new OrganizationCreatedEvent(id));
         }
 
         public IReadOnlyCollection<Realm> Realms => realms.AsReadOnly();
 
-        public Realm CreateRealm(string Name)
+        public Realm CreateRealm(string name)
         {
             return registry.Raise<RealmCreatedEvent, Realm>(
-                new RealmCreatedEvent(OrganizationId, new RealmId( Guid.NewGuid().ToString(), Name)));
+                new RealmCreatedEvent(OrganizationId, new RealmId( Guid.NewGuid().ToString(), name)));
         }
 
-        private Organization()
+        private OrganizationAggregate()
         {
             registry = new EventHandlerRegistryBuilder()
                 .Register<OrganizationCreatedEvent>(e => { OrganizationId = e.OrganizationId; })

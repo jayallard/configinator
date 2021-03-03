@@ -6,6 +6,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb
 {
     public record EventDto(
         BsonObjectId Id,
+        string DbTransactionId,
         string EventId,
         string OrganizationId,
         DateTime EventDate,

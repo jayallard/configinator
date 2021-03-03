@@ -30,37 +30,35 @@ namespace Allard.Configinator.Infrastructure.MongoDb
                 .GetCollection<EventDto>("organization-events");
         }
 
-        public async Task<Organization> GetOrganizationAsync(string id)
+        public async Task<OrganizationAggregate> GetOrganizationAsync(string id)
         {
-            var organization = (Organization) Activator.CreateInstance(typeof(Organization), true);
+            var organization = (OrganizationAggregate) Activator.CreateInstance(typeof(OrganizationAggregate), true);
             var eventAccessor = new EventAccessor(organization);
 
             await GetCollection()
                 .Find(e => e.OrganizationId == id)
                 //.Sort("{_id: 1")
-                .ForEachAsync(e =>
-                {
-                    eventAccessor.ApplyEvent(e.Event);
-                });
+                .ForEachAsync(e => { eventAccessor.ApplyEvent(e.Event); });
             return organization;
         }
 
-        public async Task SaveAsync(Organization organization)
+        public async Task SaveAsync(OrganizationAggregate organization)
         {
+            var txId = Guid.NewGuid().ToString();
             var eventAccessor = new EventAccessor(organization);
             var events = eventAccessor
                 .GetEvents()
                 .Select(e =>
-                    new EventDto(null, e.EventId, organization.OrganizationId.Id, e.EventDate, e.EventName, e))
+                    new EventDto(null, txId, e.EventId, organization.OrganizationId.Id, e.EventDate, e.EventName, e))
                 .ToList();
             if (events.Count == 0)
             {
                 return;
             }
+
             await GetCollection()
                 .InsertManyAsync(events);
             eventAccessor.ClearEvents();
-
         }
     }
 }
