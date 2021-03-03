@@ -44,7 +44,7 @@ namespace Allard.Configinator.Core.Tests
             r2.Should().Be("santa claus");
         }
 
-        [Fact]
+        [Fact(Skip = "Demonstrating a known issue.")]
         public void IfTypesAreWrong()
         {
             var registry = new EventHandlerRegistryBuilder()
@@ -74,14 +74,14 @@ namespace Allard.Configinator.Core.Tests
             var org = new OrganizationAggregate(orgId);
 
             org.Realms.Should().BeEmpty();
-            var realm = org.CreateRealm("Allard-Realm-1");
+            var realm = org.CreateRealm("allard-realm-1");
             org.Realms.Single().Should().Be(realm);
-            realm.Id.Name.Should().Be("Allard-Realm-1");
+            realm.Id.Name.Should().Be("allard-realm-1");
 
             realm.Habitats.Should().BeEmpty();
             var habitat = realm.CreateHabitat("Production");
             realm.Habitats.Single().Should().Be(habitat);
-            habitat.Id.Name.Should().Be("Production");
+            habitat.Id.Name.Should().Be("production");
         }
 
         [Fact]

@@ -23,7 +23,7 @@ namespace Allard.Configinator.Core.Model
         public Realm CreateRealm(string name)
         {
             return registry.Raise<RealmCreatedEvent, Realm>(
-                new RealmCreatedEvent(OrganizationId, new RealmId( Guid.NewGuid().ToString(), name)));
+                new RealmCreatedEvent(OrganizationId, new RealmId(Guid.NewGuid().ToString(), name.NormalizeModelMemberName(nameof(name)))));
         }
 
         private OrganizationAggregate()
@@ -46,12 +46,12 @@ namespace Allard.Configinator.Core.Model
                 .Build();
         }
     }
-    
+
     public record OrganizationId(string Id)
     {
         public static OrganizationId NewOrganizationId()
         {
-            return new (Guid.NewGuid().ToString());
+            return new(Guid.NewGuid().ToString());
         }
     }
 }

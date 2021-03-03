@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using FluentAssertions;
 using Xunit;
 
 namespace Allard.Configinator.Core.Tests
@@ -12,7 +14,9 @@ namespace Allard.Configinator.Core.Tests
             var a = new HierarchyElement("a", new HashSet<string> {"b", "z"});
             var b = new HierarchyElement("b", new HashSet<string> {"z"});
             var z = new HierarchyElement("z", new HashSet<string>());
-            HierarchyValidator.Validate(a, new[] {b, z});
+            Action test = () => HierarchyValidator.Validate(a, new[] {b, z});
+            test.Should().Throw<InvalidOperationException>()
+                .WithMessage("Hierarchy issue. ElementToTest=a, Repeating segment: z");
         }
 
         [Fact]
@@ -22,7 +26,9 @@ namespace Allard.Configinator.Core.Tests
             var a = new HierarchyElement("a", new HashSet<string> {"b"});
             var b = new HierarchyElement("b", new HashSet<string> {"z"});
             var z = new HierarchyElement("z", new HashSet<string>{"a"});
-            HierarchyValidator.Validate(a, new[] {b, z});
+            Action test = () => HierarchyValidator.Validate(a, new[] {b, z});
+            test.Should().Throw<InvalidOperationException>()
+                .WithMessage("Hierarchy issue. ElementToTest=a, Repeating segment: a");
         }
 
         [Fact]
@@ -30,7 +36,9 @@ namespace Allard.Configinator.Core.Tests
         {
             var a = new HierarchyElement("a", new HashSet<string> {"b"});
             var b = new HierarchyElement("b", new HashSet<string> {"a"});
-            HierarchyValidator.Validate(a, new[] {b});
+            Action test = () => HierarchyValidator.Validate(a, new[] {b});
+            test.Should().Throw<InvalidOperationException>()
+                .WithMessage("Hierarchy issue. ElementToTest=a, Repeating segment: a");
         }
 
         [Fact]
@@ -39,7 +47,9 @@ namespace Allard.Configinator.Core.Tests
             var a = new HierarchyElement("a", new HashSet<string> {"b"});
             var b = new HierarchyElement("b", new HashSet<string> {"z", "y"});
             var z = new HierarchyElement("z", new HashSet<string>());
-            HierarchyValidator.Validate(a, new[] {b, z});
+            Action test = () => HierarchyValidator.Validate(a, new[] {b, z});
+            test.Should().Throw<InvalidOperationException>()
+                .WithMessage("Element doesn't exist. Element Name=y");
         }
         
         [Fact]
@@ -49,8 +59,7 @@ namespace Allard.Configinator.Core.Tests
             var b = new HierarchyElement("b", new HashSet<string> {"z", "y"});
             var z = new HierarchyElement("z", new HashSet<string>());
             var y = new HierarchyElement("y", new HashSet<string>());
-            HierarchyValidator.Validate(a, new[] {b,z,y});
+            HierarchyValidator.Validate(a, new[] {b, z, y});
         }
-
     }
 }

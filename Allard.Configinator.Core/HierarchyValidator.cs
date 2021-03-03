@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 namespace Allard.Configinator.Core
 {
@@ -30,6 +29,16 @@ namespace Allard.Configinator.Core
             }
         }
 
+        /// <summary>
+        /// Just enough to prevent circular references and
+        /// double references... improve this to build a tree
+        /// during the validation so that when it goes wrong,
+        /// it can illustrate exactly where. for now, it just goes
+        /// boom, which is sufficient.
+        /// </summary>
+        /// <param name="baseName"></param>
+        /// <param name="encountered"></param>
+        /// <exception cref="InvalidOperationException"></exception>
         private void Validate(string baseName, ISet<string> encountered)
         {
             if (encountered.Contains(baseName))
@@ -40,7 +49,7 @@ namespace Allard.Configinator.Core
             encountered.Add(baseName);
             if (!otherElements.TryGetValue(baseName, out var nextElement))
             {
-                throw new InvalidOperationException("Element doesn't exist; " + baseName);
+                throw new InvalidOperationException("Element doesn't exist. Element Name=" + baseName);
             }
             
             foreach (var b in nextElement.Bases)
