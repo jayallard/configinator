@@ -11,9 +11,8 @@ namespace Allard.Configinator.Core.Tests.Unit.Validators
         [Fact]
         public void Redo()
         {
-            
         }
-        
+
         [Fact]
         public void Test1()
         {
@@ -25,11 +24,21 @@ namespace Allard.Configinator.Core.Tests.Unit.Validators
             var emptyPropertyGroups = new List<PropertyGroup>().AsReadOnly();
             var emptySchemaTypeList = new List<SchemaType>().AsReadOnly();
 
-            var groupB = new PropertyGroup("p2", idC, false, emptyProperties, emptyPropertyGroups);
+            var groupB = new PropertyGroup("p2", idC, false, new List<Property>
+            {
+                new("name", SchemaTypeId.String)
+            }.AsReadOnly(), emptyPropertyGroups);
             var groupA = new PropertyGroup("p1", idB, false, emptyProperties, ToReadonly(groupB));
 
-            var schemaTypeA = new SchemaType(idA, emptyProperties, ToReadonly(groupA));
-            var schemaTypeB = new SchemaType(SchemaTypeId.Parse("x/y"), emptyProperties, emptyPropertyGroups);
+            var schemaTypeA = new SchemaType(idA, new List<Property>
+            {
+                new("name", SchemaTypeId.String)
+            }.AsReadOnly(), ToReadonly(groupA));
+
+            var schemaTypeB = new SchemaType(SchemaTypeId.Parse("x/y"), new List<Property>
+            {
+                new("name", SchemaTypeId.String)
+            }.AsReadOnly(), emptyPropertyGroups);
             var schemaTypeC = new SchemaType(SchemaTypeId.Parse("santa/claus"), emptyProperties, emptyPropertyGroups);
 
             new SchemaTypeValidator(

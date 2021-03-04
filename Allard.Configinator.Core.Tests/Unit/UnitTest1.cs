@@ -131,7 +131,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             var schemaTypeId = SchemaTypeId.Parse("a/b");
             var schemaType = new SchemaType(
                 schemaTypeId,
-                new List<Property>().AsReadOnly(),
+                new List<Property>{new ("blah", SchemaTypeId.String, false, false)}.AsReadOnly(),
                 new List<PropertyGroup>().AsReadOnly());
             org.SchemaTypes.Should().BeEmpty();
             var addedType = org.AddSchemaType(schemaType);

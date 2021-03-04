@@ -24,6 +24,6 @@ namespace Allard.Configinator.Core.Model
         ReadOnlyCollection<PropertyGroup> PropertyGroups) : PropertyBase(Name, SchemaTypeId, IsOptional);
 
     [DebuggerDisplay("{Name} ({SchemaTypeId.FullId)")]
-    public record Property(string Name, SchemaTypeId SchemaTypeId, bool IsSecret, bool IsOptional) :
+    public record Property(string Name, SchemaTypeId SchemaTypeId, bool IsSecret = false, bool IsOptional = false) :
         PropertyBase(Name, SchemaTypeId, IsOptional);
 }

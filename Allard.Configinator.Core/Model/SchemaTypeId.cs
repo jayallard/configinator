@@ -22,6 +22,8 @@ namespace Allard.Configinator.Core.Model
             return new("primitive", type);
         }
 
+        public static SchemaTypeId String { get; private set; } = CreatePrimitive("string");
+
         public static SchemaTypeId Parse(string fullId)
         {
             fullId.EnsureValue(nameof(fullId));
