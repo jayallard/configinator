@@ -79,9 +79,9 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
             // read
             var read = await repo.GetOrganizationAsync(orgId.Id);
             read.Realms.Count.Should().Be(2);
-            var readRealm1 = read.Realms.Single(r => r.Id == r1.Id);
+            var readRealm1 = read.Realms.Single(r => r.RealmId == r1.RealmId);
             readRealm1.Habitats.Count.Should().Be(2);
-            var readRealm2 = read.Realms.Single(r => r.Id == r2.Id);
+            var readRealm2 = read.Realms.Single(r => r.RealmId == r2.RealmId);
             readRealm2.Habitats.Count.Should().Be(3);
 
             // update

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Allard.Configinator.Core
 {
@@ -19,10 +21,19 @@ namespace Allard.Configinator.Core
         }
         
         
-        public static string NormalizeModelMemberName(this string modelItemName, string parameterName)
+        public static string ToNormalizedMemberName(this string modelItemName, string parameterName)
         {
             // todo: regex validation. only letters, numbers and -.
             return modelItemName.EnsureValue(parameterName).Trim().ToLowerInvariant();
+        }
+
+        public static ISet<string> ToNormalizedMemberNames(this IEnumerable<string> modelItemNames,
+            string parameterName)
+        {
+            return 
+                modelItemNames == null
+                ? new HashSet<string>()
+                : modelItemNames.Select(i => i.ToNormalizedMemberName(parameterName)).ToHashSet();
         }
     }
 }

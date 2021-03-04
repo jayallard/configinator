@@ -74,14 +74,20 @@ namespace Allard.Configinator.Core.Tests
             var org = new OrganizationAggregate(orgId);
 
             org.Realms.Should().BeEmpty();
-            var realm = org.CreateRealm("allard-realm-1");
+            var realm = org.CreateRealm("ALLARD-REALM-1");
             org.Realms.Single().Should().Be(realm);
-            realm.Id.Name.Should().Be("allard-realm-1");
+            realm.RealmId.Name.Should().Be("allard-realm-1");
 
             realm.Habitats.Should().BeEmpty();
             var habitat = realm.CreateHabitat("Production");
             realm.Habitats.Single().Should().Be(habitat);
-            habitat.Id.Name.Should().Be("production");
+            habitat.HabitatId.Name.Should().Be("production");
+
+            realm.ConfigurationSections.Should().BeEmpty();
+            var cs = realm.CreateConfigurationSection("Test1", SchemaTypeId.NewSchemaTypeId("todo"), "/a/b/c",
+                "description");
+            realm.ConfigurationSections.Single().Should().Be(cs);
+            cs.ConfigurationSectionId.Name.Should().Be("test1");
         }
 
         [Fact]
@@ -94,7 +100,7 @@ namespace Allard.Configinator.Core.Tests
             var blah = JsonSerializer.Deserialize(json, typeof(RealmCreatedEvent));
             testOutputHelper.WriteLine(json);
         }
-        
+
         public record SomethingEvent : DomainEvent;
 
         public record SomethingElseEvent : DomainEvent;

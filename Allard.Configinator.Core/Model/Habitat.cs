@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,16 +8,22 @@ namespace Allard.Configinator.Core.Model
     {
         private List<Habitat> bases;
         private readonly Realm realm;
-        public HabitatId Id { get; }
+        public HabitatId HabitatId { get; }
         public IReadOnlyCollection<Habitat> Bases => bases.AsReadOnly();
         
-        internal Habitat(HabitatId id, Realm realm, IEnumerable<Habitat> bases)
+        internal Habitat(HabitatId habitatId, Realm realm, IEnumerable<Habitat> bases)
         {
             this.realm = realm;
             this.bases = bases.ToList();
-            Id = id;
+            HabitatId = habitatId;
         }
     }
 
-    public record HabitatId(string Id, string Name);
+    public record HabitatId(string Id, string Name) : ModelMemberId(Id, Name)
+    {
+        public static HabitatId NewHabitatId(string name)
+        {
+            return new (Guid.NewGuid().ToString(), name);
+        }
+    }
 }
