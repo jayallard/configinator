@@ -1,4 +1,17 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=15d488e9_002D9e6b_002D4729_002D84d7_002D3e4b113d9503/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from &amp;lt;Allard.Configinator.Core.Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;Project Location="/Users/jallard/personal/ConfigurationManagement/Allard.Configinator.Core.Tests" Presentation="&amp;lt;Allard.Configinator.Core.Tests&amp;gt;" /&gt;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=7a1657b5_002De0f1_002D46f1_002D835f_002Dd1d74d354dd0/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from &amp;lt;Allard.Configinator.Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;Or&gt;
+    &lt;Project Location="/home/jaya/personal/projects/configinator/Allard.Configinator.Tests" Presentation="&amp;lt;Allard.Configinator.Tests&amp;gt;" /&gt;
+    &lt;TestAncestor&gt;
+      &lt;TestId&gt;xUnit::52742313-F970-41E4-A62B-0426308BF9EF::net5.0::Allard.Configinator.AwsSecretsManager.Tests.Integration.AwsSecretsManagerConfigStoreTests.Get&lt;/TestId&gt;
+      &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.HierarchyValidatorTests.DoubleReferenceThrowsException&lt;/TestId&gt;
+      &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.HierarchyValidatorTests.ReferencesItselfThrowsException&lt;/TestId&gt;
+      &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.HierarchyValidatorTests.CircularReferenceThrowsException&lt;/TestId&gt;
+      &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.HierarchyValidatorTests&lt;/TestId&gt;
+    &lt;/TestAncestor&gt;
+    &lt;Project Location="/home/jaya/personal/projects/configinator/Allard.Configinator.Core.Tests" Presentation="&amp;lt;Allard.Configinator.Core.Tests&amp;gt;" /&gt;
+  &lt;/Or&gt;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

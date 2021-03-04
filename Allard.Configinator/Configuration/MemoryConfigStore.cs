@@ -46,7 +46,7 @@ namespace Allard.Configinator.Configuration
                 {
                     // insert
                     value = value with {ETag = Guid.NewGuid().ToString()};
-                    repo[value.Path] = value; 
+                    repo[value.Path] = value;
                     return value;
                 }
 

@@ -19,8 +19,8 @@ namespace Allard.Configinator.Core
                 ? throw new ArgumentNullException(parameterName)
                 : value;
         }
-        
-        
+
+
         public static string ToNormalizedMemberName(this string modelItemName, string parameterName)
         {
             // todo: regex validation. only letters, numbers and -.
@@ -30,10 +30,10 @@ namespace Allard.Configinator.Core
         public static ISet<string> ToNormalizedMemberNames(this IEnumerable<string> modelItemNames,
             string parameterName)
         {
-            return 
+            return
                 modelItemNames == null
-                ? new HashSet<string>()
-                : modelItemNames.Select(i => i.ToNormalizedMemberName(parameterName)).ToHashSet();
+                    ? new HashSet<string>()
+                    : modelItemNames.Select(i => i.ToNormalizedMemberName(parameterName)).ToHashSet();
         }
     }
 }

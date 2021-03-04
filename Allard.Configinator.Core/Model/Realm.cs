@@ -8,24 +8,31 @@ namespace Allard.Configinator.Core.Model
 {
     public class Realm
     {
-        private readonly Dictionary<string, Habitat> habitats = new();
         private readonly Dictionary<string, ConfigurationSection> configurationSections = new();
+        private readonly Dictionary<string, Habitat> habitats = new();
+
+        public Realm(RealmId realmId, OrganizationAggregate organization)
+        {
+            Organization = organization;
+            RealmId = realmId;
+        }
+
         private OrganizationAggregate Organization { get; }
         public RealmId RealmId { get; }
         public IReadOnlyCollection<Habitat> Habitats => habitats.Values;
         public IReadOnlyCollection<ConfigurationSection> ConfigurationSections => configurationSections.Values;
 
         /// <summary>
-        /// Used by the event handler.
+        ///     Used by the event handler.
         /// </summary>
         /// <param name="habitat"></param>
         internal void AddHabitat(Habitat habitat)
         {
             habitats.Add(habitat.HabitatId.Name, habitat);
         }
-        
+
         /// <summary>
-        /// Used by the event handler.
+        ///     Used by the event handler.
         /// </summary>
         /// <param name="configurationSection"></param>
         internal void AddConfigurationSection(ConfigurationSection configurationSection)
@@ -34,20 +41,20 @@ namespace Allard.Configinator.Core.Model
         }
 
         public ConfigurationSection AddConfigurationSection(
-            string configurationSectionName, 
+            string configurationSectionName,
             SchemaTypeId schemaTypeId,
             string path,
             string description)
         {
             path.EnsureValue(nameof(path));
             var configurationSectionId = ConfigurationSectionId.NewConfigurationSectionId(configurationSectionName);
-            
+
             // make sure the configuration section doesn't already exist
             habitats.Keys.EnsureNameDoesntAlreadyExist(configurationSectionId);
 
             // lazy - throws an exception if type doesn't exist.
             Organization.GetSchema(schemaTypeId);
-            
+
             // create and raise the event
             var evt = new AddedConfigurationSectionToRealmEvent(
                 Organization.OrganizationId,
@@ -97,19 +104,13 @@ namespace Allard.Configinator.Core.Model
                     new HierarchyElement(h.HabitatId.Name, h.Bases.Select(b => b.HabitatId.Name).ToHashSet()));
             HierarchyValidator.Validate(toTest, existingHabitats);
         }
-
-        public Realm(RealmId realmId, OrganizationAggregate organization)
-        {
-            Organization = organization;
-            RealmId = realmId;
-        }
     }
 
     public record RealmId(string Id, string Name) : ModelMemberId(Id, Name)
     {
         public static RealmId NewRealmId(string realmName)
         {
-            return new RealmId(Guid.NewGuid().ToString(), realmName);
+            return new(Guid.NewGuid().ToString(), realmName);
         }
     }
 }

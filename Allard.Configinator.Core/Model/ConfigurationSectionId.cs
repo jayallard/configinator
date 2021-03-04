@@ -6,7 +6,7 @@ namespace Allard.Configinator.Core.Model
     {
         public static ConfigurationSectionId NewConfigurationSectionId(string name)
         {
-            return new (Guid.NewGuid().ToString(), name);
+            return new(Guid.NewGuid().ToString(), name);
         }
     }
 }

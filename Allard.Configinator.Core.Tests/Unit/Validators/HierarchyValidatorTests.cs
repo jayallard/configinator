@@ -26,7 +26,7 @@ namespace Allard.Configinator.Core.Tests.Unit.Validators
             // a references z twice - once directly and once via b. a->z. a->b->z.
             var a = new HierarchyElement("a", new HashSet<string> {"b"});
             var b = new HierarchyElement("b", new HashSet<string> {"z"});
-            var z = new HierarchyElement("z", new HashSet<string>{"a"});
+            var z = new HierarchyElement("z", new HashSet<string> {"a"});
             Action test = () => HierarchyValidator.Validate(a, new[] {b, z});
             test.Should().Throw<InvalidOperationException>()
                 .WithMessage("Hierarchy issue. ElementToTest=a, Repeating segment: a");
@@ -52,7 +52,7 @@ namespace Allard.Configinator.Core.Tests.Unit.Validators
             test.Should().Throw<InvalidOperationException>()
                 .WithMessage("Element doesn't exist. Element Name=y");
         }
-        
+
         [Fact]
         public void AllGood()
         {

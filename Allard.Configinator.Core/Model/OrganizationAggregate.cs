@@ -11,53 +11,16 @@ namespace Allard.Configinator.Core.Model
     {
         private readonly Dictionary<string, Realm> realms = new();
         private readonly Dictionary<SchemaTypeId, SchemaType> schemaTypes = new();
-        private readonly EventHandlerRegistry registry;
-        internal EventHandlerRegistry EventHandlerRegistry => registry;
-        public OrganizationId OrganizationId { get; private set; }
 
         public OrganizationAggregate(OrganizationId organizationId) : this()
         {
             organizationId.EnsureValue(nameof(organizationId));
-            registry.Raise(new OrganizationCreatedEvent(organizationId));
-        }
-
-        public SchemaType GetSchema(SchemaTypeId schemaTypeId)
-        {
-            if (schemaTypes.TryGetValue(schemaTypeId, out var schemaType))
-            {
-                return schemaType;
-            }
-
-            throw new InvalidOperationException("The type doesn't exist in the organization: " + schemaTypeId.FullId);
-        }
-
-        public IReadOnlyCollection<Realm> Realms => realms.Values;
-        public IReadOnlyCollection<SchemaType> SchemaTypes => schemaTypes.Values;
-
-        public Realm AddRealm(string realmName)
-        {
-            var realmId = RealmId.NewRealmId(realmName);
-            realms.Keys.EnsureNameDoesntAlreadyExist(realmId);
-            return registry.Raise<AddedRealmToOrganizationEvent, Realm>(
-                new AddedRealmToOrganizationEvent(OrganizationId,
-                    new RealmId(Guid.NewGuid().ToString(), realmName.ToNormalizedMemberName(nameof(realmName)))));
-        }
-
-        public SchemaType AddSchemaType(SchemaType schemaType)
-        {
-            if (schemaTypes.ContainsKey(schemaType.SchemaTypeId))
-            {
-                throw new InvalidOperationException("Schema already exists");
-            }
-
-            new SchemaTypeValidator(schemaType, schemaTypes.Values).Validate();
-            var evt = new AddedSchemaTypeToOrganizationEvent(this.OrganizationId, schemaType);
-            return EventHandlerRegistry.Raise<AddedSchemaTypeToOrganizationEvent, SchemaType>(evt);
+            EventHandlerRegistry.Raise(new OrganizationCreatedEvent(organizationId));
         }
 
         private OrganizationAggregate()
         {
-            registry = new EventHandlerRegistryBuilder()
+            EventHandlerRegistry = new EventHandlerRegistryBuilder()
                 // create org
                 .Register<OrganizationCreatedEvent>(e => OrganizationId = e.OrganizationId)
 
@@ -96,6 +59,39 @@ namespace Allard.Configinator.Core.Model
                     return e.SchemaType;
                 })
                 .Build();
+        }
+
+        internal EventHandlerRegistry EventHandlerRegistry { get; }
+
+        public OrganizationId OrganizationId { get; private set; }
+
+        public IReadOnlyCollection<Realm> Realms => realms.Values;
+        public IReadOnlyCollection<SchemaType> SchemaTypes => schemaTypes.Values;
+
+        public SchemaType GetSchema(SchemaTypeId schemaTypeId)
+        {
+            if (schemaTypes.TryGetValue(schemaTypeId, out var schemaType)) return schemaType;
+
+            throw new InvalidOperationException("The type doesn't exist in the organization: " + schemaTypeId.FullId);
+        }
+
+        public Realm AddRealm(string realmName)
+        {
+            var realmId = RealmId.NewRealmId(realmName);
+            realms.Keys.EnsureNameDoesntAlreadyExist(realmId);
+            return EventHandlerRegistry.Raise<AddedRealmToOrganizationEvent, Realm>(
+                new AddedRealmToOrganizationEvent(OrganizationId,
+                    new RealmId(Guid.NewGuid().ToString(), realmName.ToNormalizedMemberName(nameof(realmName)))));
+        }
+
+        public SchemaType AddSchemaType(SchemaType schemaType)
+        {
+            if (schemaTypes.ContainsKey(schemaType.SchemaTypeId))
+                throw new InvalidOperationException("Schema already exists");
+
+            new SchemaTypeValidator(schemaType, schemaTypes.Values).Validate();
+            var evt = new AddedSchemaTypeToOrganizationEvent(OrganizationId, schemaType);
+            return EventHandlerRegistry.Raise<AddedSchemaTypeToOrganizationEvent, SchemaType>(evt);
         }
     }
 }

@@ -28,8 +28,10 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
             db.DropCollection("organization-events");
             var collection = db.GetCollection<EventDto>("organization-events");
 
-            var evt = new AddedRealmToOrganizationEvent(new OrganizationId(orgId), new RealmId("realm id", "realm name"));
-            var dto = new EventDto(null, Guid.NewGuid().ToString(),Guid.NewGuid().ToString(), orgId, DateTime.UtcNow, "BlahBlah", evt);
+            var evt = new AddedRealmToOrganizationEvent(new OrganizationId(orgId),
+                new RealmId("realm id", "realm name"));
+            var dto = new EventDto(null, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), orgId, DateTime.UtcNow,
+                "BlahBlah", evt);
             collection.InsertOne(dto);
 
             var find = collection.FindSync(d => d.OrganizationId == orgId).Single();
@@ -47,10 +49,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
             for (var i = 0; i < 500; i++)
             {
                 var realm = org.AddRealm("realm " + i);
-                for (var i2 = 0; i2 < 20; i2++)
-                {
-                    realm.AddHabitat("h " + i2);
-                }
+                for (var i2 = 0; i2 < 20; i2++) realm.AddHabitat("h " + i2);
             }
 
             await repo.SaveAsync(org);

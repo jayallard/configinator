@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
 using Allard.Configinator.Core.Ddd;
 using Allard.Configinator.Core.Model;
 
@@ -13,15 +12,22 @@ namespace Allard.Configinator.Infrastructure.MongoDb
         private static readonly MethodInfo ApplyMethod = GetApplyMethod();
         private static readonly FieldInfo EventsField = GetEventsFieldFromEventHandlerRegistry();
 
+        private readonly OrganizationAggregate organization;
+        private readonly EventHandlerRegistry registry;
+
+        public EventAccessor(OrganizationAggregate organization)
+        {
+            this.organization = organization;
+            registry = (EventHandlerRegistry) RegistryField.GetValue(organization);
+        }
+
         private static FieldInfo GetRegistryFieldFromOrganization()
         {
             var field = typeof(OrganizationAggregate)
                 .GetField("registry", BindingFlags.NonPublic | BindingFlags.Instance);
             if (field == null)
-            {
                 throw new InvalidOperationException(
                     $"'registry' field doesn't exist in the {nameof(OrganizationAggregate)} type.");
-            }
 
             return field;
         }
@@ -31,10 +37,8 @@ namespace Allard.Configinator.Infrastructure.MongoDb
             var field = typeof(EventHandlerRegistry)
                 .GetField("events", BindingFlags.NonPublic | BindingFlags.Instance);
             if (field == null)
-            {
                 throw new InvalidOperationException(
                     $"'events' field doesn't exist in the {nameof(EventHandlerRegistryBuilder)} type.");
-            }
 
             return field;
         }
@@ -44,21 +48,10 @@ namespace Allard.Configinator.Infrastructure.MongoDb
             var method =
                 typeof(EventHandlerRegistry).GetMethod("ApplyEvent", BindingFlags.NonPublic | BindingFlags.Instance);
             if (method == null)
-            {
                 throw new InvalidOperationException(
                     "'ApplyEvent' method doesn't exist in the EventHandlerRegistry class.");
-            }
 
             return method;
-        }
-
-        private readonly OrganizationAggregate organization;
-        private readonly EventHandlerRegistry registry;
-
-        public EventAccessor(OrganizationAggregate organization)
-        {
-            this.organization = organization;
-            registry = (EventHandlerRegistry) RegistryField.GetValue(organization);
         }
 
         public void ApplyEvent(DomainEvent evt)

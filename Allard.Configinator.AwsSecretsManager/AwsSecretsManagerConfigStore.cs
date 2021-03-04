@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Allard.Configinator.Configuration;
 using Amazon.Runtime;
@@ -60,7 +59,7 @@ namespace Allard.Configinator.AwsSecretsManager
                 var createResponse = await client.CreateSecretAsync(createRequest);
                 return value with {ETag = createResponse.VersionId};
             }
-            
+
             var updateRequest = new UpdateSecretRequest {SecretId = value.Path, SecretString = value.Value};
             var updateResponse = await client.UpdateSecretAsync(updateRequest);
             return value with {ETag = updateResponse.VersionId};

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Runtime.Serialization;
 using Allard.Configinator.Core.Model;
 using Allard.Configinator.Core.Model.Validators;
 using Xunit;

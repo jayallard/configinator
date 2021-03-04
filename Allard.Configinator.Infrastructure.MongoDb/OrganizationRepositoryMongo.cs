@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Allard.Configinator.Core;
@@ -10,24 +9,14 @@ namespace Allard.Configinator.Infrastructure.MongoDb
 {
     public class OrganizationRepositoryMongo : IOrganizationRepository
     {
-        private readonly MongoClient client;
         private const string Database = "configinator";
         private const string Collection = "organization-events";
+        private readonly MongoClient client;
 
         public OrganizationRepositoryMongo()
         {
             client = new MongoClient("mongodb://localhost:27017");
             client.GetDatabase(Database).DropCollection(Collection);
-        }
-
-        private IMongoCollection<EventDto> GetCollection()
-        {
-            // i forget what should be cached or not... get everything
-            // fresh until that's worked out.
-            // todo: cache db? cache collection?
-            return client
-                .GetDatabase(Database)
-                .GetCollection<EventDto>("organization-events");
         }
 
         public async Task<OrganizationAggregate> GetOrganizationAsync(string id)
@@ -51,14 +40,21 @@ namespace Allard.Configinator.Infrastructure.MongoDb
                 .Select(e =>
                     new EventDto(null, txId, e.EventId, organization.OrganizationId.Id, e.EventDate, e.EventName, e))
                 .ToList();
-            if (events.Count == 0)
-            {
-                return;
-            }
+            if (events.Count == 0) return;
 
             await GetCollection()
                 .InsertManyAsync(events);
             eventAccessor.ClearEvents();
+        }
+
+        private IMongoCollection<EventDto> GetCollection()
+        {
+            // i forget what should be cached or not... get everything
+            // fresh until that's worked out.
+            // todo: cache db? cache collection?
+            return client
+                .GetDatabase(Database)
+                .GetCollection<EventDto>("organization-events");
         }
     }
 }
