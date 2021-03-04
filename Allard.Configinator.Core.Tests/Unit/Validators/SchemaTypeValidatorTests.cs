@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Allard.Configinator.Core.Model;
+using Allard.Configinator.Core.Model.Builders;
 using Allard.Configinator.Core.Model.Validators;
 using Xunit;
 
@@ -16,31 +17,45 @@ namespace Allard.Configinator.Core.Tests.Unit.Validators
         [Fact]
         public void Test1()
         {
-            var idA = SchemaTypeId.Parse("a/b");
+            /*
+             *      types
+             *          a/b
+             */
+            
             var idB = SchemaTypeId.Parse("x/y");
             var idC = SchemaTypeId.Parse("santa/claus");
 
-            var emptyProperties = new List<Property>().AsReadOnly();
-            var emptyPropertyGroups = new List<PropertyGroup>().AsReadOnly();
             var emptySchemaTypeList = new List<SchemaType>().AsReadOnly();
+            var groupB = PropertyGroupBuilder
+                .Create("p2", idC)
+                .AddProperty("name", SchemaTypeId.String.FullId)
+                .Build();
+            
+            // object a:
+            //      name = p1
+            //      type = a/b
+            // it contains a nested object
+            var groupA = PropertyGroupBuilder
+                .Create("p1", idB)
+                .AddPropertyGroup(groupB)
+                .Build();
 
-            var groupB = new PropertyGroup("p2", idC, false, new List<Property>
-            {
-                new("name", SchemaTypeId.String)
-            }.AsReadOnly(), emptyPropertyGroups);
-            var groupA = new PropertyGroup("p1", idB, false, emptyProperties, ToReadonly(groupB));
+            // todo: shouldn't have to do this. primitives aren't done.
+            var schemaTypeA = SchemaTypeBuilder
+                .Create(SchemaTypeId.String.FullId)
+                .AddProperty("name", SchemaTypeId.String.FullId)
+                .AddPropertyGroup(groupA)
+                .Build();
 
-            var schemaTypeA = new SchemaType(idA, new List<Property>
-            {
-                new("name", SchemaTypeId.String)
-            }.AsReadOnly(), ToReadonly(groupA));
+            var schemaTypeB = SchemaTypeBuilder
+                .Create("x/y")
+                .AddProperty("name", SchemaTypeId.String)
+                .Build();
 
-            var schemaTypeB = new SchemaType(SchemaTypeId.Parse("x/y"), new List<Property>
-            {
-                new("name", SchemaTypeId.String)
-            }.AsReadOnly(), emptyPropertyGroups);
-            var schemaTypeC = new SchemaType(SchemaTypeId.Parse("santa/claus"), emptyProperties, emptyPropertyGroups);
-
+            var schemaTypeC = SchemaTypeBuilder
+                .Create("santa/claus")
+                .Build();
+            
             new SchemaTypeValidator(
                     schemaTypeB,
                     emptySchemaTypeList)

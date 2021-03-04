@@ -40,9 +40,9 @@ namespace Allard.Configinator.Core.Model.Validators
                                                     typeId.FullId);
         }
 
-        private static void EnsureBothNotEmpty(IList<Property> properties, IList<PropertyGroup> groups, string path)
+        private static void EnsureBothNotEmpty(IEnumerable<Property> properties, IEnumerable<PropertyGroup> groups, string path)
         {
-            if (properties.Count == 0 && groups.Count == 0)
+            if (properties.ToList().Count == 0 && groups.ToList().Count == 0)
             {
                 throw new InvalidOperationException("No properties or property groups. Path=" + path);
             }
