@@ -18,10 +18,15 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
+        <PackageReference Include="YamlDotNet" Version="9.1.4" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Allard.Configinator.Core\Allard.Configinator.Core.csproj" />
     </ItemGroup>
-
+    <ItemGroup>
+        <Content Include="__TestFiles\**\*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
 </Project>

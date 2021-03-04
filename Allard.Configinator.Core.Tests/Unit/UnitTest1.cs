@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using Allard.Configinator.Core.Ddd;
@@ -8,8 +9,10 @@ using Allard.Configinator.Core.Model;
 using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
-namespace Allard.Configinator.Core.Tests
+namespace Allard.Configinator.Core.Tests.Unit
 {
     public class UnitTest1
     {
@@ -18,6 +21,24 @@ namespace Allard.Configinator.Core.Tests
         public UnitTest1(ITestOutputHelper testOutputHelper)
         {
             this.testOutputHelper = testOutputHelper;
+        }
+
+        [Fact]
+        public void Yadda()
+        {
+            var file = Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "__TestFiles",
+                "Test1.yaml");
+
+            var doc = File.ReadAllText(file);
+
+            var deser = new DeserializerBuilder()
+                .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                .Build();
+            
+            var org = deser.Deserialize<OrganizationDto>(doc);
+            Console.Write("");
         }
 
         [Fact]

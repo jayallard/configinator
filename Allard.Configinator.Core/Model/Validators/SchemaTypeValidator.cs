@@ -6,6 +6,9 @@ namespace Allard.Configinator.Core.Model.Validators
 {
     public class SchemaTypeValidator
     {
+        // todo: properties aren't validated.
+        // in old code the only recognized primitive is string, and that's not fully baked.
+        // need to define primitives and be able to extend them, then validate them.
         private readonly Dictionary<SchemaTypeId, SchemaType> schemaTypes;
         private readonly SchemaType toValidate;
 
@@ -19,22 +22,30 @@ namespace Allard.Configinator.Core.Model.Validators
 
         public void Validate()
         {
-            if (toValidate.Properties.Count == 0 && toValidate.PropertyGroups.Count == 0)
-                throw new InvalidOperationException("The schema type doesn't have any properties or property groups");
-
-            foreach (var group in toValidate.PropertyGroups) Validate(@group, "/" + @group.Name);
+            EnsureBothNotEmpty(toValidate.Properties, toValidate.PropertyGroups, "/");
+            foreach (var g in toValidate.PropertyGroups) Validate(g, "/" + g.Name);
         }
 
         private void Validate(PropertyGroup group, string path)
         {
-            if (!schemaTypes.ContainsKey(group.SchemaTypeId))
-                throw new InvalidOperationException("Type doesn't exist. Property Path=" + path + ". Unknown Type=" +
-                                                    @group.SchemaTypeId.FullId);
-
-            if (group.Properties.Count == 0)
-                throw new InvalidOperationException("Property group doesn't have any properties: " + path);
-
+            EnsureValidType(group.SchemaTypeId, path);
+            EnsureBothNotEmpty(group.Properties, group.PropertyGroups, path + "/" + group.Name);
             foreach (var g in group.PropertyGroups) Validate(g, path + "/" + g.Name);
+        }
+
+        private void EnsureValidType(SchemaTypeId typeId, string path)
+        {
+            if (!schemaTypes.ContainsKey(typeId))
+                throw new InvalidOperationException("Type doesn't exist. Property Path=" + path + ". Unknown Type=" +
+                                                    typeId.FullId);
+        }
+
+        private static void EnsureBothNotEmpty(IList<Property> properties, IList<PropertyGroup> groups, string path)
+        {
+            if (properties.Count == 0 && groups.Count == 0)
+            {
+                throw new InvalidOperationException("No properties or property groups. Path=" + path);
+            }
         }
     }
 }

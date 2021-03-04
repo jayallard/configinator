@@ -1,0 +1,20 @@
+---
+"name": "org1"
+realms:
+  - name: allard-1
+    habitats:
+      - name: dev
+      - name: dev-jay
+        bases: [dev]
+    configurationSections:
+      - name: config-section1
+        properties:
+          - name: me1
+            schemaTypeId: a/b
+schemaTypes:
+  - schemaTypeId: a/b
+    propertyGroups:
+    properties:
+      - name: property1
+        schemaTypeId: primitive/string
+      

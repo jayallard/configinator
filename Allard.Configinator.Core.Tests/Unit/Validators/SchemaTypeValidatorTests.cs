@@ -9,6 +9,12 @@ namespace Allard.Configinator.Core.Tests.Unit.Validators
     public class SchemaTypeValidatorTests
     {
         [Fact]
+        public void Redo()
+        {
+            
+        }
+        
+        [Fact]
         public void Test1()
         {
             var idA = SchemaTypeId.Parse("a/b");
