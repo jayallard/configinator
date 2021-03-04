@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Allard.Configinator.Core.Ddd;
 using Allard.Configinator.Core.Events;
+using Allard.Configinator.Core.Model.Validators;
 
 namespace Allard.Configinator.Core.Model
 {
@@ -49,6 +50,7 @@ namespace Allard.Configinator.Core.Model
                 throw new InvalidOperationException("Schema already exists");
             }
 
+            new SchemaTypeValidator(schemaType, schemaTypes.Values).Validate();
             var evt = new AddedSchemaTypeToOrganizationEvent(this.OrganizationId, schemaType);
             return EventHandlerRegistry.Raise<AddedSchemaTypeToOrganizationEvent, SchemaType>(evt);
         }
