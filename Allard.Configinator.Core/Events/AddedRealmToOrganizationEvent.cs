@@ -3,5 +3,5 @@ using Allard.Configinator.Core.Model;
 
 namespace Allard.Configinator.Core.Events
 {
-    public record RealmCreatedEvent(OrganizationId OrganizationId, RealmId RealmId) : DomainEvent;
+    public record AddedRealmToOrganizationEvent(OrganizationId OrganizationId, RealmId RealmId) : DomainEvent;
 }

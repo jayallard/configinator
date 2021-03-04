@@ -9,35 +9,66 @@ namespace Allard.Configinator.Core.Model
     public class OrganizationAggregate : Aggregate<OrganizationId>
     {
         private readonly Dictionary<string, Realm> realms = new();
+        private readonly Dictionary<SchemaTypeId, SchemaType> schemaTypes = new();
         private readonly EventHandlerRegistry registry;
         internal EventHandlerRegistry EventHandlerRegistry => registry;
         public OrganizationId OrganizationId { get; private set; }
 
-        public OrganizationAggregate(OrganizationId id) : this()
+        public OrganizationAggregate(OrganizationId organizationId) : this()
         {
-            registry.Raise(new OrganizationCreatedEvent(id));
+            organizationId.EnsureValue(nameof(organizationId));
+            registry.Raise(new OrganizationCreatedEvent(organizationId));
+        }
+
+        public SchemaType GetSchema(SchemaTypeId schemaTypeId)
+        {
+            if (schemaTypes.TryGetValue(schemaTypeId, out var schemaType))
+            {
+                return schemaType;
+            }
+
+            throw new InvalidOperationException("The type doesn't exist in the organization: " + schemaTypeId.FullId);
         }
 
         public IReadOnlyCollection<Realm> Realms => realms.Values;
+        public IReadOnlyCollection<SchemaType> SchemaTypes => schemaTypes.Values;
 
-        public Realm CreateRealm(string name)
+        public Realm AddRealm(string realmName)
         {
-            return registry.Raise<RealmCreatedEvent, Realm>(
-                new RealmCreatedEvent(OrganizationId,
-                    new RealmId(Guid.NewGuid().ToString(), name.ToNormalizedMemberName(nameof(name)))));
+            var realmId = RealmId.NewRealmId(realmName);
+            realms.Keys.EnsureNameDoesntAlreadyExist(realmId);
+            return registry.Raise<AddedRealmToOrganizationEvent, Realm>(
+                new AddedRealmToOrganizationEvent(OrganizationId,
+                    new RealmId(Guid.NewGuid().ToString(), realmName.ToNormalizedMemberName(nameof(realmName)))));
+        }
+
+        public SchemaType AddSchemaType(SchemaType schemaType)
+        {
+            if (schemaTypes.ContainsKey(schemaType.SchemaTypeId))
+            {
+                throw new InvalidOperationException("Schema already exists");
+            }
+
+            var evt = new AddedSchemaTypeToOrganizationEvent(this.OrganizationId, schemaType);
+            return EventHandlerRegistry.Raise<AddedSchemaTypeToOrganizationEvent, SchemaType>(evt);
         }
 
         private OrganizationAggregate()
         {
             registry = new EventHandlerRegistryBuilder()
+                // create org
                 .Register<OrganizationCreatedEvent>(e => OrganizationId = e.OrganizationId)
-                .Register<RealmCreatedEvent, Realm>(e =>
+
+                // add realm to organization
+                .Register<AddedRealmToOrganizationEvent, Realm>(e =>
                 {
                     var realm = new Realm(e.RealmId, this);
                     realms.Add(realm.RealmId.Name, realm);
                     return realm;
                 })
-                .Register<HabitatCreatedEvent, Habitat>(e =>
+
+                // add habitat to realm
+                .Register<AddedHabitatToRealmEvent, Habitat>(e =>
                 {
                     var realm = realms[e.RealmId.Name];
                     var bases = realm.Habitats.Where(h => e.Bases.Contains(h.HabitatId));
@@ -45,23 +76,24 @@ namespace Allard.Configinator.Core.Model
                     realm.AddHabitat(habitat);
                     return habitat;
                 })
-                .Register<ConfigurationSectionCreatedEvent, ConfigurationSection>(e =>
+
+                // add configuration section to realm
+                .Register<AddedConfigurationSectionToRealmEvent, ConfigurationSection>(e =>
                 {
                     var realm = realms[e.RealmId.Name];
                     var configurationSection = new ConfigurationSection(e.ConfigurationSectionId, e.Path,
-                        new SchemaType(), e.Description);
+                        null, e.Description);
                     realm.AddConfigurationSection(configurationSection);
                     return configurationSection;
                 })
-                .Build();
-        }
-    }
 
-    public record OrganizationId(string Id)
-    {
-        public static OrganizationId NewOrganizationId()
-        {
-            return new(Guid.NewGuid().ToString());
+                // add schema type to organization
+                .Register<AddedSchemaTypeToOrganizationEvent, SchemaType>(e =>
+                {
+                    schemaTypes.Add(e.SchemaType.SchemaTypeId, e.SchemaType);
+                    return e.SchemaType;
+                })
+                .Build();
         }
     }
 }

@@ -3,7 +3,7 @@ using Allard.Configinator.Core.Model;
 
 namespace Allard.Configinator.Core.Events
 {
-    public record ConfigurationSectionCreatedEvent (
+    public record AddedConfigurationSectionToRealmEvent (
         OrganizationId OrganizationId,
         RealmId RealmId,
         ConfigurationSectionId ConfigurationSectionId,

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Allard.Configinator.Core.Events;
+using Allard.Configinator.Core.Model.Validators;
 
 namespace Allard.Configinator.Core.Model
 {
@@ -32,7 +33,7 @@ namespace Allard.Configinator.Core.Model
             configurationSections.Add(configurationSection.ConfigurationSectionId.Name, configurationSection);
         }
 
-        public ConfigurationSection CreateConfigurationSection(
+        public ConfigurationSection AddConfigurationSection(
             string configurationSectionName, 
             SchemaTypeId schemaTypeId,
             string path,
@@ -40,12 +41,15 @@ namespace Allard.Configinator.Core.Model
         {
             path.EnsureValue(nameof(path));
             var configurationSectionId = ConfigurationSectionId.NewConfigurationSectionId(configurationSectionName);
-
+            
             // make sure the configuration section doesn't already exist
             habitats.Keys.EnsureNameDoesntAlreadyExist(configurationSectionId);
+
+            // lazy - throws an exception if type doesn't exist.
+            Organization.GetSchema(schemaTypeId);
             
             // create and raise the event
-            var evt = new ConfigurationSectionCreatedEvent(
+            var evt = new AddedConfigurationSectionToRealmEvent(
                 Organization.OrganizationId,
                 RealmId,
                 configurationSectionId,
@@ -54,10 +58,10 @@ namespace Allard.Configinator.Core.Model
                 description);
             return Organization
                 .EventHandlerRegistry
-                .Raise<ConfigurationSectionCreatedEvent, ConfigurationSection>(evt);
+                .Raise<AddedConfigurationSectionToRealmEvent, ConfigurationSection>(evt);
         }
 
-        public Habitat CreateHabitat(string habitatName, ISet<string> baseHabitats = null)
+        public Habitat AddHabitat(string habitatName, ISet<string> baseHabitats = null)
         {
             var habitatId
                 = HabitatId.NewHabitatId(habitatName);
@@ -78,10 +82,10 @@ namespace Allard.Configinator.Core.Model
                 .ToHashSet();
 
             // create and raise the event.
-            var evt = new HabitatCreatedEvent(Organization.OrganizationId, RealmId, habitatId, baseIds);
+            var evt = new AddedHabitatToRealmEvent(Organization.OrganizationId, RealmId, habitatId, baseIds);
             return Organization
                 .EventHandlerRegistry
-                .Raise<HabitatCreatedEvent, Habitat>(evt);
+                .Raise<AddedHabitatToRealmEvent, Habitat>(evt);
         }
 
         private void ValidateHabitatHierarchy(string habitatName, IEnumerable<string> baseHabitats)
@@ -101,5 +105,11 @@ namespace Allard.Configinator.Core.Model
         }
     }
 
-    public record RealmId(string Id, string Name) : ModelMemberId(Id, Name);
+    public record RealmId(string Id, string Name) : ModelMemberId(Id, Name)
+    {
+        public static RealmId NewRealmId(string realmName)
+        {
+            return new RealmId(Guid.NewGuid().ToString(), realmName);
+        }
+    }
 }

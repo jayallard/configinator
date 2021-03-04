@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using Allard.Configinator.Core.Model.Validators;
 using FluentAssertions;
 using Xunit;
 
-namespace Allard.Configinator.Core.Tests
+namespace Allard.Configinator.Core.Tests.Unit.Validators
 {
     public class HierarchyValidatorTests
     {

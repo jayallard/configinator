@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Allard.Configinator.Core
+namespace Allard.Configinator.Core.Model.Validators
 {
     public record HierarchyElement(string Name, IReadOnlySet<string> Bases);
 
