@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -23,7 +24,14 @@ namespace Allard.Configinator.Core.Tests.Unit
             this.testOutputHelper = testOutputHelper;
         }
 
-
+        [Fact]
+        public void Junk()
+        {
+            var json = "{ \"test\": { \"hello\": \"world\" } }";
+            var x = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+            testOutputHelper.WriteLine("");
+        }
+        
         [Fact]
         public void AddConfigurationSectionFailsIfSchemaTypeDoesntExist()
         {
@@ -91,6 +99,5 @@ namespace Allard.Configinator.Core.Tests.Unit
             JsonSerializer.Deserialize(json, typeof(AddedRealmToOrganizationEvent));
             testOutputHelper.WriteLine(json);
         }
-
     }
 }
