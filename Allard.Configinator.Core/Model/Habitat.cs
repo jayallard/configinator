@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -18,13 +17,5 @@ namespace Allard.Configinator.Core.Model
 
         public HabitatId HabitatId { get; }
         public IReadOnlyCollection<Habitat> Bases => bases.AsReadOnly();
-    }
-
-    public record HabitatId(string Id, string Name) : ModelMemberId(Id, Name)
-    {
-        public static HabitatId NewHabitatId(string name)
-        {
-            return new(Guid.NewGuid().ToString(), name);
-        }
     }
 }

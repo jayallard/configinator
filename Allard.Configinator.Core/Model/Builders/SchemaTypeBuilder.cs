@@ -4,21 +4,13 @@ namespace Allard.Configinator.Core.Model.Builders
 {
     public class SchemaTypeBuilder
     {
-        private readonly List<PropertyGroup> groups = new();
         private readonly List<Property> properties = new();
 
-        public IReadOnlyCollection<PropertyGroup> Groups => groups.AsReadOnly();
         public IReadOnlyCollection<Property> Properties => properties.AsReadOnly();
 
         public SchemaTypeBuilder AddProperty(Property property)
         {
             properties.Add(property);
-            return this;
-        }
-
-        public SchemaTypeBuilder AddPropertyGroup(PropertyGroup propertyGroup)
-        {
-            groups.Add(propertyGroup);
             return this;
         }
 
@@ -40,7 +32,7 @@ namespace Allard.Configinator.Core.Model.Builders
 
         public SchemaType Build()
         {
-            return new(SchemaTypeId.Parse(TypeId), Properties, Groups);
+            return new(SchemaTypeId.Parse(TypeId), Properties);
         }
 
         public static SchemaTypeBuilder Create(string schemaTypeId)

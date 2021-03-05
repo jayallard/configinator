@@ -1,11 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using Allard.Configinator.Core.Ddd;
 using Allard.Configinator.Core.Events;
 using Allard.Configinator.Core.Model;
+using Allard.Configinator.Core.Model.Builders;
 using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
@@ -14,79 +14,15 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace Allard.Configinator.Core.Tests.Unit
 {
-    public class UnitTest1
+    public class ModelTests
     {
         private readonly ITestOutputHelper testOutputHelper;
 
-        public UnitTest1(ITestOutputHelper testOutputHelper)
+        public ModelTests(ITestOutputHelper testOutputHelper)
         {
             this.testOutputHelper = testOutputHelper;
         }
 
-        [Fact]
-        public void Yadda()
-        {
-            var file = Path.Combine(
-                AppDomain.CurrentDomain.BaseDirectory,
-                "__TestFiles",
-                "Test1.yaml");
-
-            var doc = File.ReadAllText(file);
-
-            var deser = new DeserializerBuilder()
-                .WithNamingConvention(CamelCaseNamingConvention.Instance)
-                .Build();
-            
-            var org = deser.Deserialize<OrganizationDto>(doc);
-            Console.Write("");
-        }
-
-        [Fact]
-        public void Test1()
-        {
-            var id = OrganizationId.NewOrganizationId();
-            var org = new OrganizationAggregate(id);
-            org.OrganizationId.Should().Be(id);
-        }
-
-        [Fact]
-        public void EventHandlerAction()
-        {
-            var r1 = string.Empty;
-            var r2 = string.Empty;
-            var registry = new EventHandlerRegistryBuilder()
-                .Register<SomethingEvent>(_ => r1 = "boo yea")
-                .Register<SomethingElseEvent>(_ => r2 = "santa claus")
-                .Build();
-
-            registry.Raise(new SomethingEvent());
-            registry.Raise(new SomethingElseEvent());
-            r1.Should().Be("boo yea");
-            r2.Should().Be("santa claus");
-        }
-
-        [Fact(Skip = "Demonstrating a known issue.")]
-        public void IfTypesAreWrong()
-        {
-            var registry = new EventHandlerRegistryBuilder()
-                .Register<SomethingEvent, string>(_ => string.Empty)
-                .Build();
-            registry.Raise<SomethingEvent, int>(new SomethingEvent());
-        }
-
-        [Fact]
-        public void EvenHandlerFunction()
-        {
-            var registry = new EventHandlerRegistryBuilder()
-                .Register<SomethingEvent, string>(_ => "boo yea")
-                .Register<SomethingElseEvent, string>(_ => "santa claus")
-                .Build();
-
-            var r1 = registry.Raise<SomethingEvent, string>(new SomethingEvent());
-            var r2 = registry.Raise<SomethingElseEvent, string>(new SomethingElseEvent());
-            r1.Should().Be("boo yea");
-            r2.Should().Be("santa claus");
-        }
 
         [Fact]
         public void AddConfigurationSectionFailsIfSchemaTypeDoesntExist()
@@ -129,10 +65,10 @@ namespace Allard.Configinator.Core.Tests.Unit
             habitat.HabitatId.Name.Should().Be("production");
 
             var schemaTypeId = SchemaTypeId.Parse("a/b");
-            var schemaType = new SchemaType(
-                schemaTypeId,
-                new List<Property>{new ("blah", SchemaTypeId.String, false, false)}.AsReadOnly(),
-                new List<PropertyGroup>().AsReadOnly());
+            var schemaType = SchemaTypeBuilder
+                .Create("a/b")
+                .AddProperty("blah", SchemaTypeId.String)
+                .Build();
             org.SchemaTypes.Should().BeEmpty();
             var addedType = org.AddSchemaType(schemaType);
             addedType.Should().Be(schemaType);
@@ -156,8 +92,5 @@ namespace Allard.Configinator.Core.Tests.Unit
             testOutputHelper.WriteLine(json);
         }
 
-        public record SomethingEvent : DomainEvent;
-
-        public record SomethingElseEvent : DomainEvent;
     }
 }

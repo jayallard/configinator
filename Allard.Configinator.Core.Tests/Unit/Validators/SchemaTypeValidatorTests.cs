@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Allard.Configinator.Core.Model;
 using Allard.Configinator.Core.Model.Builders;
 using Allard.Configinator.Core.Model.Validators;
+using FluentAssertions;
 using Xunit;
 
 namespace Allard.Configinator.Core.Tests.Unit.Validators
@@ -10,66 +12,76 @@ namespace Allard.Configinator.Core.Tests.Unit.Validators
     public class SchemaTypeValidatorTests
     {
         [Fact]
-        public void Redo()
+        public void SelfReference()
         {
+            var a = SchemaTypeBuilder
+                .Create("a/a")
+                .AddProperty("AtoA", "a/a")
+                .Build();
+            Action test = () => SchemaTypeValidator.Validate(a, new[] {a});
+            test.Should().Throw<InvalidOperationException>()
+                .WithMessage("Circular reference. Path=/AtoA, SchemaTypeId=a/a");
         }
 
         [Fact]
-        public void Test1()
+        public void CircularReferenceThrowsException()
         {
-            /*
-             *      types
-             *          a/b
-             */
-            
-            var idB = SchemaTypeId.Parse("x/y");
-            var idC = SchemaTypeId.Parse("santa/claus");
+            // type a has property of type b
+            // type b has property of type c
+            // type c has property of type a
 
-            var emptySchemaTypeList = new List<SchemaType>().AsReadOnly();
-            var groupB = PropertyGroupBuilder
-                .Create("p2", idC)
-                .AddProperty("name", SchemaTypeId.String.FullId)
+            var a = SchemaTypeBuilder
+                .Create("a/a")
+                .AddProperty("AtoB", "a/b")
                 .Build();
-            
-            // object a:
-            //      name = p1
-            //      type = a/b
-            // it contains a nested object
-            var groupA = PropertyGroupBuilder
-                .Create("p1", idB)
-                .AddPropertyGroup(groupB)
+            var b = SchemaTypeBuilder
+                .Create("a/b")
+                .AddProperty("BtoC", "a/c")
                 .Build();
-
-            // todo: shouldn't have to do this. primitives aren't done.
-            var schemaTypeA = SchemaTypeBuilder
-                .Create(SchemaTypeId.String.FullId)
-                .AddProperty("name", SchemaTypeId.String.FullId)
-                .AddPropertyGroup(groupA)
+            var c = SchemaTypeBuilder
+                .Create("a/c")
+                .AddProperty("CtoA", "a/a")
                 .Build();
-
-            var schemaTypeB = SchemaTypeBuilder
-                .Create("x/y")
-                .AddProperty("name", SchemaTypeId.String)
-                .Build();
-
-            var schemaTypeC = SchemaTypeBuilder
-                .Create("santa/claus")
-                .Build();
-            
-            new SchemaTypeValidator(
-                    schemaTypeB,
-                    emptySchemaTypeList)
-                .Validate();
-
-            new SchemaTypeValidator(
-                    schemaTypeA,
-                    ToReadonly(schemaTypeB, schemaTypeC))
-                .Validate();
+            Action test = () => SchemaTypeValidator.Validate(a, new[] {b, c});
+            test.Should().Throw<InvalidOperationException>()
+                .WithMessage("Circular reference. Path=/AtoB/BtoC/CtoA, SchemaTypeId=a/a");
         }
 
-        private static ReadOnlyCollection<T> ToReadonly<T>(params T[] values)
+        [Fact]
+        public void NoPropertiesThrowsException()
         {
-            return new List<T>(values).AsReadOnly();
+            // doesn't have properties, so will go boom
+            var a = SchemaTypeBuilder
+                .Create("a/a")
+                .Build();
+            var b = SchemaTypeBuilder
+                .Create("a/b")
+                .AddProperty("blah", SchemaTypeId.String)
+                .Build();
+            Action test = () => SchemaTypeValidator.Validate(a, new[] {b});
+            test.Should().Throw<InvalidOperationException>()
+                .WithMessage("The SchemaType doesn't have any properties.. Path=/");
+        }
+
+        [Fact]
+        public void InvalidTypeThrowsException()
+        {
+            // a refers to b
+            // b refers to c
+            // but c doesn't exist.
+            // sad face.
+            var a = SchemaTypeBuilder
+                .Create("a/a")
+                .AddProperty("AtoB", SchemaTypeId.Parse("a/b"))
+                .Build();
+            var b = SchemaTypeBuilder
+                .Create("a/b")
+                .AddProperty("BtoC", SchemaTypeId.Parse("a/c"))
+                .Build();
+            Action test = () => SchemaTypeValidator.Validate(a, new[] {b});
+            test.Should().Throw<InvalidOperationException>()
+                .WithMessage("Type doesn't exist. Property Path=/AtoB/BtoC. Unknown Type=a/c");
+
         }
     }
 }

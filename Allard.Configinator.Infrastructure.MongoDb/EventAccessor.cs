@@ -8,7 +8,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb
 {
     public class EventAccessor
     {
-        private static readonly FieldInfo RegistryField = GetRegistryFieldFromOrganization();
+        private static readonly PropertyInfo RegistryField = GetRegistryFieldFromOrganization();
         private static readonly MethodInfo ApplyMethod = GetApplyMethod();
         private static readonly FieldInfo EventsField = GetEventsFieldFromEventHandlerRegistry();
 
@@ -21,15 +21,15 @@ namespace Allard.Configinator.Infrastructure.MongoDb
             registry = (EventHandlerRegistry) RegistryField.GetValue(organization);
         }
 
-        private static FieldInfo GetRegistryFieldFromOrganization()
+        private static PropertyInfo GetRegistryFieldFromOrganization()
         {
-            var field = typeof(OrganizationAggregate)
-                .GetField("registry", BindingFlags.NonPublic | BindingFlags.Instance);
-            if (field == null)
+            var property = typeof(OrganizationAggregate)
+                .GetProperty("EventHandlerRegistry", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (property == null)
                 throw new InvalidOperationException(
-                    $"'registry' field doesn't exist in the {nameof(OrganizationAggregate)} type.");
+                    $"'EventHandlerRegistry' field doesn't exist in the {nameof(OrganizationAggregate)} type.");
 
-            return field;
+            return property;
         }
 
         private static FieldInfo GetEventsFieldFromEventHandlerRegistry()

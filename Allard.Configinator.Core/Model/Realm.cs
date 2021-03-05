@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Allard.Configinator.Core.Events;
@@ -103,14 +102,6 @@ namespace Allard.Configinator.Core.Model
                 .Select(h =>
                     new HierarchyElement(h.HabitatId.Name, h.Bases.Select(b => b.HabitatId.Name).ToHashSet()));
             HierarchyValidator.Validate(toTest, existingHabitats);
-        }
-    }
-
-    public record RealmId(string Id, string Name) : ModelMemberId(Id, Name)
-    {
-        public static RealmId NewRealmId(string realmName)
-        {
-            return new(Guid.NewGuid().ToString(), realmName);
         }
     }
 }

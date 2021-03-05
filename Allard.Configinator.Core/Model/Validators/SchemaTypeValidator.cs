@@ -6,9 +6,11 @@ namespace Allard.Configinator.Core.Model.Validators
 {
     public class SchemaTypeValidator
     {
-        // todo: properties aren't validated.
-        // in old code the only recognized primitive is string, and that's not fully baked.
-        // need to define primitives and be able to extend them, then validate them.
+        public static void Validate(SchemaType toValidate, IEnumerable<SchemaType> validateAgainst)
+        {
+            new SchemaTypeValidator(toValidate, validateAgainst).Validate();
+        }
+
         private readonly Dictionary<SchemaTypeId, SchemaType> schemaTypes;
         private readonly SchemaType toValidate;
 
@@ -22,15 +24,38 @@ namespace Allard.Configinator.Core.Model.Validators
 
         public void Validate()
         {
-            EnsureBothNotEmpty(toValidate.Properties, toValidate.PropertyGroups, "/");
-            foreach (var g in toValidate.PropertyGroups) Validate(g, "/" + g.Name);
+            ValidateSchemaType(toValidate, string.Empty);
         }
 
-        private void Validate(PropertyGroup group, string path)
+        private void ValidateSchemaType(SchemaType schemaType, string path)
         {
-            EnsureValidType(group.SchemaTypeId, path);
-            EnsureBothNotEmpty(group.Properties, group.PropertyGroups, path + "/" + group.Name);
-            foreach (var g in group.PropertyGroups) Validate(g, path + "/" + g.Name);
+            EnsureNotEmpty(toValidate.Properties, path);
+            foreach (var property in schemaType.Properties)
+            {
+                ValidateProperty(property, path);
+            }
+        }
+
+        private void ValidateProperty(Property property, string path)
+        {
+            if (property.SchemaTypeId.IsPrimitive)
+            {
+                return;
+            }
+
+            path = path + "/" + property.Name;
+            EnsureNotCircular(property.SchemaTypeId, path);
+            EnsureValidType(property.SchemaTypeId, path);
+            ValidateSchemaType(schemaTypes[property.SchemaTypeId], path);
+        }
+
+        private void EnsureNotCircular(SchemaTypeId schemaTypeId, string path)
+        {
+            if (schemaTypeId == toValidate.SchemaTypeId)
+            {
+                throw new InvalidOperationException("Circular reference. Path=" + path + ", SchemaTypeId=" +
+                                                    schemaTypeId.FullId);
+            }
         }
 
         private void EnsureValidType(SchemaTypeId typeId, string path)
@@ -40,11 +65,12 @@ namespace Allard.Configinator.Core.Model.Validators
                                                     typeId.FullId);
         }
 
-        private static void EnsureBothNotEmpty(IEnumerable<Property> properties, IEnumerable<PropertyGroup> groups, string path)
+        private static void EnsureNotEmpty(IEnumerable<Property> properties, string path)
         {
-            if (properties.ToList().Count == 0 && groups.ToList().Count == 0)
+            if (properties.ToList().Count == 0)
             {
-                throw new InvalidOperationException("No properties or property groups. Path=" + path);
+                throw new InvalidOperationException("The SchemaType doesn't have any properties.. Path=" +
+                                                    (path.Length == 0 ? "/" : path));
             }
         }
     }
