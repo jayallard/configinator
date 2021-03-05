@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using Allard.Configinator.Core.Model;
 using Allard.Configinator.Core.Model.Builders;
 using Allard.Configinator.Core.Model.Validators;

@@ -61,7 +61,7 @@ namespace Allard.Configinator.Api.Controllers
         [HttpGet]
         [Route("realms/{name}")]
         public async Task<RealmViewModel> GetRealm(string name)
-        {
+       {
             return await mediator.Send(new GetRealmCommand(name));
         }
 

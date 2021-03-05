@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -20,6 +21,11 @@ namespace Allard.Configinator.Core.DocumentValidator
 
         public IEnumerable<IPropertyNode> GetPropertyValues()
         {
+            if (json.ValueKind == JsonValueKind.Null)
+            {
+                return new List<IPropertyNode>();
+            }
+            
             return json
                 .EnumerateObject()
 
@@ -30,10 +36,22 @@ namespace Allard.Configinator.Core.DocumentValidator
 
         public IEnumerable<IObjectNode> GetObjectNodes()
         {
-            return json
-                .EnumerateObject()
-                .Where(o => o.Value.ValueKind == JsonValueKind.Object || o.Value.ValueKind == JsonValueKind.Null)
-                .Select(o => new JsonObjectNode(o.Name, o.Value));
+            if (json.ValueKind == JsonValueKind.Null)
+            {
+                return new List<IObjectNode>();
+            }
+            
+            try
+            {
+                return json
+                    .EnumerateObject()
+                    .Where(o => o.Value.ValueKind == JsonValueKind.Object || o.Value.ValueKind == JsonValueKind.Null)
+                    .Select(o => new JsonObjectNode(o.Name, o.Value));
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
         }
     }
 }
