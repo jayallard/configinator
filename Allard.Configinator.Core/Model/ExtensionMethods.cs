@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Allard.Configinator.Core.Model
 {
@@ -11,6 +12,17 @@ namespace Allard.Configinator.Core.Model
             if (keys.Contains(id.Name))
                 throw new InvalidOperationException(
                     $"A {id.GetType().Name} with that name already exists. Name={id.Name}");
+        }
+
+        public static List<T> AddNonNullItem<T>(this List<T> list, T item)
+        {
+            if (item == null)
+            {
+                return list;
+            }
+            
+            list.Add(item);
+            return list;
         }
     }
 }

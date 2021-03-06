@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Allard.Configinator.Core;
+using Allard.Configinator.Core.Infrastructure;
 using Allard.Configinator.Core.Model;
 using MongoDB.Driver;
 

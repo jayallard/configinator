@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Allard.Configinator.Core.Events;
@@ -21,6 +22,26 @@ namespace Allard.Configinator.Core.Model
         public IReadOnlyCollection<Habitat> Habitats => habitats.Values;
         public IReadOnlyCollection<ConfigurationSection> ConfigurationSections => configurationSections.Values;
 
+        public Habitat GetHabitat(string habitatName)
+        {
+            if (habitats.TryGetValue(habitatName, out var habitat))
+            {
+                return habitat;
+            }
+
+            throw new InvalidOperationException("Habitat doesn't exist: " + habitat);
+        }
+        
+        public ConfigurationSection GetConfigurationSection(string configurationSectionName)
+        {
+            if (configurationSections.TryGetValue(configurationSectionName, out var cs))
+            {
+                return cs;
+            }
+
+            throw new InvalidOperationException("Configuration section doesn't exist: " + cs);
+        }
+        
         /// <summary>
         ///     Used by the event handler.
         /// </summary>

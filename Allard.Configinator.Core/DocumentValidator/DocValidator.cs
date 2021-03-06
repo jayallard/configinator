@@ -70,7 +70,7 @@ namespace Allard.Configinator.Core.DocumentValidator
                     }
 
                     // todo: null object is handled. but the object may exist and have no properties.
-                    // uselss distinction, but add it to keep it in sync with the property validations.
+                    // useless distinction, but add it to keep it in sync with the property validations.
                     // handle objects.
                     if (valueObjects.TryGetValue(schemaProperty.Name, out var o))
                     {

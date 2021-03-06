@@ -18,6 +18,16 @@ namespace Allard.Configinator.Core.Model
             EventHandlerRegistry.Raise(new OrganizationCreatedEvent(organizationId));
         }
 
+        public Realm GetRealm(string realmName)
+        {
+            if (realms.TryGetValue(realmName, out var realm))
+            {
+                return realm;
+            }
+
+            throw new InvalidOperationException("Realm doesn't exist: " + realmName);
+        }
+
         private OrganizationAggregate()
         {
             EventHandlerRegistry = new EventHandlerRegistryBuilder()
