@@ -5,8 +5,7 @@ namespace Allard.Configinator.Core.DocumentValidator
     public interface IObjectNode
     {
         IEnumerable<IPropertyNode> GetPropertyValues();
-        IEnumerable<IObjectNode> GetObjectNodes();
-        
+        IEnumerable<IObjectNode> GetObjectNodes();        
         string Name { get; }
     }
 }
