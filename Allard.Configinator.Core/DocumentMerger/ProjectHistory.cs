@@ -4,7 +4,7 @@ namespace Allard.Configinator.Core.DocumentMerger
 {
         public class PropertyHistoryItem
         {
-            public DocumentToMerge DocName { get; set; }
+            public OrderedDocumentToMerge DocName { get; set; }
             public IObjectNode Object { get; set; }
             public IPropertyNode Property { get; set; }
             public Transition Transition { get; set; }

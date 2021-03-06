@@ -20,23 +20,34 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
         }
 
         [Fact]
-        public async Task Bigger()
+        public async Task ToJsonString()
         {
             var a = JsonDocument.Parse(
-                    "{ \"hello\": \"world\", \"santa\": { \"job\": \"slacker\", \"marital-status\": \"divorced\" } }")
+                    "{ \"hello\": \"world\", \"santa\": { \"job\": \"slacker\", \"marital-status\": \"married\", \"favorite-color\": \"red\" } }")
                 .RootElement;
+
+            // change HELLO to PLANET
+            // change santa/marital-status to divorced.
+            // delete favorite-color
+            // add blah/do=something
             var b = JsonDocument.Parse(
-                "{ \"hello\": \"world\", \"santa\": { \"job\": \"slacker\", \"marital-status\": \"divorced\" }, \"blah\": { \"do\": \"something\" } }")
+                    "{ \"hello\": \"planet\", \"santa\": { \"job\": \"slacker\", \"marital-status\": \"divorced\" , \"favorite-color\": null},  \"blah\": { \"do\": \"something\" } }")
                 .RootElement;
-            
+
             var merge = new List<DocumentToMerge>
             {
-                new("top", 0, new JsonObjectNode("", a)),
-                new("bottom", 1, new JsonObjectNode("", b))
+                new("top", new JsonObjectNode("", a)),
+                new("bottom", new JsonObjectNode("", b))
             };
-            
-            var result = await DocMerger.Merge(merge);
-            testOutputHelper.WriteLine(result.ToJsonString());
+
+            var result = (await DocMerger.Merge(merge)).ToJsonString();
+            var resultDoc = JsonDocument.Parse(result).RootElement;
+            resultDoc.GetProperty("hello").GetString().Should().Be("planet");
+            resultDoc.GetProperty("blah").GetProperty("do").GetString().Should().Be("something");
+            var santa = resultDoc.GetProperty("santa");
+            santa.GetProperty("marital-status").GetString().Should().Be("divorced");
+            santa.GetProperty("job").GetString().Should().Be("slacker");
+            santa.GetProperty("favorite-color").GetString().Should().BeNull();
         }
 
         [Fact]
@@ -47,8 +58,8 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
 
             var merge = new List<DocumentToMerge>
             {
-                new("top", 0, new JsonObjectNode("", top)),
-                new("bottom", 1, new JsonObjectNode("", bottom))
+                new("top", new JsonObjectNode("", top)),
+                new("bottom", new JsonObjectNode("", bottom))
             };
 
             var result = (await DocMerger.Merge(merge))
@@ -72,10 +83,10 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
 
             var merge = new List<DocumentToMerge>
             {
-                new("top", 0, new JsonObjectNode("", top)),
-                new("middle", 1, new JsonObjectNode("", middle)),
-                new("middle2", 2, new JsonObjectNode("", middle2)),
-                new("bottom", 3, new JsonObjectNode("", bottom))
+                new("top", new JsonObjectNode("", top)),
+                new("middle", new JsonObjectNode("", middle)),
+                new("middle2", new JsonObjectNode("", middle2)),
+                new("bottom", new JsonObjectNode("", bottom))
             };
 
             var result = (await DocMerger.Merge(merge))
@@ -104,8 +115,8 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
 
             var merge = new List<DocumentToMerge>
             {
-                new("top", 0, new JsonObjectNode("", top)),
-                new("bottom", 1, new JsonObjectNode("", bottom))
+                new("top", new JsonObjectNode("", top)),
+                new("bottom", new JsonObjectNode("", bottom))
             };
 
             var result = (await DocMerger.Merge(merge))
@@ -129,8 +140,8 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
 
             var merge = new List<DocumentToMerge>
             {
-                new("top", 0, new JsonObjectNode("", top)),
-                new("bottom", 1, new JsonObjectNode("", bottom))
+                new("top", new JsonObjectNode("", top)),
+                new("bottom", new JsonObjectNode("", bottom))
             };
 
             var result = (await DocMerger.Merge(merge))
@@ -159,8 +170,8 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
 
             var merge = new List<DocumentToMerge>
             {
-                new("top", 0, new JsonObjectNode(string.Empty, top)),
-                new("bottom", 1, new JsonObjectNode(string.Empty, bottom))
+                new("top", new JsonObjectNode(string.Empty, top)),
+                new("bottom",  new JsonObjectNode(string.Empty, bottom))
             };
 
             var result = (await DocMerger.Merge(merge))

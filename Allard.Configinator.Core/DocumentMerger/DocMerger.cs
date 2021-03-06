@@ -20,7 +20,7 @@ namespace Allard.Configinator.Core.DocumentMerger
         // the result doc.
         private readonly Dictionary<string, PropertyValue> merged = new();
 
-        private readonly List<DocumentToMerge> toMerge;
+        private readonly List<OrderedDocumentToMerge> toMerge;
 
         public static Task<IEnumerable<MergedProperty>> Merge(IEnumerable<DocumentToMerge> documents)
         {
@@ -29,8 +29,10 @@ namespace Allard.Configinator.Core.DocumentMerger
 
         private DocMerger(IEnumerable<DocumentToMerge> toMerge)
         {
+            var index = 0;
             this.toMerge = toMerge
                 .EnsureValue(nameof(toMerge))
+                .Select(d => new OrderedDocumentToMerge(d, index++))
                 .ToList();
         }
 
@@ -38,7 +40,7 @@ namespace Allard.Configinator.Core.DocumentMerger
         {
             foreach (var m in toMerge)
             {
-                Merge(m, m.Doc, "");
+                Merge(m, m.Doc.Document, "");
             }
 
             FillInTheBlanks();
@@ -60,7 +62,9 @@ namespace Allard.Configinator.Core.DocumentMerger
                 for (var h = 0; h < toMerge.Count; h++)
                 {
                     // get the history node for the current index.
-                    var currentHistoryNode = currentObject.History.FirstOrDefault(x => x?.DocName?.Order == h);
+                    var currentHistoryNode = currentObject
+                        .History
+                        .FirstOrDefault(x => x?.DocName?.Order == h);
 
                     // if the history node exists, then see if it needs any adjustments.
                     // IE: if item #2 is SET, and item #3 is SET, then change #3 to
@@ -76,8 +80,8 @@ namespace Allard.Configinator.Core.DocumentMerger
                         // if the previous version is set, and the current
                         // version is set, then change current to SetToSame.
                         // both did explicit sets, but to the same value.
-                        if (currentHistoryNode.Transition.AssignedExplicitValue() &&
-                            currentObject.History[h - 1].Transition.AssignedExplicitValue())
+                        if (currentHistoryNode.Transition.IsSet() &&
+                            currentObject.History[h - 1].Transition.IsSet())
                         {
                             currentHistoryNode.Transition = Transition.SetToSameValue;
                         }
@@ -136,7 +140,6 @@ namespace Allard.Configinator.Core.DocumentMerger
             }
         }
 
-
         /// <summary>
         /// Merge a document into the result object.
         /// Recursive.
@@ -144,7 +147,7 @@ namespace Allard.Configinator.Core.DocumentMerger
         /// <param name="doc">This is the doc that the node belongs to. The doc contains many nodes.</param>
         /// <param name="node">The node to merge into the result set.</param>
         /// <param name="path"></param>
-        private void Merge(DocumentToMerge doc, IObjectNode node, string path)
+        private void Merge(OrderedDocumentToMerge doc, IObjectNode node, string path)
         {
             // TODO: currently, doc isn't needed.
             // keep it around until complete, then delete if still not needed.
