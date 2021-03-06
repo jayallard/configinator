@@ -18,7 +18,27 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
         {
             this.testOutputHelper = testOutputHelper;
         }
-        
+
+        [Fact]
+        public async Task Bigger()
+        {
+            var a = JsonDocument.Parse(
+                    "{ \"hello\": \"world\", \"santa\": { \"job\": \"slacker\", \"marital-status\": \"divorced\" } }")
+                .RootElement;
+            var b = JsonDocument.Parse(
+                "{ \"hello\": \"world\", \"santa\": { \"job\": \"slacker\", \"marital-status\": \"divorced\" }, \"blah\": { \"do\": \"something\" } }")
+                .RootElement;
+            
+            var merge = new List<DocumentToMerge>
+            {
+                new("top", 0, new JsonObjectNode("", a)),
+                new("bottom", 1, new JsonObjectNode("", b))
+            };
+            
+            var result = await DocMerger.Merge(merge);
+            testOutputHelper.WriteLine(result.ToJsonString());
+        }
+
         [Fact]
         public async Task DeleteProperty()
         {
@@ -41,7 +61,7 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
             prop.History[0].Transition.Should().Be(Transition.Set);
             prop.History[1].Transition.Should().Be(Transition.Delete);
         }
-        
+
         [Fact]
         public async Task DeleteThenAddBack()
         {
@@ -70,7 +90,7 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
             prop.History[2].Transition.Should().Be(Transition.DoesntExist);
             prop.History[3].Transition.Should().Be(Transition.Set);
         }
-        
+
         /// <summary>
         /// Doc 0 doesn't have the property.
         /// Doc 1 does.
