@@ -20,7 +20,7 @@ namespace Allard.Configinator.Core.Model
 
         public Realm GetRealm(string realmName)
         {
-            if (realms.TryGetValue(realmName, out var realm))
+            if (realms.TryGetValue(realmName.ToNormalizedMemberName(nameof(realmName)), out var realm))
             {
                 return realm;
             }

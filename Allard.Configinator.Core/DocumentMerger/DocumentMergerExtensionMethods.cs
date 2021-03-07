@@ -9,6 +9,12 @@ namespace Allard.Configinator.Core.DocumentMerger
 {
     public static class DocumentMergerExtensionMethods
     {
+        /// <summary>
+        /// Returns true if the transition is any variation
+        /// of SET.
+        /// </summary>
+        /// <param name="transition"></param>
+        /// <returns></returns>
         public static bool IsSet(this Transition transition) =>
             transition == Transition.Set
             || transition == Transition.SetToSameValue;

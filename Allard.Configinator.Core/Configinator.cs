@@ -59,8 +59,6 @@ namespace Allard.Configinator.Core
             var cs = realm.GetConfigurationSection(request.ConfigurationId.ConfigurationSection);
 
             // get all of the docs for the base habitats, if there are any.
-            // doesn't include the value of the habit itself, because
-            // we're validating the new value, not the existing.
             var toMerge = await GetDocsFromConfigStore(cs.Path, habitat.Bases.ToList());
 
             // add the current request to the doc list.
@@ -97,6 +95,7 @@ namespace Allard.Configinator.Core
             var habitat = realm.GetHabitat(request.ConfigurationId.Habitat);
             var cs = realm.GetConfigurationSection(request.ConfigurationId.ConfigurationSection);
 
+            // get the bases and the specific value, then merge.
             var toMerge = await GetDocsFromConfigStore(cs.Path, habitat.Bases.ToList().AddIfNotNull(habitat));
             var merged = (await DocMerger.Merge(toMerge)).ToList();
             var mergedJsonString = merged.ToJsonString();

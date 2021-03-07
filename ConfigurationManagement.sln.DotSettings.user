@@ -1,12 +1,23 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-	
-	
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=b5e522c4_002Ddb28_002D44d4_002D8f32_002D9a208dbbbb30/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from &amp;lt;Allard.Configinator.Core.Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;Project Location="/home/jaya/personal/projects/configinator/Allard.Configinator.Core.Tests" Presentation="&amp;lt;Allard.Configinator.Core.Tests&amp;gt;" /&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=5f649e94_002D2317_002D4cce_002Db17d_002D63fc21f0a7f4/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Session" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;Or&gt;
+    &lt;And&gt;
+      &lt;Project Location="/home/jaya/personal/projects/configinator/Allard.Configinator.Core.Tests" Presentation="&amp;lt;Allard.Configinator.Core.Tests&amp;gt;" /&gt;
+      &lt;Namespace&gt;Allard.Configinator.Core.Tests.Unit&lt;/Namespace&gt;
+    &lt;/And&gt;
+    &lt;Project Location="/home/jaya/personal/projects/configinator/Allard.Configinator.Infrastructure.MongoDb.Tests" Presentation="&amp;lt;Allard.Configinator.Infrastructure.MongoDb.Tests&amp;gt;" /&gt;
+  &lt;/Or&gt;
 &lt;/SessionState&gt;</s:String>
+	
+	
+	
+	
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=bb21c8af_002D6805_002D4181_002Dbc49_002Dcffb689d7c48/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from &amp;lt;Allard.Configinator.Core.Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;Or&gt;
     &lt;Project Location="/Users/jallard/personal/ConfigurationManagement/Allard.Configinator.Core.Tests" Presentation="&amp;lt;Allard.Configinator.Core.Tests&amp;gt;" /&gt;
     &lt;Project Location="/Users/jallard/personal/ConfigurationManagement/Allard.Configinator.Tests" Presentation="&amp;lt;Allard.Configinator.Tests&amp;gt;" /&gt;
   &lt;/Or&gt;
-&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
+&lt;/SessionState&gt;</s:String>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=3d8eff0c_002D8a20_002D4958_002D8e34_002Da96601621967_0023Allard_002EConfiginator_002EAwsSecretsManager/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=52742313_002Df970_002D41e4_002Da62b_002D0426308bf9ef_0023Allard_002EConfiginator_002EAwsSecretsManager_002ETests/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=e32439d2_002D6494_002D46cd_002D8272_002D0efe0130446f_0023Allard_002EConfiginator_002EApi/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>

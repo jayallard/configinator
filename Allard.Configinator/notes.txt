@@ -1,2 +1,0 @@
-docker run --name configinator-mongodb -p 27017:27017 -d mongo
-

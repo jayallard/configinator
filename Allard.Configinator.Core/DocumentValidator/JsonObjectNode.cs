@@ -10,23 +10,23 @@ namespace Allard.Configinator.Core.DocumentValidator
     /// </summary>
     public class JsonObjectNode : IObjectNode
     {
-        private readonly JsonElement json;
+        private JsonElement Json { get; }
         public string Name { get; }
 
         public JsonObjectNode(string name, JsonElement json)
         {
             Name = name;
-            this.json = json.EnsureValue(nameof(json));
+            Json = json.EnsureValue(nameof(json));
         }
 
         public IEnumerable<IPropertyNode> GetPropertyValues()
         {
-            if (json.ValueKind == JsonValueKind.Null)
+            if (Json.ValueKind == JsonValueKind.Null)
             {
                 return new List<IPropertyNode>();
             }
             
-            return json
+            return Json
                 .EnumerateObject()
 
                 // todo: other types    
@@ -36,14 +36,14 @@ namespace Allard.Configinator.Core.DocumentValidator
 
         public IEnumerable<IObjectNode> GetObjectNodes()
         {
-            if (json.ValueKind == JsonValueKind.Null)
+            if (Json.ValueKind == JsonValueKind.Null)
             {
                 return new List<IObjectNode>();
             }
             
             try
             {
-                return json
+                return Json
                     .EnumerateObject()
                     .Where(o => o.Value.ValueKind == JsonValueKind.Object || o.Value.ValueKind == JsonValueKind.Null)
                     .Select(o => new JsonObjectNode(o.Name, o.Value));
