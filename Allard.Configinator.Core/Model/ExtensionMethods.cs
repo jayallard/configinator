@@ -14,7 +14,7 @@ namespace Allard.Configinator.Core.Model
                     $"A {id.GetType().Name} with that name already exists. Name={id.Name}");
         }
 
-        public static List<T> AddNonNullItem<T>(this List<T> list, T item)
+        public static List<T> AddIfNotNull<T>(this List<T> list, T item)
         {
             if (item == null)
             {

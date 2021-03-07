@@ -57,7 +57,7 @@ namespace Allard.Configinator.Core.Model
                 {
                     var realm = realms[e.RealmId.Name];
                     var configurationSection = new ConfigurationSection(e.ConfigurationSectionId, e.Path,
-                        null, e.Description);
+                        e.SchemaTypeId, e.Description);
                     realm.AddConfigurationSection(configurationSection);
                     return configurationSection;
                 })
@@ -78,7 +78,7 @@ namespace Allard.Configinator.Core.Model
         public IReadOnlyCollection<Realm> Realms => realms.Values;
         public IReadOnlyCollection<SchemaType> SchemaTypes => schemaTypes.Values;
 
-        public SchemaType GetSchema(SchemaTypeId schemaTypeId)
+        public SchemaType GetSchemaType(SchemaTypeId schemaTypeId)
         {
             if (schemaTypes.TryGetValue(schemaTypeId, out var schemaType)) return schemaType;
 

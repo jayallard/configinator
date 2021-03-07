@@ -1,0 +1,10 @@
+{
+  "sql-source": {
+    "password": "password",
+    "host": "localhost",
+    "user-id": "sa"
+  },
+  "kafka-target": {
+    "broker-list": "localhost:9092"
+  }
+}

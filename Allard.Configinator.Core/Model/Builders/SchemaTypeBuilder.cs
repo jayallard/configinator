@@ -6,6 +6,8 @@ namespace Allard.Configinator.Core.Model.Builders
     {
         private readonly List<Property> properties = new();
 
+        public static SchemaTypeBuilder Create() => new SchemaTypeBuilder();
+
         public IReadOnlyCollection<Property> Properties => properties.AsReadOnly();
 
         public SchemaTypeBuilder AddProperty(Property property)
@@ -27,6 +29,9 @@ namespace Allard.Configinator.Core.Model.Builders
             properties.Add(new Property(name, schemaTypeId, isSecret, isOptional));
             return this;
         }
+
+        public SchemaTypeBuilder AddStringProperty(string name, bool isSecret = false, bool isOptional = false)
+            => AddProperty(name, SchemaTypeId.String, isSecret, isOptional);
 
         public string TypeId { get; protected set; }
 

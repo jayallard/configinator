@@ -31,7 +31,7 @@ namespace Allard.Configinator.Core.Model
 
             throw new InvalidOperationException("Habitat doesn't exist: " + habitat);
         }
-        
+
         public ConfigurationSection GetConfigurationSection(string configurationSectionName)
         {
             if (configurationSections.TryGetValue(configurationSectionName, out var cs))
@@ -41,7 +41,7 @@ namespace Allard.Configinator.Core.Model
 
             throw new InvalidOperationException("Configuration section doesn't exist: " + cs);
         }
-        
+
         /// <summary>
         ///     Used by the event handler.
         /// </summary>
@@ -62,6 +62,13 @@ namespace Allard.Configinator.Core.Model
 
         public ConfigurationSection AddConfigurationSection(
             string configurationSectionName,
+            string schemaTypeId,
+            string path,
+            string description)
+            => AddConfigurationSection(configurationSectionName, SchemaTypeId.Parse(schemaTypeId), path, description);
+
+        public ConfigurationSection AddConfigurationSection(
+            string configurationSectionName,
             SchemaTypeId schemaTypeId,
             string path,
             string description)
@@ -73,19 +80,24 @@ namespace Allard.Configinator.Core.Model
             habitats.Keys.EnsureNameDoesntAlreadyExist(configurationSectionId);
 
             // lazy - throws an exception if type doesn't exist.
-            Organization.GetSchema(schemaTypeId);
+            Organization.GetSchemaType(schemaTypeId);
 
             // create and raise the event
             var evt = new AddedConfigurationSectionToRealmEvent(
                 Organization.OrganizationId,
                 RealmId,
                 configurationSectionId,
-                new SchemaTypeId("todo", "todo"),
+                schemaTypeId,
                 path,
                 description);
             return Organization
                 .EventHandlerRegistry
                 .Raise<AddedConfigurationSectionToRealmEvent, ConfigurationSection>(evt);
+        }
+
+        public Habitat AddHabitat(string habitName, params string[] baseHabitats)
+        {
+            return AddHabitat(habitName, baseHabitats.ToHashSet());
         }
 
         public Habitat AddHabitat(string habitatName, ISet<string> baseHabitats = null)
