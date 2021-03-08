@@ -11,7 +11,7 @@ namespace Allard.Configinator.Core.Model
     {
         private readonly Dictionary<string, Realm> realms = new();
         private readonly Dictionary<SchemaTypeId, SchemaType> schemaTypes = new();
-
+        
         public OrganizationAggregate(OrganizationId organizationId) : this()
         {
             organizationId.EnsureValue(nameof(organizationId));

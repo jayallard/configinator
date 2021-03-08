@@ -2,11 +2,11 @@ using System;
 
 namespace Allard.Configinator.Core.Model
 {
-    public record OrganizationId(string Id)
+    public record OrganizationId(string Name, string Id)
     {
-        public static OrganizationId NewOrganizationId()
+        public static OrganizationId NewOrganizationId(string name)
         {
-            return new(Guid.NewGuid().ToString());
+            return new(name, Guid.NewGuid().ToString());
         }
     }
 }

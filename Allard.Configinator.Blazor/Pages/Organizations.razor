@@ -1,0 +1,54 @@
+@page "/Organizations"
+@using Allard.Configinator.Core.Infrastructure
+@using Allard.Configinator.Core.Model
+@inject IOrganizationQueries organizationQueries;
+<h3>Organizations</h3>
+
+
+
+<div>@hideAddDialog</div>
+
+@if (organizationIds == null || model == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Organization Name</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var org in organizationIds)
+        {
+            <tr>
+                <td>@org.Name</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+<div hidden="@hideAddDialog">
+    <EditForm Model="@model">
+        <InputText id="name" @bind-value="model.Name"></InputText>
+    </EditForm>
+</div>
+
+@code {
+    private OrganizationId[] organizationIds;
+    private bool hideAddDialog = true;
+    private CreateOrganizationModel model = new();
+    
+    protected override void OnInitialized()
+    {
+        organizationIds = organizationQueries.GetOrganizationIds().ToArray();
+        
+    }
+
+    private void ShowAddDialog()
+    {
+        hideAddDialog = !hideAddDialog;
+    }
+}

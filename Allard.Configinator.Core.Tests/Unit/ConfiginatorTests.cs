@@ -50,7 +50,7 @@ namespace Allard.Configinator.Core.Tests.Unit
                 .AddProperty("kafka-target", "kafka/unsecured")
                 .Build();
 
-            var org = new OrganizationAggregate(OrganizationId.NewOrganizationId());
+            var org = new OrganizationAggregate(OrganizationId.NewOrganizationId("allard"));
             org.AddSchemaType(kafkaType);
             org.AddSchemaType(sqlType);
             org.AddSchemaType(shovelServiceType);

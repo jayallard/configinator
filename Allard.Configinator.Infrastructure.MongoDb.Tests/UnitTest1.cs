@@ -22,19 +22,19 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
         [Fact]
         public void Test1()
         {
-            var orgId = Guid.NewGuid().ToString();
+            var orgId = OrganizationId.NewOrganizationId("Allard");
             var client = new MongoClient("mongodb://localhost:27017");
             var db = client.GetDatabase("test1");
             db.DropCollection("organization-events");
             var collection = db.GetCollection<EventDto>("organization-events");
 
-            var evt = new AddedRealmToOrganizationEvent(new OrganizationId(orgId),
+            var evt = new AddedRealmToOrganizationEvent(orgId,
                 new RealmId("realm id", "realm name"));
-            var dto = new EventDto(null, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), orgId, DateTime.UtcNow,
+            var dto = new EventDto(null, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), orgId.Id, DateTime.UtcNow,
                 "BlahBlah", evt);
             collection.InsertOne(dto);
 
-            var find = collection.FindSync(d => d.OrganizationId == orgId).Single();
+            var find = collection.FindSync(d => d.OrganizationId == orgId.Id).Single();
             find.Should().NotBeNull();
             find.Event.Should().BeOfType<AddedRealmToOrganizationEvent>();
         }
@@ -44,7 +44,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
         {
             // create
             var repo = new OrganizationRepositoryMongo();
-            var orgId = OrganizationId.NewOrganizationId();
+            var orgId = OrganizationId.NewOrganizationId("Allard");
             var org = new OrganizationAggregate(orgId);
             for (var i = 0; i < 500; i++)
             {
@@ -63,7 +63,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
         {
             // create
             var repo = new OrganizationRepositoryMongo();
-            var orgId = OrganizationId.NewOrganizationId();
+            var orgId = OrganizationId.NewOrganizationId("Allard");
             var org = new OrganizationAggregate(orgId);
             var r1 = org.AddRealm("realm a");
             r1.AddHabitat("a");
