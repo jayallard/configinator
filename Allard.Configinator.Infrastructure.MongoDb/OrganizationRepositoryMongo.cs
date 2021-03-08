@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Allard.Configinator.Core.Events;
 using Allard.Configinator.Core.Infrastructure;
 using Allard.Configinator.Core.Model;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
 namespace Allard.Configinator.Infrastructure.MongoDb
@@ -14,10 +16,19 @@ namespace Allard.Configinator.Infrastructure.MongoDb
         private const string Collection = "organization-events";
         private readonly MongoClient client;
 
+        static OrganizationRepositoryMongo()
+        {
+            //todo: need a better way to do this
+            BsonClassMap.RegisterClassMap<AddedConfigurationSectionToRealmEvent>();
+            BsonClassMap.RegisterClassMap<AddedHabitatToRealmEvent>();
+            BsonClassMap.RegisterClassMap<AddedRealmToOrganizationEvent>();
+            BsonClassMap.RegisterClassMap<AddedSchemaTypeToOrganizationEvent>();
+            BsonClassMap.RegisterClassMap<OrganizationCreatedEvent>();
+        }
+
         public OrganizationRepositoryMongo()
         {
             client = new MongoClient("mongodb://localhost:27017");
-            client.GetDatabase(Database).DropCollection(Collection);
         }
 
         public async Task<OrganizationAggregate> GetOrganizationAsync(string id)
