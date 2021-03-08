@@ -1,0 +1,71 @@
+@page "/Organizations"
+@using Allard.Configinator.Core.Infrastructure
+@using Allard.Configinator.Core.Model
+@inject IOrganizationQueries organizationQueries;
+@inject IOrganizationRepository organizationRepository;
+<h3>Organizations</h3>
+
+
+<div>@hideAddDialog</div>
+
+@if (organizationIds == null || model == null)
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Organization Name</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var org in organizationIds)
+        {
+            <tr>
+                <td>@org.Name</td>
+                <td>@org.Id</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+<div hidden="@hideAddDialog">
+    <EditForm Model="@model" OnSubmit="AddOrg">
+        <InputText id="name" @bind-Value="model.Name"></InputText>
+        <input type="submit" value="Add"/>
+    </EditForm>
+</div>
+
+@code {
+    private OrganizationId[] organizationIds;
+    private bool hideAddDialog = false;
+    private CreateOrganizationModel model = new();
+
+    protected override void OnInitialized()
+    {
+        LoadOrganizations();
+    }
+
+    private void LoadOrganizations()
+    {
+        organizationIds = organizationQueries.GetOrganizationIds().ToArray();
+    }
+
+    private void ShowAddDialog()
+    {
+        hideAddDialog = !hideAddDialog;
+    }
+
+    private async Task AddOrg()
+    {
+        var orgId = OrganizationId.NewOrganizationId(model.Name);
+        var org = new OrganizationAggregate(orgId);
+        await organizationRepository.SaveAsync(org);
+        LoadOrganizations();
+    }
+
+}

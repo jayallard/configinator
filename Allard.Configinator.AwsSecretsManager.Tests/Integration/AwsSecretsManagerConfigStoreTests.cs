@@ -10,12 +10,12 @@ namespace Allard.Configinator.AwsSecretsManager.Tests.Integration
 {
     public class AwsSecretsManagerConfigStoreTests
     {
+        private readonly ITestOutputHelper writer;
+
         public AwsSecretsManagerConfigStoreTests(ITestOutputHelper writer)
         {
             this.writer = writer;
         }
-
-        private readonly ITestOutputHelper writer;
 
         [Fact(Skip = "tool - use as needed")]
         public async Task Cleanup()
@@ -43,11 +43,11 @@ namespace Allard.Configinator.AwsSecretsManager.Tests.Integration
             var value2 = Guid.NewGuid().ToString();
             var update = new ConfigStoreValue(path, value1Response.ETag, value2);
             await client.SetValueAsync(update);
-            
+
             // get
             var getValue2 = await client.GetValueAsync(path);
             getValue2.Value.Should().Be(value2);
-            
+
             // delete
             await client.DeleteValueAsync(getValue2);
             Func<Task> getValue3 = () => client.GetValueAsync(path);
