@@ -13,12 +13,12 @@ namespace Allard.Configinator.Api.Controllers
 {
     [ApiController]
     [Route("/api/v1")]
-    public class ConfiginatorController : Controller
+    public class ConfiginatorQueriesController : Controller
     {
         private readonly LinkHelper links;
         private readonly IMediator mediator;
 
-        public ConfiginatorController(IMediator mediator, LinkHelper links)
+        public ConfiginatorQueriesController(IMediator mediator, LinkHelper links)
         {
             this.mediator = mediator;
             this.links = links;

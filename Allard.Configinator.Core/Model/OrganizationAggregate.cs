@@ -66,12 +66,13 @@ namespace Allard.Configinator.Core.Model
         }
 
         internal EventHandlerRegistry EventHandlerRegistry { get; }
-
+        
         public OrganizationId OrganizationId { get; private set; }
-
+        
         public IReadOnlyCollection<Realm> Realms => realms.Values;
+        
         public IReadOnlyCollection<SchemaType> SchemaTypes => schemaTypes.Values;
-
+        
         public Realm GetRealmById(string realmId)
         {
             var realm = realms

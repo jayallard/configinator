@@ -1,5 +1,6 @@
 using Allard.Configinator.Core;
 using Allard.Configinator.Core.Infrastructure;
+using Allard.Configinator.Infrastructure.MongoDb;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -32,7 +33,8 @@ namespace Allard.Configinator.Api
             // configinator!
             services
                 .AddSingleton<IConfigStore, MemoryConfigStore>()
-                .AddSingleton<IConfiginatorService, ConfiginatorService>();
+                .AddSingleton<IConfiginatorService, ConfiginatorService>()
+                .AddSingleton<IOrganizationRepository, OrganizationRepositoryMongo>();
 
             // MediatR
             services.AddMediatR(typeof(Startup).Assembly);

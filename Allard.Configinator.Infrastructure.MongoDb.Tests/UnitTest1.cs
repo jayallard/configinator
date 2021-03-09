@@ -30,14 +30,22 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
 
             var evt = new AddedRealmToOrganizationEvent(orgId,
                 new RealmId("realm id", "realm name"));
-            var dto = new EventDto(null, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), orgId.Id,
+            var dto = new EventDto(null, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), orgId,
                 DateTime.UtcNow,
                 "BlahBlah", evt);
             collection.InsertOne(dto);
 
-            var find = collection.FindSync(d => d.OrganizationId == orgId.Id).Single();
+            var find = collection.FindSync(d => d.OrganizationId == orgId).Single();
             find.Should().NotBeNull();
             find.Event.Should().BeOfType<AddedRealmToOrganizationEvent>();
+        }
+
+        [Fact]
+        public async Task ResetAndRead()
+        {
+            var repo = new OrganizationRepositoryMongo();
+            await repo.DevelopmentSetup();
+            var org = repo.GetOrganizationByNameAsync("allard");
         }
 
         [Fact]
@@ -47,10 +55,10 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
             var repo = new OrganizationRepositoryMongo();
             var orgId = OrganizationId.NewOrganizationId("Allard");
             var org = new OrganizationAggregate(orgId);
-            for (var i = 0; i < 500; i++)
+            for (var i = 0; i < 10; i++)
             {
                 var realm = org.AddRealm("realm " + i);
-                for (var i2 = 0; i2 < 20; i2++) realm.AddHabitat("h " + i2);
+                for (var i2 = 0; i2 < 5; i2++) realm.AddHabitat("h " + i2);
             }
 
             await repo.SaveAsync(org);
