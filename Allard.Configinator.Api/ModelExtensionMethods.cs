@@ -33,6 +33,7 @@ namespace Allard.Configinator.Api
         {
             return new()
             {
+                Name = realm.RealmId.Name,
                 ConfigurationSections = realm
                     .ConfigurationSections
                     .Select(cs => new ConfigurationSectionViewModel
@@ -51,7 +52,7 @@ namespace Allard.Configinator.Api
             return new()
             {
                 Properties = type.Properties.ToViewModel(),
-                SchemaTypeId = type.SchemaTypeId
+                SchemaTypeId = type.SchemaTypeId.FullId
             };
         }
 
@@ -66,7 +67,7 @@ namespace Allard.Configinator.Api
             {
                 IsRequired = property.IsRequired,
                 Name = property.Name,
-                SchemaTypeId = property.SchemaTypeId
+                SchemaTypeId = property.SchemaTypeId.FullId
             };
         }
 

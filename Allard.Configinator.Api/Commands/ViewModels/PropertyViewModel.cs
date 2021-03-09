@@ -8,7 +8,7 @@ namespace Allard.Configinator.Api.Commands.ViewModels
     {
         public string Name { get; init; }
         public bool IsRequired { get; init; }
-        public SchemaTypeId SchemaTypeId { get; init; }
+        public string SchemaTypeId { get; init; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public IEnumerable<PropertyViewModel> Properties { get; set; }

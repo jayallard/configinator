@@ -5,7 +5,7 @@ namespace Allard.Configinator.Api.Commands.ViewModels
 {
     public class SchemaTypeViewModel
     {
-        public SchemaTypeId SchemaTypeId { get; set; }
+        public string SchemaTypeId { get; set; }
 
         public IEnumerable<PropertyViewModel> Properties { get; set; }
         public IEnumerable<Link> Links { get; set; }

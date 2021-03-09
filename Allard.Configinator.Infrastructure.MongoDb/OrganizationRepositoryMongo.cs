@@ -20,7 +20,12 @@ namespace Allard.Configinator.Infrastructure.MongoDb
 
         static OrganizationRepositoryMongo()
         {
-            //todo: need a better way to do this
+            BsonClassMap.RegisterClassMap<AddedConfigurationSectionToRealmEvent>();
+            BsonClassMap.RegisterClassMap<AddedHabitatToRealmEvent>();
+            BsonClassMap.RegisterClassMap<AddedRealmToOrganizationEvent>();
+            BsonClassMap.RegisterClassMap<AddedSchemaTypeToOrganizationEvent>();
+            BsonClassMap.RegisterClassMap<OrganizationCreatedEvent>();
+
             BsonClassMap.RegisterClassMap<SchemaTypeId>(cm =>
             {
                 cm.MapProperty(st => st.FullId);
