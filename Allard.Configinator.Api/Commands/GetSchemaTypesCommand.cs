@@ -3,5 +3,5 @@ using MediatR;
 
 namespace Allard.Configinator.Api.Commands
 {
-    public record GetSchemaTypesCommand : IRequest<SchemaTypesViewModel>;
+    public record GetSchemaTypesCommand(string OrganizationName) : IRequest<SchemaTypesViewModel>;
 }

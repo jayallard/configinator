@@ -1,31 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Allard.Configinator.Core.DocumentValidator;
 
 namespace Allard.Configinator.Core.DocumentMerger
 {
     /// <summary>
-    /// Merge multiple documents into one.
-    /// This crawls each document, and contributes its contents
-    /// to a result document.
-    /// If a value is set to null, it is deleted from the result set.
-    /// A subsequent document may add it back.
-    /// When a value exists in multiple documents, last one wins.
+    ///     Merge multiple documents into one.
+    ///     This crawls each document, and contributes its contents
+    ///     to a result document.
+    ///     If a value is set to null, it is deleted from the result set.
+    ///     A subsequent document may add it back.
+    ///     When a value exists in multiple documents, last one wins.
     /// </summary>
-    public partial class DocMerger
+    public class DocMerger
     {
         // the result doc.
         private readonly Dictionary<string, PropertyValue> merged = new();
 
         private readonly List<OrderedDocumentToMerge> toMerge;
-
-        public static Task<IEnumerable<MergedProperty>> Merge(IEnumerable<DocumentToMerge> documents)
-        {
-            return Task.Run(() => new DocMerger(documents).Merge());
-        }
 
         private DocMerger(IEnumerable<DocumentToMerge> toMerge)
         {
@@ -36,12 +30,14 @@ namespace Allard.Configinator.Core.DocumentMerger
                 .ToList();
         }
 
+        public static Task<IEnumerable<MergedProperty>> Merge(IEnumerable<DocumentToMerge> documents)
+        {
+            return Task.Run(() => new DocMerger(documents).Merge());
+        }
+
         private IEnumerable<MergedProperty> Merge()
         {
-            foreach (var m in toMerge)
-            {
-                Merge(m, m.Doc.Document, "");
-            }
+            foreach (var m in toMerge) Merge(m, m.Doc.Document, "");
 
             FillInTheBlanks();
             return merged
@@ -52,7 +48,6 @@ namespace Allard.Configinator.Core.DocumentMerger
         {
             // iterate all of the properties in the result doc.
             foreach (var (_, currentObject) in merged)
-            {
                 // if there are 5 merge docs, then every
                 // property will have 5 history items.
                 // iterate the history items. 
@@ -72,19 +67,14 @@ namespace Allard.Configinator.Core.DocumentMerger
                     if (currentHistoryNode != null)
                     {
                         // if we're at index 0, then there's nothing to do.
-                        if (h == 0)
-                        {
-                            continue;
-                        }
+                        if (h == 0) continue;
 
                         // if the previous version is set, and the current
                         // version is set, then change current to SetToSame.
                         // both did explicit sets, but to the same value.
                         if (currentHistoryNode.Transition.IsSet() &&
                             currentObject.History[h - 1].Transition.IsSet())
-                        {
                             currentHistoryNode.Transition = Transition.SetToSameValue;
-                        }
 
                         continue;
                     }
@@ -137,12 +127,11 @@ namespace Allard.Configinator.Core.DocumentMerger
                         Value = null
                     });
                 }
-            }
         }
 
         /// <summary>
-        /// Merge a document into the result object.
-        /// Recursive.
+        ///     Merge a document into the result object.
+        ///     Recursive.
         /// </summary>
         /// <param name="doc">This is the doc that the node belongs to. The doc contains many nodes.</param>
         /// <param name="node">The node to merge into the result set.</param>
@@ -159,9 +148,7 @@ namespace Allard.Configinator.Core.DocumentMerger
 
                 // add the property to the results, if it doesn't already exist.
                 if (!merged.ContainsKey(propertyPath))
-                {
                     merged.Add(propertyPath, new PropertyValue {Name = property.Name});
-                }
 
                 // get the property, and set its new value.
                 var resultProperty = merged[propertyPath];

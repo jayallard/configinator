@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Allard.Configinator.Api.Commands;
 using Allard.Configinator.Api.Commands.ViewModels;
 using Allard.Configinator.Api.Controllers.ViewModels;
+using Allard.Configinator.Core.Infrastructure;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,6 +23,8 @@ namespace Allard.Configinator.Api.Controllers
             this.mediator = mediator;
             this.links = links;
         }
+
+        public string OrganizationName { get; } = "allard";
 
         [HttpGet]
         public RootViewModel GetRoot()
@@ -41,36 +44,39 @@ namespace Allard.Configinator.Api.Controllers
         [Route("schemaTypes")]
         public async Task<SchemaTypesViewModel> GetSchemaTypes()
         {
-            return await mediator.Send(new GetSchemaTypesCommand());
+            return await mediator.Send(new GetSchemaTypesCommand(OrganizationName));
         }
 
         [HttpGet]
         [Route("schemaTypes/{typeId}")]
-        public async Task<SchemaTypeViewModel> GetSchemaType(string typeId)
+        public async Task<SchemaTypeViewModel> GetSchemaType(string schemaTypeId)
         {
-            return await mediator.Send(new GetSchemaTypeCommand(typeId));
+            return await mediator.Send(new GetSchemaTypeCommand(OrganizationName, schemaTypeId));
         }
 
         [HttpGet]
         [Route("realms")]
         public async Task<RealmsViewModel> GetRealms()
         {
-            return await mediator.Send(new GetRealmsCommand());
+            return await mediator.Send(new GetRealmsCommand(OrganizationName));
         }
 
         [HttpGet]
         [Route("realms/{name}")]
-        public async Task<RealmViewModel> GetRealm(string name)
-       {
-            return await mediator.Send(new GetRealmCommand(name));
+        public async Task<RealmViewModel> GetRealm(string realmName)
+        {
+            return await mediator.Send(new GetRealmCommand(OrganizationName, realmName));
         }
+
 
         [HttpGet]
         [Route("realms/{realmName}/sections/{configurationSectionName}")]
-        public async Task<ConfigurationSectionViewModel> GetConfigurationSection(string realmName,
+        public async Task<ConfigurationSectionViewModel> GetConfigurationSection(
+            string realmName,
             string configurationSectionName)
         {
-            return await mediator.Send(new GetConfigurationSectionCommand(realmName, configurationSectionName));
+            return await mediator.Send(
+                new GetConfigurationSectionCommand(OrganizationName, realmName, configurationSectionName));
         }
 
         [HttpGet]
@@ -80,23 +86,22 @@ namespace Allard.Configinator.Api.Controllers
             string configurationSectionName,
             string habitat)
         {
-            var value = await mediator.Send(new GetConfigurationValueCommand(habitat, realmName,
+            return await mediator.Send(new GetConfigurationValueCommand(OrganizationName, habitat, realmName,
                 configurationSectionName));
-            ;
-            return value;
         }
 
         [HttpGet]
         [Route("realms/{realmName}/sections/{configurationSectionName}/value/{habitat}/resolved")]
-        public async Task<JsonDocument> GetConfigurationValueResolved(
+        public async Task<ConfigurationValue> GetConfigurationValueResolved(
             string realmName,
             string configurationSectionName,
             string habitat)
         {
-            var value = await mediator.Send(new GetConfigurationValueCommand(habitat, realmName,
+            return await mediator.Send(new GetConfigurationValueCommand(
+                OrganizationName,
+                habitat,
+                realmName,
                 configurationSectionName));
-            ;
-            return JsonDocument.Parse(value.ResolvedValue);
         }
 
         private static string ToJsonString(JsonDocument jdoc)
@@ -120,9 +125,9 @@ namespace Allard.Configinator.Api.Controllers
                 new SetConfigurationValueCommand
                 {
                     PreviousEtag = value.PreviousETag,
-                    Habitat = habitat,
-                    Realm = realmName,
-                    ConfigurationSection = configurationSectionName,
+                    HabitatName = habitat,
+                    RealmName = realmName,
+                    ConfigurationSectionName = configurationSectionName,
                     Value = value.Value
                 });
         }

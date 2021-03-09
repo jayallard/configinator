@@ -3,5 +3,7 @@ using MediatR;
 
 namespace Allard.Configinator.Api.Commands
 {
-    public record GetRealmCommand(string Name) : IRequest<RealmViewModel>;
+    public record GetRealmCommand(
+        string OrganizationName,
+        string RealmName) : IRequest<RealmViewModel>;
 }

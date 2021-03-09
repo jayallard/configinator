@@ -6,11 +6,13 @@ namespace Allard.Configinator.Api.Commands
 {
     public record GetSchemaTypeCommand : IRequest<SchemaTypeViewModel>
     {
-        public GetSchemaTypeCommand(string typeId)
+        public GetSchemaTypeCommand(string organizationName, string schemaTypeId)
         {
-            SchemaTypeId = HttpUtility.UrlDecode(typeId);
+            SchemaTypeId = HttpUtility.UrlDecode(schemaTypeId);
+            OrganizationName = organizationName;
         }
 
         public string SchemaTypeId { get; }
+        public string OrganizationName { get; }
     }
 }

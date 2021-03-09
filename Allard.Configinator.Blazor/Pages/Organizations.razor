@@ -1,8 +1,8 @@
 @page "/Organizations"
 @using Allard.Configinator.Core.Infrastructure
 @using Allard.Configinator.Core.Model
-@inject IOrganizationQueries organizationQueries;
-@inject IOrganizationRepository organizationRepository;
+@inject IOrganizationQueries OrganizationQueries;
+@inject IOrganizationRepository OrganizationRepository;
 <h2>Organizations</h2>
 
 @if (organizationIds == null || model == null)
@@ -23,7 +23,9 @@ else
         @foreach (var org in organizationIds)
         {
             <tr>
-                <td><a href="/organization/@org.Id">@org.Name</a></td>
+                <td>
+                    <a href="/organization/@org.Id">@org.Name</a>
+                </td>
                 <td>@org.Id</td>
             </tr>
         }
@@ -40,8 +42,8 @@ else
 
 @code {
     private OrganizationId[] organizationIds;
-    private bool hideAddDialog = false;
-    private CreateOrganizationModel model = new();
+    private bool hideAddDialog;
+    private readonly CreateOrganizationModel model = new();
 
     protected override void OnInitialized()
     {
@@ -50,7 +52,7 @@ else
 
     private void LoadOrganizations()
     {
-        organizationIds = organizationQueries.GetOrganizationIds().ToArray();
+        organizationIds = OrganizationQueries.GetOrganizationIds().ToArray();
     }
 
     private void ShowAddDialog()
@@ -62,7 +64,8 @@ else
     {
         var orgId = OrganizationId.NewOrganizationId(model.Name);
         var org = new OrganizationAggregate(orgId);
-        await organizationRepository.SaveAsync(org);
+        await OrganizationRepository.SaveAsync(org);
         LoadOrganizations();
     }
+
 }

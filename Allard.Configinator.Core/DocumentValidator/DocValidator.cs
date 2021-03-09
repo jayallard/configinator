@@ -50,21 +50,16 @@ namespace Allard.Configinator.Core.DocumentValidator
                         {
                             // property exists. validate the value.
                             if (p.Value == null)
-                            {
                                 if (schemaProperty.IsRequired)
-                                {
-                                    yield return new ValidationFailure(path, "RequiredPropertyValueMissing", schemaProperty.Name);
-                                }
-                            }
+                                    yield return new ValidationFailure(path, "RequiredPropertyValueMissing",
+                                        schemaProperty.Name);
 
                             continue;
                         }
 
                         // property doesn't exist. if required, go boom.
                         if (schemaProperty.IsRequired)
-                        {
                             yield return new ValidationFailure(path, "RequiredPropertyMissing", schemaProperty.Name);
-                        }
 
                         continue;
                     }
@@ -75,18 +70,14 @@ namespace Allard.Configinator.Core.DocumentValidator
                     if (valueObjects.TryGetValue(schemaProperty.Name, out var o))
                     {
                         // object exists
-                        foreach (var value in Validate(schemaProperty.SchemaTypeId, o, path + "/" + schemaProperty.Name))
-                        {
-                            yield return value;
-                        }
+                        foreach (var value in Validate(schemaProperty.SchemaTypeId, o, path + "/" + schemaProperty.Name)
+                        ) yield return value;
                         continue;
                     }
 
                     // object doesn't exist
                     if (schemaProperty.IsRequired)
-                    {
                         yield return new ValidationFailure(path, "RequiredObjectMissing", schemaProperty.Name);
-                    }
                 }
             }
         }

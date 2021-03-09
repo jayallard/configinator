@@ -4,10 +4,11 @@ namespace Allard.Configinator.Api.Commands
 {
     public record SetConfigurationValueCommand : IRequest<Blah>
     {
+        public string OrganizationName { get; init; }
+        public string HabitatName { get; init; }
+        public string RealmName { get; init; }
+        public string ConfigurationSectionName { get; init; }
         public string? PreviousEtag { get; init; }
-        public string Habitat { get; init; }
-        public string Realm { get; init; }
-        public string ConfigurationSection { get; init; }
         public string Value { get; init; }
     }
 }

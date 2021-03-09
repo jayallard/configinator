@@ -3,15 +3,8 @@ using MediatR;
 
 namespace Allard.Configinator.Api.Commands
 {
-    public class GetConfigurationSectionCommand : IRequest<ConfigurationSectionViewModel>
-    {
-        public GetConfigurationSectionCommand(string realmName, string configurationSectionName)
-        {
-            RealmName = realmName;
-            ConfigurationSectionName = configurationSectionName;
-        }
-
-        public string RealmName { get; }
-        public string ConfigurationSectionName { get; }
-    }
+    public record GetConfigurationSectionCommand(
+        string OrganizationName,
+        string RealmName,
+        string ConfigurationSectionName) : IRequest<ConfigurationSectionViewModel>;
 }

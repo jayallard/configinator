@@ -6,11 +6,6 @@ namespace Allard.Configinator.Core.Model.Validators
 {
     public class SchemaTypeValidator
     {
-        public static void Validate(SchemaType toValidate, IEnumerable<SchemaType> validateAgainst)
-        {
-            new SchemaTypeValidator(toValidate, validateAgainst).Validate();
-        }
-
         private readonly Dictionary<SchemaTypeId, SchemaType> schemaTypes;
         private readonly SchemaType toValidate;
 
@@ -22,6 +17,11 @@ namespace Allard.Configinator.Core.Model.Validators
                 .ToDictionary(st => st.SchemaTypeId);
         }
 
+        public static void Validate(SchemaType toValidate, IEnumerable<SchemaType> validateAgainst)
+        {
+            new SchemaTypeValidator(toValidate, validateAgainst).Validate();
+        }
+
         public void Validate()
         {
             ValidateSchemaType(toValidate, string.Empty);
@@ -30,18 +30,12 @@ namespace Allard.Configinator.Core.Model.Validators
         private void ValidateSchemaType(SchemaType schemaType, string path)
         {
             EnsureNotEmpty(toValidate.Properties, path);
-            foreach (var property in schemaType.Properties)
-            {
-                ValidateProperty(property, path);
-            }
+            foreach (var property in schemaType.Properties) ValidateProperty(property, path);
         }
 
         private void ValidateProperty(Property property, string path)
         {
-            if (property.SchemaTypeId.IsPrimitive)
-            {
-                return;
-            }
+            if (property.SchemaTypeId.IsPrimitive) return;
 
             path = path + "/" + property.Name;
             EnsureNotCircular(property.SchemaTypeId, path);
@@ -52,10 +46,8 @@ namespace Allard.Configinator.Core.Model.Validators
         private void EnsureNotCircular(SchemaTypeId schemaTypeId, string path)
         {
             if (schemaTypeId == toValidate.SchemaTypeId)
-            {
                 throw new InvalidOperationException("Circular reference. Path=" + path + ", SchemaTypeId=" +
                                                     schemaTypeId.FullId);
-            }
         }
 
         private void EnsureValidType(SchemaTypeId typeId, string path)
@@ -68,10 +60,8 @@ namespace Allard.Configinator.Core.Model.Validators
         private static void EnsureNotEmpty(IEnumerable<Property> properties, string path)
         {
             if (properties.ToList().Count == 0)
-            {
                 throw new InvalidOperationException("The SchemaType doesn't have any properties.. Path=" +
                                                     (path.Length == 0 ? "/" : path));
-            }
         }
     }
 }

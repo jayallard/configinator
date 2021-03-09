@@ -44,9 +44,9 @@ namespace Allard.Configinator.Core.Tests.Unit.Validators.Ddd
             r1.Should().Be("boo yea");
             r2.Should().Be("santa claus");
         }
+
         public record SomethingEvent : DomainEvent;
 
         public record SomethingElseEvent : DomainEvent;
-
     }
 }

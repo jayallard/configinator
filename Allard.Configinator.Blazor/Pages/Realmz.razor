@@ -1,0 +1,25 @@
+@page "/organization/{organizationId}/realms/{realmId}"
+@using Allard.Configinator.Core.Infrastructure
+@using Allard.Configinator.Core.Model
+@inject IOrganizationRepository Repo;
+<h2>Organization: @org?.OrganizationId.Name</h2>
+<h3>Realm: @realm?.RealmId.Name</h3>
+
+@code {
+
+    [Parameter]
+    public string OrganizationId { get; set; }
+
+    [Parameter]
+    public string RealmId { get; set; }
+
+    private OrganizationAggregate org;
+    private Realm realm;
+
+    protected override async Task OnInitializedAsync()
+    {
+        org = await Repo.GetOrganizationByIdAsync(OrganizationId);
+        realm = org.GetRealmById(RealmId);
+    }
+
+}

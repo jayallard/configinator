@@ -109,7 +109,7 @@ namespace Allard.Configinator.Core.Tests.Unit.SchemaValidatorTests
                 .ToList();
             results.Single().Code.Should().Be("RequiredPropertyValueMissing");
         }
-        
+
         [Fact]
         public void PassesIfOptionalPropertyValueIsMissingValue()
         {

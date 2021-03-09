@@ -1,24 +1,32 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Allard.Configinator.Core;
+using Allard.Configinator.Core.Infrastructure;
 using MediatR;
 
 namespace Allard.Configinator.Api.Commands
 {
     public class SetConfigurationValueHandler : IRequestHandler<SetConfigurationValueCommand, Blah>
     {
-        private readonly Configinator configinator;
+        private readonly IConfiginatorService configinatorService;
 
-        public SetConfigurationValueHandler(Configinator configinator)
+        public SetConfigurationValueHandler(IConfiginatorService configinatorService)
         {
-            this.configinator = configinator;
+            this.configinatorService = configinatorService;
         }
 
         public async Task<Blah> Handle(SetConfigurationValueCommand request, CancellationToken cancellationToken)
         {
-            // todo: wrong types... in progress.
-            var id = new ConfigurationId(request.Habitat, request.Realm, request.ConfigurationSection);
-            var setter = new ConfigurationValueSetter(id, request.PreviousEtag, request.Value);
-            await configinator.Configuration.Set(setter);
+            var configinator = await configinatorService.GetConfiginatorByNameAsync(request.OrganizationName);
+            var id = new ConfigurationId(
+                request.OrganizationName,
+                request.HabitatName,
+                request.RealmName,
+                request.ConfigurationSectionName);
+            var setRequest = new SetConfigurationRequest(id, request.PreviousEtag, request.Value);
+            var response = await configinator.SetValueAsync(setRequest);
+
+            // todo: convert response
             return new Blah();
         }
     }

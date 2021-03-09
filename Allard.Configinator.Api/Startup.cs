@@ -1,9 +1,5 @@
-using System.IO;
-using Allard.Configinator.Configuration;
-using Allard.Configinator.Habitats;
-using Allard.Configinator.Realms;
-using Allard.Configinator.Schema;
-using Allard.Configinator.Schema.Validator;
+using Allard.Configinator.Core;
+using Allard.Configinator.Core.Infrastructure;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -35,17 +31,8 @@ namespace Allard.Configinator.Api
 
             // configinator!
             services
-                .AddSingleton<Configinator>()
                 .AddSingleton<IConfigStore, MemoryConfigStore>()
-                .AddSingleton<IHabitatService, HabitatService>()
-                .AddSingleton<IHabitatRepository>(
-                    new HabitatsRepositoryYamlFile(Path.Combine(DataFolder, "habitats.yml")))
-                .AddSingleton<IRealmService, RealmService>()
-                .AddSingleton<IRealmRepository>(new RealmRepositoryYamlFiles(DataFolder))
-                .AddSingleton<ISchemaValidator, SchemaValidator>()
-                .AddSingleton<ISchemaService, SchemaService>()
-                .AddSingleton<ITypeValidatorFactory, ValidatorFactoryServices>()
-                .AddSingleton<ISchemaRepository>(new SchemaRepositoryYamlFiles(DataFolder));
+                .AddSingleton<IConfiginatorService, ConfiginatorService>();
 
             // MediatR
             services.AddMediatR(typeof(Startup).Assembly);

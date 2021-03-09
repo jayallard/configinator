@@ -103,9 +103,9 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
         }
 
         /// <summary>
-        /// Doc 0 doesn't have the property.
-        /// Doc 1 does.
-        /// Back fill the history for doc 0 with DoesntExist.
+        ///     Doc 0 doesn't have the property.
+        ///     Doc 1 does.
+        ///     Back fill the history for doc 0 with DoesntExist.
         /// </summary>
         [Fact]
         public async Task PropertySetInSecondDocument()
@@ -155,11 +155,11 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
         }
 
         /// <summary>
-        /// If doc 1 = hello: world,
-        /// And doc 2 = hello: world,
-        /// then the doc2 transition should be SetToSameValue.
-        /// During load, it is set to Set.
-        /// The cleanup reset it to SetToSameValue.
+        ///     If doc 1 = hello: world,
+        ///     And doc 2 = hello: world,
+        ///     then the doc2 transition should be SetToSameValue.
+        ///     During load, it is set to Set.
+        ///     The cleanup reset it to SetToSameValue.
         /// </summary>
         [Fact]
         public async Task SetToSameValue()
@@ -171,7 +171,7 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
             var merge = new List<DocumentToMerge>
             {
                 new("top", new JsonObjectNode(string.Empty, top)),
-                new("bottom",  new JsonObjectNode(string.Empty, bottom))
+                new("bottom", new JsonObjectNode(string.Empty, bottom))
             };
 
             var result = (await DocMerger.Merge(merge))

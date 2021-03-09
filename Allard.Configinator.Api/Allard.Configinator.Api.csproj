@@ -12,7 +12,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Allard.Configinator\Allard.Configinator.csproj" />
+      <ProjectReference Include="..\Allard.Configinator.Core\Allard.Configinator.Core.csproj" />
+      <ProjectReference Include="..\Allard.Configinator.Infrastructure.MongoDb\Allard.Configinator.Infrastructure.MongoDb.csproj" />
     </ItemGroup>
 
 </Project>

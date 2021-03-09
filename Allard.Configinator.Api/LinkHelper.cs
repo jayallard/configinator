@@ -33,7 +33,7 @@ namespace Allard.Configinator.Api
             foreach (var cs in realm.ConfigurationSections)
                 cs.Links = linkHelper
                     .CreateBuilder()
-                    .AddConfigurationSection(realm.Name, cs.Name)
+                    .AddConfigurationSection(realm.Name, cs.ConfigurationSectionId.Name)
                     .Build()
                     .ToList();
         }

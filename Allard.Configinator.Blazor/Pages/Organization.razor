@@ -10,12 +10,11 @@
     public string OrganizationId { get; set; }
 
     private OrganizationAggregate org;
-
-    private CreateRealmModel newRealm = new();
+    private readonly CreateRealmModel newRealm = new();
 
     protected override async Task OnInitializedAsync()
     {
-        org = await Repo.GetOrganizationAsync(OrganizationId);
+        org = await Repo.GetOrganizationByIdAsync(OrganizationId);
     }
 
     private async Task AddRealm()
@@ -61,7 +60,9 @@
             @foreach (var realm in org.Realms)
             {
                 <tr>
-                    <td>@realm.RealmId.Name</td>
+                    <td>
+                        <a href="/organization/@org.OrganizationId.Id/realms/@realm.RealmId.Id">@realm.RealmId.Name</a>
+                    </td>
                     <td>@realm.RealmId.Id</td>
                 </tr>
             }

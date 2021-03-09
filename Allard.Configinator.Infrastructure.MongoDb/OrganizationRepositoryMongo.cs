@@ -31,7 +31,13 @@ namespace Allard.Configinator.Infrastructure.MongoDb
             client = new MongoClient("mongodb://localhost:27017");
         }
 
-        public async Task<OrganizationAggregate> GetOrganizationAsync(string id)
+        public IEnumerable<OrganizationId> GetOrganizationIds()
+        {
+            // todo: hack
+            return GetStateCollection().Find(o => true).ToList();
+        }
+
+        public async Task<OrganizationAggregate> GetOrganizationByIdAsync(string id)
         {
             var organization = (OrganizationAggregate) Activator.CreateInstance(typeof(OrganizationAggregate), true);
             var eventAccessor = new EventAccessor(organization);
@@ -41,6 +47,11 @@ namespace Allard.Configinator.Infrastructure.MongoDb
                 .Sort("{_id: 1}")
                 .ForEachAsync(e => { eventAccessor.ApplyEvent(e.Event); });
             return organization;
+        }
+
+        public Task<OrganizationAggregate> GetOrganizationByNameAsync(string name)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task SaveAsync(OrganizationAggregate organization)
@@ -90,12 +101,6 @@ namespace Allard.Configinator.Infrastructure.MongoDb
             return client
                 .GetDatabase(Database)
                 .GetCollection<OrganizationId>("organization-state");
-        }
-
-        public IEnumerable<OrganizationId> GetOrganizationIds()
-        {
-            // todo: hack
-            return GetStateCollection().Find(o => true).ToList();
         }
     }
 }

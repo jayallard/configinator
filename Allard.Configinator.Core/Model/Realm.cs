@@ -11,33 +11,27 @@ namespace Allard.Configinator.Core.Model
         private readonly Dictionary<string, ConfigurationSection> configurationSections = new();
         private readonly Dictionary<string, Habitat> habitats = new();
 
-        public Realm(RealmId realmId, OrganizationAggregate organization)
+        public Realm(OrganizationAggregate organization, RealmId realmId)
         {
             Organization = organization;
             RealmId = realmId;
         }
 
-        private OrganizationAggregate Organization { get; }
+        public OrganizationAggregate Organization { get; }
         public RealmId RealmId { get; }
         public IReadOnlyCollection<Habitat> Habitats => habitats.Values;
         public IReadOnlyCollection<ConfigurationSection> ConfigurationSections => configurationSections.Values;
 
         public Habitat GetHabitat(string habitatName)
         {
-            if (habitats.TryGetValue(habitatName, out var habitat))
-            {
-                return habitat;
-            }
+            if (habitats.TryGetValue(habitatName, out var habitat)) return habitat;
 
             throw new InvalidOperationException("Habitat doesn't exist: " + habitat);
         }
 
         public ConfigurationSection GetConfigurationSection(string configurationSectionName)
         {
-            if (configurationSections.TryGetValue(configurationSectionName, out var cs))
-            {
-                return cs;
-            }
+            if (configurationSections.TryGetValue(configurationSectionName, out var cs)) return cs;
 
             throw new InvalidOperationException("Configuration section doesn't exist: " + cs);
         }
@@ -65,7 +59,10 @@ namespace Allard.Configinator.Core.Model
             string schemaTypeId,
             string path,
             string description)
-            => AddConfigurationSection(configurationSectionName, SchemaTypeId.Parse(schemaTypeId), path, description);
+        {
+            return AddConfigurationSection(configurationSectionName, SchemaTypeId.Parse(schemaTypeId), path,
+                description);
+        }
 
         public ConfigurationSection AddConfigurationSection(
             string configurationSectionName,

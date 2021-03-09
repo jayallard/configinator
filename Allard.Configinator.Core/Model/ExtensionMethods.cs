@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 namespace Allard.Configinator.Core.Model
 {
@@ -16,11 +15,8 @@ namespace Allard.Configinator.Core.Model
 
         public static List<T> AddIfNotNull<T>(this List<T> list, T item)
         {
-            if (item == null)
-            {
-                return list;
-            }
-            
+            if (item == null) return list;
+
             list.Add(item);
             return list;
         }

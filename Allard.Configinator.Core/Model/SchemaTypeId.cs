@@ -19,12 +19,12 @@ namespace Allard.Configinator.Core.Model
 
         public bool IsPrimitive => Namespace == "primitive";
 
+        public static SchemaTypeId String { get; } = CreatePrimitive("string");
+
         public static SchemaTypeId CreatePrimitive(string type)
         {
             return new("primitive", type);
         }
-
-        public static SchemaTypeId String { get; private set; } = CreatePrimitive("string");
 
         public static SchemaTypeId Parse(string fullId)
         {

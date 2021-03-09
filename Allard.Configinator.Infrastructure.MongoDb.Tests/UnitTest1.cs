@@ -30,7 +30,8 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
 
             var evt = new AddedRealmToOrganizationEvent(orgId,
                 new RealmId("realm id", "realm name"));
-            var dto = new EventDto(null, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), orgId.Id, DateTime.UtcNow,
+            var dto = new EventDto(null, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), orgId.Id,
+                DateTime.UtcNow,
                 "BlahBlah", evt);
             collection.InsertOne(dto);
 
@@ -54,7 +55,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
 
             await repo.SaveAsync(org);
 
-            var read = await repo.GetOrganizationAsync(orgId.Id);
+            var read = await repo.GetOrganizationByIdAsync(orgId.Id);
             read.Realms.Count.Should().Be(500);
         }
 
@@ -76,7 +77,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
 
             await repo.SaveAsync(org);
             // read
-            var read = await repo.GetOrganizationAsync(orgId.Id);
+            var read = await repo.GetOrganizationByIdAsync(orgId.Id);
             read.Realms.Count.Should().Be(2);
             var readRealm1 = read.Realms.Single(r => r.RealmId == r1.RealmId);
             readRealm1.Habitats.Count.Should().Be(2);
@@ -87,7 +88,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
             read.AddRealm("yay!");
             await repo.SaveAsync(read);
 
-            var readAfterUpdate = await repo.GetOrganizationAsync(orgId.Id);
+            var readAfterUpdate = await repo.GetOrganizationByIdAsync(orgId.Id);
             readAfterUpdate.Realms.Count.Should().Be(3);
         }
     }

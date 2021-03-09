@@ -5,8 +5,8 @@ namespace Allard.Configinator.Core.Model
 {
     public class Habitat
     {
-        private readonly Realm realm;
         private readonly List<Habitat> bases;
+        private readonly Realm realm;
 
         internal Habitat(HabitatId habitatId, Realm realm, IEnumerable<Habitat> bases)
         {

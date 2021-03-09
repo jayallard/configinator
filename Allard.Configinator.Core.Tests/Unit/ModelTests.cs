@@ -1,17 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
-using Allard.Configinator.Core.Ddd;
 using Allard.Configinator.Core.Events;
 using Allard.Configinator.Core.Model;
 using Allard.Configinator.Core.Model.Builders;
 using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 
 namespace Allard.Configinator.Core.Tests.Unit
 {
@@ -31,7 +27,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             var x = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
             testOutputHelper.WriteLine("");
         }
-        
+
         [Fact]
         public void AddConfigurationSectionFailsIfSchemaTypeDoesntExist()
         {
