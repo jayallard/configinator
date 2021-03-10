@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Allard.Configinator.Api.Controllers
 {
+    //[HateosFilter]
     [ApiController]
     [Route("/api/v1")]
     public class ConfiginatorQueriesController : Controller
@@ -62,7 +63,7 @@ namespace Allard.Configinator.Api.Controllers
         }
 
         [HttpGet]
-        [Route("realms/{name}")]
+        [Route("realms/{realmName}")]
         public async Task<RealmViewModel> GetRealm(string realmName)
         {
             return await mediator.Send(new GetRealmCommand(OrganizationName, realmName));
@@ -80,7 +81,7 @@ namespace Allard.Configinator.Api.Controllers
         }
 
         [HttpGet]
-        [Route("realms/{realmName}/sections/{configurationSectionName}/value/{habitat}")]
+        [Route("realms/{realmName}/sections/{configurationSectionName}/value-raw/{habitat}")]
         public async Task<ConfigurationValue> GetConfigurationValue(
             string realmName,
             string configurationSectionName,
@@ -91,7 +92,7 @@ namespace Allard.Configinator.Api.Controllers
         }
 
         [HttpGet]
-        [Route("realms/{realmName}/sections/{configurationSectionName}/value/{habitat}/resolved")]
+        [Route("realms/{realmName}/sections/{configurationSectionName}/value-resolved/{habitat}")]
         public async Task<ConfigurationValue> GetConfigurationValueResolved(
             string realmName,
             string configurationSectionName,

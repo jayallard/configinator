@@ -4,6 +4,7 @@ using Allard.Configinator.Infrastructure.MongoDb;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -28,13 +29,14 @@ namespace Allard.Configinator.Api
             const string DataFolder =
                 @"/Users/jallard/personal/ConfigurationManagement/Allard.Configinator.Tests/TestFiles/FullSetup";
 
-            services.AddControllers();
+            services.AddControllers(c => c.Filters.Add<HateosFilter>());
 
             // configinator!
             services
                 .AddSingleton<IConfigStore, MemoryConfigStore>()
                 .AddSingleton<IConfiginatorService, ConfiginatorService>()
-                .AddSingleton<IOrganizationRepository, OrganizationRepositoryMongo>();
+                .AddSingleton<IOrganizationRepository, OrganizationRepositoryMongo>()
+                .AddTransient<IActionFilter, HateosFilter>();
 
             // MediatR
             services.AddMediatR(typeof(Startup).Assembly);

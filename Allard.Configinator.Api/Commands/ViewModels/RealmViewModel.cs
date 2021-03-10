@@ -5,14 +5,12 @@ namespace Allard.Configinator.Api.Commands.ViewModels
 {
     public class RealmViewModel
     {
-        public string Name { get; set; }
-        public IEnumerable<ConfigurationSectionViewModel> ConfigurationSections { get; set; }
-        public IEnumerable<Link> Links { get; set; }
-
-        public RealmViewModel SetLinks(IEnumerable<Link> links)
-        {
-            Links = links?.ToList();
-            return this;
-        }
+        // TODO: habitats
+        
+        public string RealmName { get; set; }
+        public List<ConfigurationSectionViewModel> ConfigurationSections { get; set; }
+        public List<Link> Links { get; set; }
+        public List<HabitatViewModel> Habitats { get; set; }
+        
     }
 }

@@ -27,13 +27,13 @@ namespace Allard.Configinator.Api
         {
             realm.Links = linkHelper
                 .CreateBuilder()
-                .AddRealm(realm.Name, selfRealm)
+                .AddRealm(realm.RealmName, selfRealm)
                 .Build()
                 .ToList();
             foreach (var cs in realm.ConfigurationSections)
                 cs.Links = linkHelper
                     .CreateBuilder()
-                    .AddConfigurationSection(realm.Name, cs.ConfigurationSectionId.Name)
+                    .AddConfigurationSection(realm.RealmName, cs.ConfigurationSectionId.Name)
                     .Build()
                     .ToList();
         }
@@ -77,8 +77,17 @@ namespace Allard.Configinator.Api
 
             public LinkBuilder AddConfigurationSection(string realm, string configurationSection, bool self = false)
             {
-                return Add(Rel(self, ConfigurationSection), HttpMethod.Get, "realms", realm, "sections",
-                    configurationSection);
+                return
+                    Add(Rel(self, ConfigurationSection), HttpMethod.Get, "realms", realm, "sections",
+                            configurationSection)
+                        .Add(Rel(false, "valueRaw"), HttpMethod.Get, "realms", realm, "sections", configurationSection,
+                            "value-raw", "{habitat}")
+                        .Add(Rel(false, "valueResolved"), HttpMethod.Get, "realms", realm, "sections",
+                            configurationSection,
+                            "value-resolved", "{habitat}")
+                        .Add(Rel(false, "valueExplained"), HttpMethod.Get, "realms", realm, "sections",
+                            configurationSection,
+                            "value-explained", "{habitat}");
             }
 
             public LinkBuilder AddRoot(bool self = false)
@@ -97,7 +106,7 @@ namespace Allard.Configinator.Api
                 return isSelf ? Self : rel;
             }
 
-            public IEnumerable<Link> Build()
+            public List<Link> Build()
             {
                 return links;
             }
