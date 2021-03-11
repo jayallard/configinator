@@ -2,7 +2,7 @@ using Allard.Configinator.Core.DocumentValidator;
 
 namespace Allard.Configinator.Core.DocumentMerger
 {
-    public class PropertyHistoryItem
+    public class PropertyLayer
     {
         public OrderedDocumentToMerge DocName { get; set; }
         public IObjectNode Object { get; set; }

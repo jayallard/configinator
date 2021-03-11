@@ -67,10 +67,10 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
             testOutputHelper.WriteLine(JsonSerializer.Serialize(result));
 
             var prop = result["/test"];
-            prop.History.Count.Should().Be(2);
+            prop.Layers.Count.Should().Be(2);
             prop.Value.Should().BeNull();
-            prop.History[0].Transition.Should().Be(Transition.Set);
-            prop.History[1].Transition.Should().Be(Transition.Delete);
+            prop.Layers[0].Transition.Should().Be(Transition.Set);
+            prop.Layers[1].Transition.Should().Be(Transition.Delete);
         }
 
         [Fact]
@@ -94,12 +94,12 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
             testOutputHelper.WriteLine(JsonSerializer.Serialize(result));
 
             var prop = result["/test"];
-            prop.History.Count.Should().Be(4);
+            prop.Layers.Count.Should().Be(4);
             prop.Value.Should().Be("planet");
-            prop.History[0].Transition.Should().Be(Transition.Set);
-            prop.History[1].Transition.Should().Be(Transition.Delete);
-            prop.History[2].Transition.Should().Be(Transition.DoesntExist);
-            prop.History[3].Transition.Should().Be(Transition.Set);
+            prop.Layers[0].Transition.Should().Be(Transition.Set);
+            prop.Layers[1].Transition.Should().Be(Transition.Delete);
+            prop.Layers[2].Transition.Should().Be(Transition.DoesntExist);
+            prop.Layers[3].Transition.Should().Be(Transition.Set);
         }
 
         /// <summary>
@@ -124,10 +124,10 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
             testOutputHelper.WriteLine(JsonSerializer.Serialize(result));
 
             var prop = result["/test"];
-            prop.History.Count.Should().Be(2);
+            prop.Layers.Count.Should().Be(2);
             prop.Value.Should().Be("world");
-            prop.History[0].Transition.Should().Be(Transition.DoesntExist);
-            prop.History[1].Transition.Should().Be(Transition.Set);
+            prop.Layers[0].Transition.Should().Be(Transition.DoesntExist);
+            prop.Layers[1].Transition.Should().Be(Transition.Set);
         }
 
 
@@ -148,10 +148,10 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
                 .ToDictionary(m => m.Path, m => m.Property);
             testOutputHelper.WriteLine(JsonSerializer.Serialize(result));
             var prop = result["/test"];
-            prop.History.Count.Should().Be(2);
+            prop.Layers.Count.Should().Be(2);
             prop.Value.Should().Be("world");
-            prop.History[0].Transition.Should().Be(Transition.Set);
-            prop.History[1].Transition.Should().Be(Transition.Inherit);
+            prop.Layers[0].Transition.Should().Be(Transition.Set);
+            prop.Layers[1].Transition.Should().Be(Transition.Inherit);
         }
 
         /// <summary>
@@ -179,8 +179,8 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
             testOutputHelper.WriteLine(JsonSerializer.Serialize(result));
 
             var prop = result["/test"];
-            prop.History[0].Transition.Should().Be(Transition.Set);
-            prop.History[1].Transition.Should().Be(Transition.SetToSameValue);
+            prop.Layers[0].Transition.Should().Be(Transition.Set);
+            prop.Layers[1].Transition.Should().Be(Transition.SetToSameValue);
         }
     }
 }

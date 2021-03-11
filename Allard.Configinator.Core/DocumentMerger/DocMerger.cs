@@ -49,22 +49,22 @@ namespace Allard.Configinator.Core.DocumentMerger
             // iterate all of the properties in the result doc.
             foreach (var (_, currentObject) in merged)
                 // if there are 5 merge docs, then every
-                // property will have 5 history items.
-                // iterate the history items. 
+                // property will have 5 layer items.
+                // iterate the layer items. 
                 // some will be missing. (IE: if something was added in doc 2,
-                // then the history is missing in doc1. if something is deleted
+                // then the layer is missing in doc1. if something is deleted
                 // in doc 3, then it is missing in doc 4 (unless doc 4 puts it back).
                 for (var h = 0; h < toMerge.Count; h++)
                 {
-                    // get the history node for the current index.
-                    var currentHistoryNode = currentObject
-                        .History
+                    // get the layer node for the current index.
+                    var currentLayerNode = currentObject
+                        .Layers
                         .FirstOrDefault(x => x?.DocName?.Order == h);
 
-                    // if the history node exists, then see if it needs any adjustments.
+                    // if the layer node exists, then see if it needs any adjustments.
                     // IE: if item #2 is SET, and item #3 is SET, then change #3 to
                     // SetToSameValue.
-                    if (currentHistoryNode != null)
+                    if (currentLayerNode != null)
                     {
                         // if we're at index 0, then there's nothing to do.
                         if (h == 0) continue;
@@ -72,19 +72,19 @@ namespace Allard.Configinator.Core.DocumentMerger
                         // if the previous version is set, and the current
                         // version is set, then change current to SetToSame.
                         // both did explicit sets, but to the same value.
-                        if (currentHistoryNode.Transition.IsSet() &&
-                            currentObject.History[h - 1].Transition.IsSet())
-                            currentHistoryNode.Transition = Transition.SetToSameValue;
+                        if (currentLayerNode.Transition.IsSet() &&
+                            currentObject.Layers[h - 1].Transition.IsSet())
+                            currentLayerNode.Transition = Transition.SetToSameValue;
 
                         continue;
                     }
 
                     // the first document didn't have the property.
                     // this means it was added by a future document.
-                    // insert history stating that it didn't exist.
+                    // insert layer stating that it didn't exist.
                     if (h == 0)
                     {
-                        currentObject.History.Insert(0, new PropertyHistoryItem
+                        currentObject.Layers.Insert(0, new PropertyLayer
                         {
                             Transition = Transition.DoesntExist,
                             DocName = null,
@@ -96,10 +96,10 @@ namespace Allard.Configinator.Core.DocumentMerger
                         continue;
                     }
 
-                    // a history item > 0 that doesn't exist.
-                    // back fill the history by looking at the previous history item.
-                    var previous = currentObject.History[h - 1];
-                    currentObject.History.Insert(h, new PropertyHistoryItem
+                    // a layer item > 0 that doesn't exist.
+                    // back fill the layer by looking at the previous layer item.
+                    var previous = currentObject.Layers[h - 1];
+                    currentObject.Layers.Insert(h, new PropertyLayer
                     {
                         Transition = previous.Transition switch
                         {
@@ -153,7 +153,7 @@ namespace Allard.Configinator.Core.DocumentMerger
                 // get the property, and set its new value.
                 var resultProperty = merged[propertyPath];
                 resultProperty.Value = property.Value;
-                resultProperty.History.Add(new PropertyHistoryItem
+                resultProperty.Layers.Add(new PropertyLayer
                 {
                     // if the value is null, then delete.
                     // (if the property was missing, instead of null, then it would carry forward)
