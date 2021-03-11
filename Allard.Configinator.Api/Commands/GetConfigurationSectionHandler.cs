@@ -6,9 +6,8 @@ using MediatR;
 
 namespace Allard.Configinator.Api.Commands
 {
-    public class
-        GetConfigurationSectionHandler : IRequestHandler<GetConfigurationSectionCommand, ConfigurationSectionViewModel
-        >
+    public class GetConfigurationSectionHandler
+        : IRequestHandler<GetConfigurationSectionCommand, ConfigurationSectionViewModel>
     {
         private readonly IConfiginatorService configinatorService;
 
@@ -28,7 +27,7 @@ namespace Allard.Configinator.Api.Commands
                 ConfigurationSectionId = cs.ConfigurationSectionId,
                 Path = cs.Path,
                 RealmId = realm.RealmId,
-                SchemaTypeId = cs.SchemaTypeId.FullId
+                SchemaTypeId = cs.SchemaTypeId.FullId,
             };
         }
     }

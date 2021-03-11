@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Allard.Configinator.Api.Commands
 {
-    public record GetConfigurationValueCommand
+    public record GetConfigurationResolvededCommand
     (
         string OrganizationName,
         string HabitatName,

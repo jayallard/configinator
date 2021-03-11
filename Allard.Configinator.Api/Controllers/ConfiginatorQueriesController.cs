@@ -1,10 +1,13 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Allard.Configinator.Api.Commands;
 using Allard.Configinator.Api.Commands.ViewModels;
 using Allard.Configinator.Api.Controllers.ViewModels;
+using Allard.Configinator.Core.DocumentMerger;
 using Allard.Configinator.Core.Infrastructure;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -24,6 +27,100 @@ namespace Allard.Configinator.Api.Controllers
             this.mediator = mediator;
             this.links = links;
         }
+
+        [HttpGet]
+        [Route("config/{orgId}/{realmId}/{sectionId}/{habitatId}/value-raw")]
+        public async Task<JsonDocument?> GetConfigurationValueRaw(
+            string orgId,
+            string realmId,
+            string sectionId,
+            string habitatId)
+        {
+            var id = new ConfigurationId(orgId, realmId, sectionId, habitatId);
+            var response = await mediator.Send(new GetConfigurationRawCommand(id));
+            if (!response.Exists)
+            {
+                Response.StatusCode = 404;
+                return null;
+            }
+            
+            return response.ResolvedValue;
+        }
+
+        [HttpPut]
+        [Route("config/{orgId}/{realmId}/{sectionId}/{habitatId}/value-raw")]
+        public async Task<SetConfigurationResponse> SetConfigurationValueRaw(
+            string orgId,
+            string realmId,
+            string sectionId,
+            string habitatId,
+            [FromBody] JsonDocument value)
+        {
+            // todo: location header
+            var id = new ConfigurationId(orgId, realmId, sectionId, habitatId);
+            var response = await mediator.Send(new SetConfigurationRawCommand(id, value));
+            if (!response.Success)
+            {
+                Response.StatusCode = (int) HttpStatusCode.BadRequest;
+            }
+
+            return response;
+        }
+        
+        [HttpGet]
+        [Route("config/{orgId}/{realmId}/{sectionId}/{habitatId}/value-resolved")]
+        public async Task<JsonDocument> GetConfigurationValueResolved(
+            string orgId,
+            string realmId,
+            string sectionId,
+            string habitatId)
+        {
+            var id = new ConfigurationId(orgId, realmId, sectionId, habitatId);
+            var response = await mediator.Send(new GetConfigurationResolvedCommand(id));
+            return response.ResolvedValue;
+
+        }
+        
+        [HttpGet]
+        [Route("config/{orgId}/{realmId}/{sectionId}/{habitatId}/value-explained")]
+        public async Task<List<MergedProperty>> GetConfigurationValueExplained(
+            string orgId,
+            string realmId,
+            string sectionId,
+            string habitatId)
+        {
+            var id = new ConfigurationId(orgId, realmId, sectionId, habitatId);
+            var response = await mediator.Send(new GetConfigurationResolvedCommand(id));
+            return response.Properties;
+        }
+
+        // ========================================================
+        // ========================================================
+        // ========================================================
+        // ========================================================
+        // todo
+
+
+
+        /*
+        [HttpPut]
+        [Route("realms/{realmName}/sections/{configurationSectionName}/value-resolved/{habitat}")]
+        public async Task<Blah> SetConfigurationValueResolved(
+            string realmName,
+            string configurationSectionName,
+            string habitat,
+            [FromBody] SetValueRequestModel value)
+        {
+            return await mediator.Send(
+                new SetConfigurationRawCommand
+                {
+                    HabitatName = habitat,
+                    RealmName = realmName,
+                    ConfigurationSectionName = configurationSectionName,
+                    Value = value.Value
+                });
+        }*/
+
 
         public string OrganizationName { get; } = "allard";
 
@@ -80,30 +177,6 @@ namespace Allard.Configinator.Api.Controllers
                 new GetConfigurationSectionCommand(OrganizationName, realmName, configurationSectionName));
         }
 
-        [HttpGet]
-        [Route("realms/{realmName}/sections/{configurationSectionName}/value-raw/{habitat}")]
-        public async Task<ConfigurationValue> GetConfigurationValue(
-            string realmName,
-            string configurationSectionName,
-            string habitat)
-        {
-            return await mediator.Send(new GetConfigurationValueCommand(OrganizationName, habitat, realmName,
-                configurationSectionName));
-        }
-
-        [HttpGet]
-        [Route("realms/{realmName}/sections/{configurationSectionName}/value-resolved/{habitat}")]
-        public async Task<ConfigurationValue> GetConfigurationValueResolved(
-            string realmName,
-            string configurationSectionName,
-            string habitat)
-        {
-            return await mediator.Send(new GetConfigurationValueCommand(
-                OrganizationName,
-                habitat,
-                realmName,
-                configurationSectionName));
-        }
 
         private static string ToJsonString(JsonDocument jdoc)
         {
@@ -112,25 +185,6 @@ namespace Allard.Configinator.Api.Controllers
             jdoc.WriteTo(writer);
             writer.Flush();
             return Encoding.UTF8.GetString(stream.ToArray());
-        }
-
-        [HttpPut]
-        [Route("realms/{realmName}/sections/{configurationSectionName}/value/{habitat}")]
-        public async Task<Blah> SetConfigurationValue(
-            string realmName,
-            string configurationSectionName,
-            string habitat,
-            [FromBody] SetValueRequestModel value)
-        {
-            return await mediator.Send(
-                new SetConfigurationValueCommand
-                {
-                    PreviousEtag = value.PreviousETag,
-                    HabitatName = habitat,
-                    RealmName = realmName,
-                    ConfigurationSectionName = configurationSectionName,
-                    Value = value.Value
-                });
         }
     }
 }

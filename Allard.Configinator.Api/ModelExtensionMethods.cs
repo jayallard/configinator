@@ -36,7 +36,7 @@ namespace Allard.Configinator.Api
                 RealmName = realm.RealmId.Name,
                 Habitats = realm.Habitats
                     .Select(h => new HabitatViewModel(
-                        h.HabitatId.Name, 
+                        h.HabitatId.Name,
                         h.Bases.Select(b => b.HabitatId.Name).ToList().AsReadOnly())).ToList(),
                 ConfigurationSections = realm
                     .ConfigurationSections
@@ -80,5 +80,6 @@ namespace Allard.Configinator.Api
         {
             return new(schemaTypes.Select(schemaType => schemaType.ToViewModel()), new List<Link>());
         }
+        
     }
 }

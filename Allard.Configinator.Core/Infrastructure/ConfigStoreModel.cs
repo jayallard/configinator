@@ -1,9 +1,14 @@
+using System.Collections.Generic;
+using System.Text.Json;
+using Allard.Configinator.Core.DocumentMerger;
+
 namespace Allard.Configinator.Core.Infrastructure
 {
-    public record ConfigStoreValue(string Path, string ETag, string Value);
+    public record ConfigStoreValue(string Path, JsonDocument Value, bool Exists);
 
-    public record ConfigurationId(string OrganizationName, string HabitatName, string RealmName,
-        string ConfigurationSectionName);
+    public record SetConfigStoreValueRequest(string Path, JsonDocument Value);
 
-    public record ConfigurationValue(ConfigurationId Id, string Etag, string ResolvedValue);
+    public record ConfigurationId(string OrganizationId, string RealmId, string SectionId, string HabitatId);
+
+    public record ConfigurationValue(ConfigurationId Id, bool Exists, JsonDocument ResolvedValue, List<MergedProperty> Properties);
 }
