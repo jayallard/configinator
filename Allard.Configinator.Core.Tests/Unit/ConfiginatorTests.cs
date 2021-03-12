@@ -74,7 +74,7 @@ namespace Allard.Configinator.Core.Tests.Unit
                 TestConfigurationSection1,
                 "staging");
             var request = new GetConfigurationRequest(configId);
-            var value = await Configinator.GetResolvedValueAsync(request);
+            var value = await Configinator.GetValueResolvedAsync(request);
             value.Existing.Should().BeFalse();
             value.ConfigurationId.Should().Be(configId);
             value.PropertyDetail.Count.Should().Be(0);
@@ -87,7 +87,7 @@ namespace Allard.Configinator.Core.Tests.Unit
                 TestConfigurationSection1, "staging");
             var setRequest =
                 new SetConfigurationRequest(configId, JsonDocument.Parse("{ \"nothing-to\": \"see-here\" }"));
-            var setResponse = await Configinator.SetValueAsync(setRequest);
+            var setResponse = await Configinator.SetValueRawAsync(setRequest);
             setResponse.Failures.Count.Should().Be(2);
             setResponse.Success.Should().BeFalse();
         }
@@ -99,13 +99,13 @@ namespace Allard.Configinator.Core.Tests.Unit
             var configId = new ConfigurationId(Organization.OrganizationId.Name, TestRealm1,
                 TestConfigurationSection1, "staging");
             var setRequest = new SetConfigurationRequest(configId, JsonDocument.Parse(file));
-            var setResponse = await Configinator.SetValueAsync(setRequest);
+            var setResponse = await Configinator.SetValueRawAsync(setRequest);
             setResponse.Failures.Should().BeEmpty();
             setResponse.Success.Should().BeTrue();
 
 
             var getRequest = new GetConfigurationRequest(configId);
-            var get = await Configinator.GetResolvedValueAsync(getRequest);
+            var get = await Configinator.GetValueResolvedAsync(getRequest);
 
             // todo: broken/fragile - deep compare doesnt exist
             //file.Should().Be(get.ResolvedValue);
@@ -121,14 +121,14 @@ namespace Allard.Configinator.Core.Tests.Unit
             var configId = new ConfigurationId(Organization.OrganizationId.Name, TestRealm1,
                 TestConfigurationSection1, "dev");
             var setRequest = new SetConfigurationRequest(configId, JsonDocument.Parse(file));
-            var setResponse = await Configinator.SetValueAsync(setRequest);
+            var setResponse = await Configinator.SetValueRawAsync(setRequest);
             setResponse.Success.Should().BeTrue();
 
             var configId2 = new ConfigurationId(Organization.OrganizationId.Name, TestRealm1,
                 TestConfigurationSection1, "dev-allard");
             var sqlPassword = " { \"sql-source\": { \"password\": \"new password\" } } ";
             var setRequest2 = new SetConfigurationRequest(configId2, JsonDocument.Parse(sqlPassword));
-            await Configinator.SetValueAsync(setRequest2);
+            await Configinator.SetValueRawAsync(setRequest2);
             var path = Organization
                 .GetRealmByName(TestRealm1)
                 .GetConfigurationSection(TestConfigurationSection1)

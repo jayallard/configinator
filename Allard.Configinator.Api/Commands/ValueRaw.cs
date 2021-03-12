@@ -46,7 +46,7 @@ namespace Allard.Configinator.Api.Commands
         {
             var configinator = await configinatorService.GetConfiginatorByNameAsync(request.ConfigurationId.OrganizationId);
             var setRequest = new SetConfigurationRequest(request.ConfigurationId, request.Value);
-            var response = await configinator.SetValueAsync(setRequest);
+            var response = await configinator.SetValueRawAsync(setRequest);
             
             // todo: map failures to dto
             return new SetConfigurationResponse(response.ConfigurationId, response.Failures);

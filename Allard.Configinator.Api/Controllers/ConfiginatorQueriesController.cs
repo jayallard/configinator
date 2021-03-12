@@ -78,6 +78,26 @@ namespace Allard.Configinator.Api.Controllers
 
         }
         
+        [HttpPut]
+        [Route("config/{orgId}/{realmId}/{sectionId}/{habitatId}/value-resolved")]
+        public async Task<SetConfigurationResponse> SetConfigurationValueResolved(
+            string orgId,
+            string realmId,
+            string sectionId,
+            string habitatId,
+            [FromBody] JsonDocument value)
+        {
+            // todo: location header
+            var id = new ConfigurationId(orgId, realmId, sectionId, habitatId);
+            var response = await mediator.Send(new SetConfigurationResolvedCommand(id, value));
+            if (!response.Success)
+            {
+                Response.StatusCode = (int) HttpStatusCode.BadRequest;
+            }
+
+            return response;
+        }
+        
         [HttpGet]
         [Route("config/{orgId}/{realmId}/{sectionId}/{habitatId}/value-explained")]
         public async Task<ExplainedViewModel> GetConfigurationValueExplained(

@@ -1,6 +1,14 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	
+	
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=8f995ea2_002Dab28_002D44cb_002Dacee_002D478b172037cc/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from &amp;lt;Allard.Configinator.Core.Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;Project Location="/home/jaya/personal/projects/configinator/Allard.Configinator.Core.Tests" Presentation="&amp;lt;Allard.Configinator.Core.Tests&amp;gt;" /&gt;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=9d7aae98_002D5560_002D46f8_002Da6cf_002D089ee3c5f47a/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from &amp;lt;Allard.Configinator.Core.Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;Or&gt;
+    &lt;Project Location="/Users/jallard/personal/ConfigurationManagement/Allard.Configinator.Core.Tests" Presentation="&amp;lt;Allard.Configinator.Core.Tests&amp;gt;" /&gt;
+    &lt;Project Location="/Users/jallard/personal/ConfigurationManagement/Allard.Configinator.Infrastructure.MongoDb.Tests" Presentation="&amp;lt;Allard.Configinator.Infrastructure.MongoDb.Tests&amp;gt;" /&gt;
+  &lt;/Or&gt;
 &lt;/SessionState&gt;</s:String>
 	
 	

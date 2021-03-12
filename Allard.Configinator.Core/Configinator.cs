@@ -22,7 +22,12 @@ namespace Allard.Configinator.Core
 
         public OrganizationAggregate Organization => org;
 
-        public async Task<SetConfigurationResponse> SetValueAsync(SetConfigurationRequest request)
+        public async Task<SetConfigurationResponse> SetValueResolvedAsync(SetConfigurationRequest request)
+        {
+            
+        }
+
+        public async Task<SetConfigurationResponse> SetValueRawAsync(SetConfigurationRequest request)
         {
             var realm = org.GetRealmByName(request.ConfigurationId.RealmId);
             var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
@@ -61,7 +66,7 @@ namespace Allard.Configinator.Core
             return new SetConfigurationResponse(request.ConfigurationId, errors);
         }
 
-        public async Task<GetConfigurationResponse> GetResolvedValueAsync(GetConfigurationRequest request)
+        public async Task<GetConfigurationResponse> GetValueResolvedAsync(GetConfigurationRequest request)
         {
             var realm = org.GetRealmByName(request.ConfigurationId.RealmId);
             var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);

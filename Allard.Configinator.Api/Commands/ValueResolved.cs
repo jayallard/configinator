@@ -7,9 +7,11 @@ using MediatR;
 
 namespace Allard.Configinator.Api.Commands
 {
-    public record SetConfigurationResolvedCommand(ConfigurationId ConfigurationId, JsonDocument Value) : IRequest<SetConfigurationResponse>;
+    public record SetConfigurationResolvedCommand
+        (ConfigurationId ConfigurationId, JsonDocument Value) : IRequest<SetConfigurationResponse>;
+
     public record GetConfigurationResolvedCommand(ConfigurationId ConfigurationId) : IRequest<ConfigurationValue>;
-    
+
     public class
         GetConfigurationValueResolvedHandler : IRequestHandler<GetConfigurationResolvedCommand, ConfigurationValue>
     {
@@ -27,13 +29,14 @@ namespace Allard.Configinator.Api.Commands
             var get = new GetConfigurationRequest(request.ConfigurationId);
             var configinator =
                 await configinatorService.GetConfiginatorByNameAsync(request.ConfigurationId.OrganizationId);
-            var result = await configinator.GetResolvedValueAsync(get);
-            return new ConfigurationValue(request.ConfigurationId, result.Exists, result.ResolvedValue, result.PropertyDetail);
+            var result = await configinator.GetValueResolvedAsync(get);
+            return new ConfigurationValue(request.ConfigurationId, result.Exists, result.ResolvedValue,
+                result.PropertyDetail);
         }
     }
 
-    public class
-        SetConfigurationValueResolvedHandler : IRequestHandler<SetConfigurationResolvedCommand, SetConfigurationResponse>
+    public class SetConfigurationValueResolvedHandler
+        : IRequestHandler<SetConfigurationResolvedCommand, SetConfigurationResponse>
     {
         private readonly IConfiginatorService configinatorService;
 
@@ -47,9 +50,10 @@ namespace Allard.Configinator.Api.Commands
         {
             // TODO: do a diff between this document and the merge of the upper docs.
             // whatever is left is what needs to be saved. 
-            var configinator = await configinatorService.GetConfiginatorByNameAsync(request.ConfigurationId.OrganizationId);
+            var configinator =
+                await configinatorService.GetConfiginatorByNameAsync(request.ConfigurationId.OrganizationId);
             var setRequest = new SetConfigurationRequest(request.ConfigurationId, request.Value);
-            var response = await configinator.SetValueAsync(setRequest);
+            var response = await configinator.SetValueRawAsync(setRequest);
 
             // todo: map failures to dto
             return new SetConfigurationResponse(response.ConfigurationId, response.Failures);
