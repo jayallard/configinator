@@ -68,8 +68,11 @@ namespace Allard.Configinator.Core.Tests.Unit
         [Fact]
         public async Task GetValueDoesntExist()
         {
-            var configId = new ConfigurationId(Organization.OrganizationId.Name, "staging", TestRealm1,
-                TestConfigurationSection1);
+            var configId = new ConfigurationId(
+                Organization.OrganizationId.Name,
+                TestRealm1,
+                TestConfigurationSection1,
+                "staging");
             var request = new GetConfigurationRequest(configId);
             var value = await Configinator.GetResolvedValueAsync(request);
             value.Existing.Should().BeFalse();
@@ -80,8 +83,8 @@ namespace Allard.Configinator.Core.Tests.Unit
         [Fact]
         public async Task SetFailsIfDocFailsValidation()
         {
-            var configId = new ConfigurationId(Organization.OrganizationId.Name, "staging", TestRealm1,
-                TestConfigurationSection1);
+            var configId = new ConfigurationId(Organization.OrganizationId.Name, TestRealm1,
+                TestConfigurationSection1, "staging");
             var setRequest =
                 new SetConfigurationRequest(configId, JsonDocument.Parse("{ \"nothing-to\": \"see-here\" }"));
             var setResponse = await Configinator.SetValueAsync(setRequest);
@@ -93,8 +96,8 @@ namespace Allard.Configinator.Core.Tests.Unit
         public async Task SetSucceedsIfDocPassesValidation()
         {
             var file = TestUtility.GetFile("FullDocumentPasses.json");
-            var configId = new ConfigurationId(Organization.OrganizationId.Name, "staging", TestRealm1,
-                TestConfigurationSection1);
+            var configId = new ConfigurationId(Organization.OrganizationId.Name, TestRealm1,
+                TestConfigurationSection1, "staging");
             var setRequest = new SetConfigurationRequest(configId, JsonDocument.Parse(file));
             var setResponse = await Configinator.SetValueAsync(setRequest);
             setResponse.Failures.Should().BeEmpty();
@@ -115,25 +118,24 @@ namespace Allard.Configinator.Core.Tests.Unit
             // set one value as a descendant: dev-jay
             // make sure only the one value is saved to dev-jay.
             var file = TestUtility.GetFile("FullDocumentPasses.json");
-            var configId = new ConfigurationId(Organization.OrganizationId.Name, "dev", TestRealm1,
-                TestConfigurationSection1);
+            var configId = new ConfigurationId(Organization.OrganizationId.Name, TestRealm1,
+                TestConfigurationSection1, "dev");
             var setRequest = new SetConfigurationRequest(configId, JsonDocument.Parse(file));
             var setResponse = await Configinator.SetValueAsync(setRequest);
             setResponse.Success.Should().BeTrue();
 
-            var configId2 = new ConfigurationId(Organization.OrganizationId.Name, "dev-allard", TestRealm1,
-                TestConfigurationSection1);
+            var configId2 = new ConfigurationId(Organization.OrganizationId.Name, TestRealm1,
+                TestConfigurationSection1, "dev-allard");
             var sqlPassword = " { \"sql-source\": { \"password\": \"new password\" } } ";
             var setRequest2 = new SetConfigurationRequest(configId2, JsonDocument.Parse(sqlPassword));
-            var setResponse2 = await Configinator.SetValueAsync(setRequest2);
+            await Configinator.SetValueAsync(setRequest2);
             var path = Organization
                 .GetRealmByName(TestRealm1)
                 .GetConfigurationSection(TestConfigurationSection1)
                 .Path
                 .Replace("{{habitat}}", "dev-allard");
-            var value = await ConfigStore.GetValueAsync(path);
-            value.Value.Should().Be(sqlPassword);
-            testOutputHelper.WriteLine(value.Value.ConvertToString());
+            var value = (await ConfigStore.GetValueAsync(path)).Value.ConvertToString();
+            value.Should().Be(JsonDocument.Parse(sqlPassword).ConvertToString());
         }
     }
 }

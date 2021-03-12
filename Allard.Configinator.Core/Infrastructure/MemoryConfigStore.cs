@@ -35,14 +35,14 @@ namespace Allard.Configinator.Core.Infrastructure
             }
         }
 
-        public async Task<ConfigStoreValue> SetValueAsync(SetConfigStoreValueRequest value)
+        public Task<ConfigStoreValue> SetValueAsync(SetConfigStoreValueRequest value)
         {
             value.EnsureValue(nameof(value));
             try
             {
                 readWriteLock.WaitOne();
                 repo[value.Path] = new ConfigStoreValue(value.Path, value.Value, true);
-                return repo[value.Path];
+                return Task.FromResult(repo[value.Path]);
             }
             finally
             {

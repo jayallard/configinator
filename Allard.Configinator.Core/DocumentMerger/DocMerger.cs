@@ -21,6 +21,12 @@ namespace Allard.Configinator.Core.DocumentMerger
 
         private readonly List<OrderedDocumentToMerge> toMerge;
 
+        // to get the name when you have the index
+        private readonly Dictionary<int, string> layerNamesByIndex;
+        
+        // to get the index when you have the name
+        private readonly Dictionary<string, int> layerIndexesByName;
+        
         private DocMerger(IEnumerable<DocumentToMerge> toMerge)
         {
             var index = 0;
@@ -28,6 +34,8 @@ namespace Allard.Configinator.Core.DocumentMerger
                 .EnsureValue(nameof(toMerge))
                 .Select(d => new OrderedDocumentToMerge(d, index++))
                 .ToList();
+            layerNamesByIndex = this.toMerge.ToDictionary(m => m.Order, m => m.Doc.Name);
+            layerIndexesByName = this.toMerge.ToDictionary(m => m.Doc.Name, m => m.Order);
         }
 
         public static Task<IEnumerable<MergedProperty>> Merge(IEnumerable<DocumentToMerge> documents)
@@ -54,12 +62,12 @@ namespace Allard.Configinator.Core.DocumentMerger
                 // some will be missing. (IE: if something was added in doc 2,
                 // then the layer is missing in doc1. if something is deleted
                 // in doc 3, then it is missing in doc 4 (unless doc 4 puts it back).
-                for (var h = 0; h < toMerge.Count; h++)
+                for (var layerIndex = 0; layerIndex < toMerge.Count; layerIndex++)
                 {
                     // get the layer node for the current index.
                     var currentLayerNode = currentObject
                         .Layers
-                        .FirstOrDefault(x => x?.DocName?.Order == h);
+                        .FirstOrDefault(x => x.LayerIndex == layerIndex);
 
                     // if the layer node exists, then see if it needs any adjustments.
                     // IE: if item #2 is SET, and item #3 is SET, then change #3 to
@@ -67,64 +75,74 @@ namespace Allard.Configinator.Core.DocumentMerger
                     if (currentLayerNode != null)
                     {
                         // if we're at index 0, then there's nothing to do.
-                        if (h == 0) continue;
+                        if (layerIndex == 0) continue;
 
-                        // if the previous version is set, and the current
-                        // version is set, then change current to SetToSame.
-                        // both did explicit sets, but to the same value.
-                        if (currentLayerNode.Transition.IsSet() &&
-                            currentObject.Layers[h - 1].Transition.IsSet())
+                        // if current value is the same as previous value,
+                        // and both values are SET,
+                        // then set the current value to SetToSameValue.
+                        // both layers explicitly set the value to the same thing.
+                        var previousLayer = currentObject.Layers[layerIndex - 1];
+                        var currentLayer = currentObject.Layers[layerIndex];
+                        if (previousLayer.Value != null && previousLayer.Transition.IsSet() &&
+                            currentLayer.Transition.IsSet() && previousLayer.Value.Equals(currentLayer.Value))
+                        {
+                            // TODO: need a test for this. there was a bug. it was setting
+                            // the value to SetToSameValue even when the value was different.
                             currentLayerNode.Transition = Transition.SetToSameValue;
+                        }
 
                         continue;
                     }
+                    
+                    // TODO: add TransitionFrom property.
+                    // if a value is inherited, indicate which layer set the value.
 
                     // the first document didn't have the property.
                     // this means it was added by a future document.
                     // insert layer stating that it didn't exist.
-                    if (h == 0)
+                    if (layerIndex == 0)
                     {
                         currentObject.Layers.Insert(0, new PropertyLayer
                         {
                             Transition = Transition.DoesntExist,
-                            DocName = null,
-                            Object = null,
-                            Property = null,
-                            ReferencedDoc = null,
-                            Value = null
+                            LayerName = layerNamesByIndex[0],
+                            LayerIndex = 0
                         });
                         continue;
                     }
 
                     // a layer item > 0 that doesn't exist.
                     // back fill the layer by looking at the previous layer item.
-                    var previous = currentObject.Layers[h - 1];
-                    currentObject.Layers.Insert(h, new PropertyLayer
+                    var previous = currentObject.Layers[layerIndex - 1];
+                    var transition = previous.Transition switch
                     {
-                        Transition = previous.Transition switch
-                        {
-                            // if the previous item deleted it,
-                            // then it no longer exists.
-                            Transition.Delete => Transition.DoesntExist,
+                        // if the previous item deleted it,
+                        // then it no longer exists.
+                        Transition.Delete => Transition.DoesntExist,
 
-                            // if the previous was inherited, then its still inherited.
-                            Transition.Inherit => Transition.Inherit,
+                        // if the previous was inherited, then its still inherited.
+                        Transition.Inherit => Transition.Inherit,
 
-                            // if the previous assigned a value,
-                            // this this inherits that value.
-                            Transition.SetToSameValue => Transition.Inherit,
-                            Transition.Set => Transition.Inherit,
+                        // if the previous assigned a value,
+                        // this this inherits that value.
+                        Transition.SetToSameValue => Transition.Inherit,
+                        Transition.Set => Transition.Inherit,
 
-                            // if it didn't exist in the previous,
-                            // the it still doesn't exist.
-                            Transition.DoesntExist => Transition.DoesntExist,
-                            _ => throw new ArgumentOutOfRangeException()
-                        },
-                        DocName = null,
-                        Object = null,
-                        Property = null,
-                        ReferencedDoc = null,
-                        Value = null
+                        // if it didn't exist in the previous,
+                        // the it still doesn't exist.
+                        Transition.DoesntExist => Transition.DoesntExist,
+                        _ => throw new ArgumentOutOfRangeException()
+                    };
+
+                    currentObject.Layers.Insert(layerIndex, new PropertyLayer
+                    {
+                        Transition = transition,
+                        LayerName = layerNamesByIndex[layerIndex],
+                        LayerIndex = layerIndex,
+                        
+                        // if inheriting the value, then get the value
+                        // TODO: need a test for this
+                        Value = transition == Transition.Inherit ? previous.Value : null
                     });
                 }
         }
@@ -148,7 +166,10 @@ namespace Allard.Configinator.Core.DocumentMerger
 
                 // add the property to the results, if it doesn't already exist.
                 if (!merged.ContainsKey(propertyPath))
-                    merged.Add(propertyPath, new PropertyValue {Name = property.Name});
+                    merged.Add(propertyPath, new PropertyValue
+                    {
+                        Name = property.Name
+                    });
 
                 // get the property, and set its new value.
                 var resultProperty = merged[propertyPath];
@@ -160,11 +181,9 @@ namespace Allard.Configinator.Core.DocumentMerger
                     Transition = property.Value == null
                         ? Transition.Delete
                         : Transition.Set,
-                    DocName = doc,
-                    Property = property,
-                    ReferencedDoc = null,
-                    Object = node,
-                    Value = property.Value
+                    Value = property.Value,
+                    LayerName = doc.Doc.Name,
+                    LayerIndex = layerIndexesByName[doc.Doc.Name]
                 });
             }
 

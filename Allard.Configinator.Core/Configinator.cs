@@ -52,7 +52,9 @@ namespace Allard.Configinator.Core
                 // save
                 // todo: normalize this
                 var path = cs.Path.Replace("{{habitat}}", habitat.HabitatId.Name);
-                var value = new SetConfigStoreValueRequest(path, mergedDoc);
+
+                // save the value that was passed in. 
+                var value = new SetConfigStoreValueRequest(path, request.Value);
                 await configStore.SetValueAsync(value);
             }
 
@@ -68,12 +70,12 @@ namespace Allard.Configinator.Core
             // get the bases and the specific value, then merge.
             var toMerge = await GetDocsFromConfigStore(cs.Path, habitat.Bases.ToList().AddIfNotNull(habitat));
             var merged = (await DocMerger.Merge(toMerge)).ToList();
-            
+
             // todo: doo much conversion
             var mergedJsonString = JsonDocument.Parse(merged.ToJsonString());
             return new GetConfigurationResponse(request.ConfigurationId, false, mergedJsonString, merged);
         }
-        
+
         private ConfigurationSection GetConfigurationSection(ConfigurationId id)
         {
             var realm = org.GetRealmByName(id.RealmId);
@@ -110,7 +112,8 @@ namespace Allard.Configinator.Core
                 {
                     if (ct.GetTask.Result.Value == null) return null;
 
-                    return new DocumentToMerge(ct.Habitat.HabitatId.Name, new JsonObjectNode(string.Empty, ct.GetTask.Result.Value.RootElement));
+                    return new DocumentToMerge(ct.Habitat.HabitatId.Name,
+                        new JsonObjectNode(string.Empty, ct.GetTask.Result.Value.RootElement));
                 })
                 .Where(v => v != null)
                 .ToList();

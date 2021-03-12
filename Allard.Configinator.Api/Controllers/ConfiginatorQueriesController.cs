@@ -38,13 +38,10 @@ namespace Allard.Configinator.Api.Controllers
         {
             var id = new ConfigurationId(orgId, realmId, sectionId, habitatId);
             var response = await mediator.Send(new GetConfigurationRawCommand(id));
-            if (!response.Exists)
-            {
-                Response.StatusCode = 404;
-                return null;
-            }
-            
-            return response.ResolvedValue;
+            if (response.Exists) return response.ResolvedValue;
+            Response.StatusCode = 404;
+            return null;
+
         }
 
         [HttpPut]
@@ -83,15 +80,14 @@ namespace Allard.Configinator.Api.Controllers
         
         [HttpGet]
         [Route("config/{orgId}/{realmId}/{sectionId}/{habitatId}/value-explained")]
-        public async Task<List<MergedProperty>> GetConfigurationValueExplained(
+        public async Task<ExplainedViewModel> GetConfigurationValueExplained(
             string orgId,
             string realmId,
             string sectionId,
             string habitatId)
         {
             var id = new ConfigurationId(orgId, realmId, sectionId, habitatId);
-            var response = await mediator.Send(new GetConfigurationResolvedCommand(id));
-            return response.Properties;
+            return await mediator.Send(new GetConfigurationExplainedCommand(id));
         }
 
         // ========================================================
