@@ -7,7 +7,7 @@ namespace Allard.Configinator.Api.Commands.ViewModels
     {
         public OrganizationId OrganizationId { get; set; }
         public RealmId RealmId { get; set; }
-        public ConfigurationSectionId ConfigurationSectionId { get; set; }
+        public SectionId SectionId { get; set; }
         public string Path { get; set; }
         public string SchemaTypeId { get; set; }
         public List<Link> Links { get; set; }

@@ -26,7 +26,7 @@ namespace Allard.Configinator.Api.Commands
             GetConfigurationExplainedCommand request,
             CancellationToken cancellationToken)
         {
-            var resolvedRequest = new GetValueCommand(request.ConfigurationId, ConfigValueFormat.Resolved);
+            var resolvedRequest = new GetValueCommand(request.ConfigurationId, ValueFormat.Resolved);
             var resolved = await mediator.Send(resolvedRequest, cancellationToken);
             if (!resolved.Exists)
             {

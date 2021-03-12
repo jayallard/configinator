@@ -7,7 +7,7 @@ namespace Allard.Configinator.Api.Commands.ViewModels
     {
         // TODO: habitats
         
-        public string RealmName { get; set; }
+        public string RealmId { get; set; }
         public List<ConfigurationSectionViewModel> ConfigurationSections { get; set; }
         public List<Link> Links { get; set; }
         public List<HabitatViewModel> Habitats { get; set; }

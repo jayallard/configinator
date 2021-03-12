@@ -11,12 +11,12 @@ namespace Allard.Configinator.Api.Commands
 {
     public record SetValueCommand(
         ConfigurationId ConfigurationId,
-        ConfigValueFormat Format,
+        ValueFormat Format,
         JsonDocument Value) : IRequest<SetConfigurationResponse>;
 
     public record GetValueCommand(
         ConfigurationId ConfigurationId,
-        ConfigValueFormat Format) : IRequest<ConfigurationValue>;
+        ValueFormat Format) : IRequest<ConfigurationValue>;
     
     public class GetValueHandler : IRequestHandler<GetValueCommand, ConfigurationValue>
     {
@@ -35,7 +35,7 @@ namespace Allard.Configinator.Api.Commands
             var configinator =
                 await configinatorService.GetConfiginatorByNameAsync(request.ConfigurationId.OrganizationId);
             var result = await configinator.GetValueAsync(get);
-            return new ConfigurationValue(request.ConfigurationId, result.Exists, result.ResolvedValue,
+            return new ConfigurationValue(request.ConfigurationId, result.Exists, result.Value,
                 result.PropertyDetail);
         }
     }

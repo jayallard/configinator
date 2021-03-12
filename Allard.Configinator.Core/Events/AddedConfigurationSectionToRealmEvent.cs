@@ -6,7 +6,7 @@ namespace Allard.Configinator.Core.Events
     public record AddedConfigurationSectionToRealmEvent (
         OrganizationId OrganizationId,
         RealmId RealmId,
-        ConfigurationSectionId ConfigurationSectionId,
+        SectionId SectionId,
         SchemaTypeId SchemaTypeId,
         string Path,
         string Description) : DomainEvent;

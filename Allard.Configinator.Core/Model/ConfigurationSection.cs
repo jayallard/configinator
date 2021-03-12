@@ -2,8 +2,8 @@ namespace Allard.Configinator.Core.Model
 {
     public record ConfigurationSection(
         Realm Realm,
-        ConfigurationSectionId ConfigurationSectionId,
+        SectionId SectionId,
         string Path,
-        SchemaTypeId SchemaTypeId,
+        SchemaType SchemaType,
         string Description);
 }

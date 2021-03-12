@@ -44,7 +44,7 @@ namespace Allard.Configinator.Api.Controllers
             string habitatId)
         {
             var id = new ConfigurationId(orgId, realmId, sectionId, habitatId);
-            var response = await mediator.Send(new GetValueCommand(id, ConfigValueFormat.Raw));
+            var response = await mediator.Send(new GetValueCommand(id, ValueFormat.Raw));
             if (response.Exists) return response.ResolvedValue;
             Response.StatusCode = 404;
             return null;
@@ -70,7 +70,7 @@ namespace Allard.Configinator.Api.Controllers
         {
             // todo: location header
             var id = new ConfigurationId(orgId, realmId, sectionId, habitatId);
-            var response = await mediator.Send(new SetValueCommand(id, ConfigValueFormat.Raw, value));
+            var response = await mediator.Send(new SetValueCommand(id, ValueFormat.Raw, value));
             if (!response.Success)
             {
                 Response.StatusCode = (int) HttpStatusCode.BadRequest;
@@ -98,7 +98,7 @@ namespace Allard.Configinator.Api.Controllers
             string habitatId)
         {
             var id = new ConfigurationId(orgId, realmId, sectionId, habitatId);
-            var response = await mediator.Send(new GetValueCommand(id, ConfigValueFormat.Resolved));
+            var response = await mediator.Send(new GetValueCommand(id, ValueFormat.Resolved));
             return response.ResolvedValue;
         }
 
@@ -130,7 +130,7 @@ namespace Allard.Configinator.Api.Controllers
         {
             // todo: location header
             var id = new ConfigurationId(orgId, realmId, sectionId, habitatId);
-            var response = await mediator.Send(new SetValueCommand(id, ConfigValueFormat.Resolved, value));
+            var response = await mediator.Send(new SetValueCommand(id, ValueFormat.Resolved, value));
             if (!response.Success)
             {
                 Response.StatusCode = (int) HttpStatusCode.BadRequest;

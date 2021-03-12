@@ -14,10 +14,10 @@ namespace Allard.Configinator.Api
                 .Select(cs => new ConfigurationSectionViewModel
                 {
                     OrganizationId = cs.Realm.Organization.OrganizationId,
-                    ConfigurationSectionId = cs.ConfigurationSectionId,
+                    SectionId = cs.SectionId,
                     RealmId = cs.Realm.RealmId,
                     Path = cs.Path,
-                    SchemaTypeId = cs.SchemaTypeId.FullId
+                    SchemaTypeId = cs.SchemaType.SchemaTypeId.FullId
                 });
         }
 
@@ -33,20 +33,20 @@ namespace Allard.Configinator.Api
         {
             return new()
             {
-                RealmName = realm.RealmId.Name,
+                RealmId = realm.RealmId.Id,
                 Habitats = realm.Habitats
                     .Select(h => new HabitatViewModel(
-                        h.HabitatId.Name,
-                        h.Bases.Select(b => b.HabitatId.Name).ToList().AsReadOnly())).ToList(),
+                        h.HabitatId.Id,
+                        h.Bases.Select(b => b.HabitatId.Id).ToList().AsReadOnly())).ToList(),
                 ConfigurationSections = realm
                     .ConfigurationSections
                     .Select(cs => new ConfigurationSectionViewModel
                     {
                         OrganizationId = cs.Realm.Organization.OrganizationId,
-                        ConfigurationSectionId = cs.ConfigurationSectionId,
+                        SectionId = cs.SectionId,
                         RealmId = realm.RealmId,
                         Path = cs.Path,
-                        SchemaTypeId = cs.SchemaTypeId.FullId
+                        SchemaTypeId = cs.SchemaType.SchemaTypeId.FullId
                     })
                     .ToList()
             };
@@ -61,18 +61,18 @@ namespace Allard.Configinator.Api
             };
         }
 
-        public static IEnumerable<PropertyViewModel> ToViewModel(this IEnumerable<Property> properties)
+        public static IEnumerable<PropertyViewModel> ToViewModel(this IEnumerable<SchemaTypeProperty> properties)
         {
             return properties.Select(p => p.ToViewModel());
         }
 
-        public static PropertyViewModel ToViewModel(this Property property)
+        public static PropertyViewModel ToViewModel(this SchemaTypeProperty schemaTypeProperty)
         {
             return new()
             {
-                IsRequired = property.IsRequired,
-                Name = property.Name,
-                SchemaTypeId = property.SchemaTypeId.FullId
+                IsRequired = schemaTypeProperty.IsRequired,
+                Name = schemaTypeProperty.Name,
+                SchemaTypeId = schemaTypeProperty.SchemaTypeId.FullId
             };
         }
 

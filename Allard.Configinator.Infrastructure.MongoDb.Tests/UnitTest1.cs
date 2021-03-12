@@ -29,7 +29,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
             var collection = db.GetCollection<EventDto>("organization-events");
 
             var evt = new AddedRealmToOrganizationEvent(orgId,
-                new RealmId("realm id", "realm name"));
+                new RealmId("realm-id"));
             var dto = new EventDto(null, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), orgId,
                 DateTime.UtcNow,
                 "BlahBlah", evt);

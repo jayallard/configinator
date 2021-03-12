@@ -52,7 +52,7 @@ namespace Allard.Configinator.Api
             realm
                 .Links = linkHelper
                 .CreateBuilder()
-                .AddRealm(realm.RealmName, self)
+                .AddRealm(realm.RealmId, self)
                 .Build();
             foreach (var cs in realm.ConfigurationSections)
             {
@@ -64,7 +64,7 @@ namespace Allard.Configinator.Api
         {
             cs.Links = linkHelper
                 .CreateBuilder()
-                .AddConfigurationSection(cs.RealmId.Name, cs.ConfigurationSectionId.Name, self)
+                .AddConfigurationSection(cs.RealmId, cs.SectionId, self)
                 .Build();
         }
     }

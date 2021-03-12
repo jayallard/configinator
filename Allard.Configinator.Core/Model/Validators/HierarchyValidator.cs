@@ -19,7 +19,6 @@ namespace Allard.Configinator.Core.Model.Validators
                 .ToDictionary(h => h.Name);
         }
 
-
         private void Validate()
         {
             var encountered = new HashSet<string> {toTest.Name};

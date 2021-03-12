@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using Allard.Configinator.Api.Commands.ViewModels;
+using Allard.Configinator.Core.Model;
 
 namespace Allard.Configinator.Api
 {
@@ -13,7 +14,6 @@ namespace Allard.Configinator.Api
         private const string SchemaTypes = "schemaTypes";
         private const string Realm = "realm";
         private const string Realms = "realms";
-        private const string ConfigurationSections = "configurationSections";
         private const string ConfigurationSection = "configurationSection";
         private const string Root = "root";
         private const string BaseAddress = "/api/v1/";
@@ -21,21 +21,6 @@ namespace Allard.Configinator.Api
         public LinkBuilder CreateBuilder()
         {
             return new(BaseAddress);
-        }
-
-        public static void AddLinksToRealm(LinkHelper linkHelper, RealmViewModel realm, bool selfRealm)
-        {
-            realm.Links = linkHelper
-                .CreateBuilder()
-                .AddRealm(realm.RealmName, selfRealm)
-                .Build()
-                .ToList();
-            foreach (var cs in realm.ConfigurationSections)
-                cs.Links = linkHelper
-                    .CreateBuilder()
-                    .AddConfigurationSection(realm.RealmName, cs.ConfigurationSectionId.Name)
-                    .Build()
-                    .ToList();
         }
 
         public class LinkBuilder
@@ -75,18 +60,18 @@ namespace Allard.Configinator.Api
                 return Add(Rel(self, Realm), HttpMethod.Get, Realms, name);
             }
 
-            public LinkBuilder AddConfigurationSection(string realm, string configurationSection, bool self = false)
+            public LinkBuilder AddConfigurationSection(RealmId realmId, SectionId sectionId, bool self = false)
             {
                 return
-                    Add(Rel(self, ConfigurationSection), HttpMethod.Get, "realms", realm, "sections",
-                            configurationSection)
-                        .Add(Rel(false, "valueRaw"), HttpMethod.Get, "realms", realm, "sections", configurationSection,
+                    Add(Rel(self, ConfigurationSection), HttpMethod.Get, "realms", realmId.Id, "sections",
+                            sectionId.Id)
+                        .Add(Rel(false, "valueRaw"), HttpMethod.Get, "realms", realmId.Id, "sections", sectionId.Id,
                             "value-raw", "{habitat}")
-                        .Add(Rel(false, "valueResolved"), HttpMethod.Get, "realms", realm, "sections",
-                            configurationSection,
+                        .Add(Rel(false, "valueResolved"), HttpMethod.Get, "realms", realmId.Id, "sections",
+                            sectionId.Id,
                             "value-resolved", "{habitat}")
-                        .Add(Rel(false, "valueExplained"), HttpMethod.Get, "realms", realm, "sections",
-                            configurationSection,
+                        .Add(Rel(false, "valueExplained"), HttpMethod.Get, "realms", realmId.Id, "sections",
+                            sectionId.Id,
                             "value-explained", "{habitat}");
             }
 

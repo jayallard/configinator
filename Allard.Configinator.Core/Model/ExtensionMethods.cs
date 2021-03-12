@@ -6,11 +6,11 @@ namespace Allard.Configinator.Core.Model
 {
     public static class ExtensionMethods
     {
-        public static void EnsureNameDoesntAlreadyExist(this IReadOnlyCollection<string> keys, ModelMemberId id)
+        public static void EnsureIdDoesntExist(this IReadOnlyCollection<ModelMemberId> keys, ModelMemberId id)
         {
-            if (keys.Contains(id.Name))
+            if (keys.Contains(id))
                 throw new InvalidOperationException(
-                    $"A {id.GetType().Name} with that name already exists. Name={id.Name}");
+                    $"{id.GetType().Name} already exists. Id={id.Id}");
         }
 
         public static List<T> AddIfNotNull<T>(this List<T> list, T item)

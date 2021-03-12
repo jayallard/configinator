@@ -45,8 +45,9 @@ namespace Allard.Configinator.Core
             var mergedDoc = JsonDocument.Parse(mergedJson ?? "{}");
 
             // validate
+            // todo: get rid of "", and possibly ObjectNode altogether. commit to Full Json.
             var errors = new DocValidator(org.SchemaTypes)
-                .Validate(cs.SchemaTypeId, new JsonObjectNode("", mergedDoc.RootElement))
+                .Validate(cs.SchemaType.SchemaTypeId, new JsonObjectNode("", mergedDoc.RootElement))
                 .ToList();
 
             // if no errors, save
@@ -54,14 +55,14 @@ namespace Allard.Configinator.Core
             {
                 // save
                 // todo: normalize this
-                var path = cs.Path.Replace("{{habitat}}", habitat.HabitatId.Name);
+                var path = cs.Path.Replace("{{habitat}}", habitat.HabitatId.Id);
                 
                 // if it's resolved format, then reduce the input value down to just the values
                 // that changed in the last query.
                 // if there's only one doc, then nothing to reduce, do
                 // skip it
                 var toSave = request.Value;
-                if (request.format == ConfigValueFormat.Resolved && merged.First().Property.Layers.Count > 1)
+                if (request.Format == ValueFormat.Resolved && merged.First().Property.Layers.Count > 1)
                 {
                     toSave = ReduceToRawJson(merged);
                 }
@@ -91,8 +92,8 @@ namespace Allard.Configinator.Core
         {
             return request.Format switch
             {
-                ConfigValueFormat.Raw => await GetValueRawAsync(request),
-                ConfigValueFormat.Resolved => await GetValueResolvedAsync(request),
+                ValueFormat.Raw => await GetValueRawAsync(request),
+                ValueFormat.Resolved => await GetValueResolvedAsync(request),
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
@@ -101,7 +102,7 @@ namespace Allard.Configinator.Core
         {
             var cs = GetConfigurationSection(request.ConfigurationId);
             var habitat = cs.Realm.GetHabitat(request.ConfigurationId.HabitatId);
-            var path = cs.Path.Replace("{{habitat}}", habitat.HabitatId.Name);
+            var path = cs.Path.Replace("{{habitat}}", habitat.HabitatId.Id);
             var value = await configStore.GetValueAsync(path);
             return new GetConfigurationResponse(request.ConfigurationId, value.Exists, value.Value, null);
         }
@@ -134,7 +135,7 @@ namespace Allard.Configinator.Core
             var configTasks = habitats
                 .Select(h =>
                 {
-                    var resolvedPath = path.Replace("{{habitat}}", h.HabitatId.Name);
+                    var resolvedPath = path.Replace("{{habitat}}", h.HabitatId.Id);
                     return new
                     {
                         GetTask = configStore.GetValueAsync(resolvedPath),
@@ -147,7 +148,7 @@ namespace Allard.Configinator.Core
                 .Select(ct =>
                 {
                     if (ct.GetTask.Result.Value == null) return null;
-                    return new DocumentToMerge(ct.Habitat.HabitatId.Name,
+                    return new DocumentToMerge(ct.Habitat.HabitatId.Id,
                         new JsonObjectNode(string.Empty, ct.GetTask.Result.Value.RootElement));
                 })
                 .Where(v => v != null)

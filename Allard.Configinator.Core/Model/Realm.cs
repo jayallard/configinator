@@ -8,8 +8,8 @@ namespace Allard.Configinator.Core.Model
 {
     public class Realm
     {
-        private readonly Dictionary<string, ConfigurationSection> configurationSections = new();
-        private readonly Dictionary<string, Habitat> habitats = new();
+        private readonly Dictionary<SectionId, ConfigurationSection> configurationSections = new();
+        private readonly Dictionary<HabitatId, Habitat> habitats = new();
 
         public Realm(OrganizationAggregate organization, RealmId realmId)
         {
@@ -22,16 +22,18 @@ namespace Allard.Configinator.Core.Model
         public IReadOnlyCollection<Habitat> Habitats => habitats.Values;
         public IReadOnlyCollection<ConfigurationSection> ConfigurationSections => configurationSections.Values;
 
-        public Habitat GetHabitat(string habitatName)
+        public Habitat GetHabitat(string habitatId)
         {
-            if (habitats.TryGetValue(habitatName, out var habitat)) return habitat;
+            var id = new HabitatId(habitatId);
+            if (habitats.TryGetValue(id, out var habitat)) return habitat;
 
-            throw new InvalidOperationException("Habitat doesn't exist: " + habitat);
+            throw new InvalidOperationException("Habitat doesn't exist. HabitatId= " + habitatId);
         }
 
-        public ConfigurationSection GetConfigurationSection(string configurationSectionName)
+        public ConfigurationSection GetConfigurationSection(string sectionId)
         {
-            if (configurationSections.TryGetValue(configurationSectionName, out var cs)) return cs;
+            var id = new SectionId(sectionId);
+            if (configurationSections.TryGetValue(id, out var cs)) return cs;
 
             throw new InvalidOperationException("Configuration section doesn't exist: " + cs);
         }
@@ -42,7 +44,7 @@ namespace Allard.Configinator.Core.Model
         /// <param name="habitat"></param>
         internal void AddHabitat(Habitat habitat)
         {
-            habitats.Add(habitat.HabitatId.Name, habitat);
+            habitats.Add(habitat.HabitatId, habitat);
         }
 
         /// <summary>
@@ -51,30 +53,29 @@ namespace Allard.Configinator.Core.Model
         /// <param name="configurationSection"></param>
         internal void AddConfigurationSection(ConfigurationSection configurationSection)
         {
-            configurationSections.Add(configurationSection.ConfigurationSectionId.Name, configurationSection);
+            configurationSections.Add(configurationSection.SectionId, configurationSection);
         }
 
         public ConfigurationSection AddConfigurationSection(
-            string configurationSectionName,
+            string sectionId,
             string schemaTypeId,
             string path,
             string description)
         {
-            return AddConfigurationSection(configurationSectionName, SchemaTypeId.Parse(schemaTypeId), path,
+            return AddConfigurationSection(new SectionId(sectionId), SchemaTypeId.Parse(schemaTypeId), path,
                 description);
         }
 
         public ConfigurationSection AddConfigurationSection(
-            string configurationSectionName,
+            SectionId sectionId,
             SchemaTypeId schemaTypeId,
             string path,
             string description)
         {
             path.EnsureValue(nameof(path));
-            var configurationSectionId = ConfigurationSectionId.NewConfigurationSectionId(configurationSectionName);
 
             // make sure the configuration section doesn't already exist
-            habitats.Keys.EnsureNameDoesntAlreadyExist(configurationSectionId);
+            habitats.Keys.EnsureIdDoesntExist(sectionId);
 
             // lazy - throws an exception if type doesn't exist.
             Organization.GetSchemaType(schemaTypeId);
@@ -83,7 +84,7 @@ namespace Allard.Configinator.Core.Model
             var evt = new AddedConfigurationSectionToRealmEvent(
                 Organization.OrganizationId,
                 RealmId,
-                configurationSectionId,
+                sectionId,
                 schemaTypeId,
                 path,
                 description);
@@ -92,28 +93,24 @@ namespace Allard.Configinator.Core.Model
                 .Raise<AddedConfigurationSectionToRealmEvent, ConfigurationSection>(evt);
         }
 
-        public Habitat AddHabitat(string habitName, params string[] baseHabitats)
+        public Habitat AddHabitat(string habitatId, params string[] baseHabitats)
         {
-            return AddHabitat(habitName, baseHabitats.ToHashSet());
+            return AddHabitat(new HabitatId(habitatId), baseHabitats.Select(h => new HabitatId(h)).ToHashSet());
         }
 
-        public Habitat AddHabitat(string habitatName, ISet<string> baseHabitats = null)
+        public Habitat AddHabitat(HabitatId habitatId, ISet<HabitatId> baseHabitats = null)
         {
-            var habitatId
-                = HabitatId.NewHabitatId(habitatName);
-            baseHabitats = baseHabitats.ToNormalizedMemberNames(nameof(baseHabitats));
-
             // make sure habitat doesn't already exist.
-            habitats.Keys.EnsureNameDoesntAlreadyExist(habitatId);
+            habitats.Keys.EnsureIdDoesntExist(habitatId);
 
             // make sure the hierarchy is sound.
             // ie: no circular references, self references, invalid references.
-            ValidateHabitatHierarchy(habitatName, baseHabitats);
+            ValidateHabitatHierarchy(habitatId, baseHabitats);
 
             // get the ids of the base habitats
             var baseIds = habitats
                 .Values
-                .Where(h => baseHabitats.Contains(h.HabitatId.Name))
+                .Where(h => baseHabitats.Contains(h.HabitatId))
                 .Select(h => h.HabitatId)
                 .ToHashSet();
 
@@ -124,13 +121,13 @@ namespace Allard.Configinator.Core.Model
                 .Raise<AddedHabitatToRealmEvent, Habitat>(evt);
         }
 
-        private void ValidateHabitatHierarchy(string habitatName, IEnumerable<string> baseHabitats)
+        private void ValidateHabitatHierarchy(HabitatId habitatId, IEnumerable<HabitatId> baseHabitats)
         {
-            var toTest = new HierarchyElement(habitatName, baseHabitats.ToHashSet());
+            var toTest = new HierarchyElement(habitatId.Id, baseHabitats.Select(b => b.Id).ToHashSet());
             var existingHabitats = habitats
                 .Values
                 .Select(h =>
-                    new HierarchyElement(h.HabitatId.Name, h.Bases.Select(b => b.HabitatId.Name).ToHashSet()));
+                    new HierarchyElement(h.HabitatId.Id, h.Bases.Select(b => b.HabitatId.Id).ToHashSet()));
             HierarchyValidator.Validate(toTest, existingHabitats);
         }
     }

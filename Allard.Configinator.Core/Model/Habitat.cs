@@ -3,6 +3,8 @@ using System.Linq;
 
 namespace Allard.Configinator.Core.Model
 {
+    // todo: why isn't this a record?
+    
     public class Habitat
     {
         private readonly List<Habitat> bases;

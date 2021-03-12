@@ -33,14 +33,14 @@ namespace Allard.Configinator.Core.Model.Validators
             foreach (var property in schemaType.Properties) ValidateProperty(property, path);
         }
 
-        private void ValidateProperty(Property property, string path)
+        private void ValidateProperty(SchemaTypeProperty schemaTypeProperty, string path)
         {
-            if (property.SchemaTypeId.IsPrimitive) return;
+            if (schemaTypeProperty.SchemaTypeId.IsPrimitive) return;
 
-            path = path + "/" + property.Name;
-            EnsureNotCircular(property.SchemaTypeId, path);
-            EnsureValidType(property.SchemaTypeId, path);
-            ValidateSchemaType(schemaTypes[property.SchemaTypeId], path);
+            path = path + "/" + schemaTypeProperty.Name;
+            EnsureNotCircular(schemaTypeProperty.SchemaTypeId, path);
+            EnsureValidType(schemaTypeProperty.SchemaTypeId, path);
+            ValidateSchemaType(schemaTypes[schemaTypeProperty.SchemaTypeId], path);
         }
 
         private void EnsureNotCircular(SchemaTypeId schemaTypeId, string path)
@@ -57,7 +57,7 @@ namespace Allard.Configinator.Core.Model.Validators
                                                     typeId.FullId);
         }
 
-        private static void EnsureNotEmpty(IEnumerable<Property> properties, string path)
+        private static void EnsureNotEmpty(IEnumerable<SchemaTypeProperty> properties, string path)
         {
             if (properties.ToList().Count == 0)
                 throw new InvalidOperationException("The SchemaType doesn't have any properties.. Path=" +

@@ -29,10 +29,10 @@ namespace Allard.Configinator.Api.Commands
             var cs = realm.GetConfigurationSection(request.SectionId);
             return new ConfigurationSectionViewModel
             {
-                ConfigurationSectionId = cs.ConfigurationSectionId,
+                SectionId = cs.SectionId,
                 Path = cs.Path,
                 RealmId = realm.RealmId,
-                SchemaTypeId = cs.SchemaTypeId.FullId,
+                SchemaTypeId = cs.SchemaType.SchemaTypeId.FullId,
             };
         }
     }

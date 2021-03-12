@@ -21,20 +21,12 @@ namespace Allard.Configinator.Core.Tests.Unit
         }
 
         [Fact]
-        public void Junk()
-        {
-            var json = "{ \"test\": { \"hello\": \"world\" } }";
-            var x = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
-            testOutputHelper.WriteLine("");
-        }
-
-        [Fact]
         public void AddConfigurationSectionFailsIfSchemaTypeDoesntExist()
         {
             var orgId = OrganizationId.NewOrganizationId("allard");
             var org = new OrganizationAggregate(orgId);
             var realm = org.AddRealm("blah");
-            Action test = () => realm.AddConfigurationSection("cs", SchemaTypeId.Parse("a/b"), "path", "description");
+            Action test = () => realm.AddConfigurationSection("cs", "a/b", "path", "description");
             test.Should().Throw<InvalidOperationException>()
                 .WithMessage("The type doesn't exist in the organization: a/b");
         }
@@ -49,7 +41,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             org.AddRealm("ALLARD-REALM-1");
             Action test = () => org.AddRealm("ALLARD-REALM-1");
             test.Should().Throw<InvalidOperationException>()
-                .WithMessage("A RealmId with that name already exists. Name=allard-realm-1");
+                .WithMessage("RealmId already exists. Id=allard-realm-1");
         }
 
         [Fact]
@@ -61,14 +53,13 @@ namespace Allard.Configinator.Core.Tests.Unit
             org.Realms.Should().BeEmpty();
             var realm = org.AddRealm("ALLARD-REALM-1");
             org.Realms.Single().Should().Be(realm);
-            realm.RealmId.Name.Should().Be("allard-realm-1");
+            realm.RealmId.Id.Should().Be("allard-realm-1");
 
             realm.Habitats.Should().BeEmpty();
             var habitat = realm.AddHabitat("Production");
             realm.Habitats.Single().Should().Be(habitat);
-            habitat.HabitatId.Name.Should().Be("production");
+            habitat.HabitatId.Id.Should().Be("production");
 
-            var schemaTypeId = SchemaTypeId.Parse("a/b");
             var schemaType = SchemaTypeBuilder
                 .Create("a/b")
                 .AddProperty("blah", SchemaTypeId.String)
@@ -79,17 +70,17 @@ namespace Allard.Configinator.Core.Tests.Unit
             org.SchemaTypes.Count.Should().Be(1);
 
             realm.ConfigurationSections.Should().BeEmpty();
-            var cs = realm.AddConfigurationSection("Test1", schemaTypeId, "/a/b/c",
+            var cs = realm.AddConfigurationSection("Test1", "a/b", "/a/b/c",
                 "description");
             realm.ConfigurationSections.Single().Should().Be(cs);
-            cs.ConfigurationSectionId.Name.Should().Be("test1");
+            cs.SectionId.Id.Should().Be("test1");
         }
 
         [Fact]
         public void SerializationTest()
         {
             var organizationId = OrganizationId.NewOrganizationId("allard");
-            var evt = new AddedRealmToOrganizationEvent(organizationId, new RealmId("id", "name"));
+            var evt = new AddedRealmToOrganizationEvent(organizationId, new RealmId("id"));
             var json = JsonSerializer.Serialize(evt);
 
             JsonSerializer.Deserialize(json, typeof(AddedRealmToOrganizationEvent));

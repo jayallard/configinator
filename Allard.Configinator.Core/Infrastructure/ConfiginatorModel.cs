@@ -5,19 +5,30 @@ using Allard.Configinator.Core.DocumentValidator;
 
 namespace Allard.Configinator.Core.Infrastructure
 {
-    public record GetValueRequest(ConfigurationId ConfigurationId, ConfigValueFormat Format);
+    public record GetValueRequest(ConfigurationId ConfigurationId, ValueFormat Format);
 
-    public enum ConfigValueFormat
+    /// <summary>
+    /// The ways of getting and saving values.
+    /// </summary>
+    public enum ValueFormat
     {
+        /// <summary>
+        /// The exact string, as stored.
+        /// NOTE: not sure the implication of VARIABLES on this.
+        /// If variables are resolved, that wouldn't be RAW.
+        /// </summary>
         Raw,
-        Resolved,
+        
+        /// <summary>
+        /// Work with the resolved value.
+        /// </summary>
+        Resolved
     }
 
-    // todo: return actual value
     public record GetConfigurationResponse(
         ConfigurationId ConfigurationId,
         bool Exists,
-        JsonDocument ResolvedValue,
+        JsonDocument Value,
         List<MergedProperty> PropertyDetail)
     {
         public bool Existing => PropertyDetail.Count > 0;
@@ -25,7 +36,7 @@ namespace Allard.Configinator.Core.Infrastructure
 
     public record SetConfigurationRequest(
         ConfigurationId ConfigurationId, 
-        ConfigValueFormat format,
+        ValueFormat Format,
         JsonDocument Value);
 
     public record SetConfigurationResponse(

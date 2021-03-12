@@ -4,9 +4,9 @@ namespace Allard.Configinator.Core.Model.Builders
 {
     public class SchemaTypeBuilder
     {
-        private readonly List<Property> properties = new();
+        private readonly List<SchemaTypeProperty> properties = new();
 
-        public IReadOnlyCollection<Property> Properties => properties.AsReadOnly();
+        public IReadOnlyCollection<SchemaTypeProperty> Properties => properties.AsReadOnly();
 
         public string TypeId { get; protected set; }
 
@@ -15,23 +15,23 @@ namespace Allard.Configinator.Core.Model.Builders
             return new();
         }
 
-        public SchemaTypeBuilder AddProperty(Property property)
+        public SchemaTypeBuilder AddProperty(SchemaTypeProperty schemaTypeProperty)
         {
-            properties.Add(property);
+            properties.Add(schemaTypeProperty);
             return this;
         }
 
         public SchemaTypeBuilder AddProperty(string name, string schemaTypeId, bool isSecret = false,
             bool isOptional = false)
         {
-            properties.Add(new Property(name, SchemaTypeId.Parse(schemaTypeId), isSecret, isOptional));
+            properties.Add(new SchemaTypeProperty(name, SchemaTypeId.Parse(schemaTypeId), isSecret, isOptional));
             return this;
         }
 
         public SchemaTypeBuilder AddProperty(string name, SchemaTypeId schemaTypeId, bool isSecret = false,
             bool isOptional = false)
         {
-            properties.Add(new Property(name, schemaTypeId, isSecret, isOptional));
+            properties.Add(new SchemaTypeProperty(name, schemaTypeId, isSecret, isOptional));
             return this;
         }
 
