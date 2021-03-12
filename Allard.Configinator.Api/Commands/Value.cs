@@ -17,11 +17,7 @@ namespace Allard.Configinator.Api.Commands
     public record GetValueCommand(
         ConfigurationId ConfigurationId,
         ConfigValueFormat Format) : IRequest<ConfigurationValue>;
-
-    public record GetConfigurationResponse(
-        ConfigurationId ConfigurationId,
-        List<ValidationFailure> errors);
-
+    
     public class GetValueHandler : IRequestHandler<GetValueCommand, ConfigurationValue>
     {
         private readonly IConfiginatorService configinatorService;

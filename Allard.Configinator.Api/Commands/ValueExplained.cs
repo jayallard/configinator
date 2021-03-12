@@ -8,7 +8,8 @@ using MediatR;
 
 namespace Allard.Configinator.Api.Commands
 {
-    public record GetConfigurationExplainedCommand(ConfigurationId ConfigurationId) : IRequest<ExplainedViewModel>;
+    public record GetConfigurationExplainedCommand(
+        ConfigurationId ConfigurationId) : IRequest<ExplainedViewModel>;
 
     public class GetConfigurationValueExplainedHandler
         : IRequestHandler<GetConfigurationExplainedCommand, ExplainedViewModel>

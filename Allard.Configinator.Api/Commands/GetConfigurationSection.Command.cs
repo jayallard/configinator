@@ -6,6 +6,11 @@ using MediatR;
 
 namespace Allard.Configinator.Api.Commands
 {
+    public record GetConfigurationSectionCommand(
+        string OrganizationId,
+        string RealmId,
+        string SectionId) : IRequest<ConfigurationSectionViewModel>;
+    
     public class GetConfigurationSectionHandler
         : IRequestHandler<GetConfigurationSectionCommand, ConfigurationSectionViewModel>
     {
@@ -19,9 +24,9 @@ namespace Allard.Configinator.Api.Commands
         public async Task<ConfigurationSectionViewModel> Handle(GetConfigurationSectionCommand request,
             CancellationToken cancellationToken)
         {
-            var configinator = await configinatorService.GetConfiginatorByNameAsync(request.OrganizationName);
-            var realm = configinator.Organization.GetRealmByName(request.RealmName);
-            var cs = realm.GetConfigurationSection(request.ConfigurationSectionName);
+            var configinator = await configinatorService.GetConfiginatorByNameAsync(request.OrganizationId);
+            var realm = configinator.Organization.GetRealmByName(request.RealmId);
+            var cs = realm.GetConfigurationSection(request.SectionId);
             return new ConfigurationSectionViewModel
             {
                 ConfigurationSectionId = cs.ConfigurationSectionId,
@@ -31,4 +36,5 @@ namespace Allard.Configinator.Api.Commands
             };
         }
     }
+
 }
