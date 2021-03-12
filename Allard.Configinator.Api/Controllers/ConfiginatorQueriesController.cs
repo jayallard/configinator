@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Allard.Configinator.Api.Controllers
 {
-    //[HateosFilter]
     [ApiController]
     [Route("/api/v1")]
     public class ConfiginatorQueriesController : Controller
@@ -28,6 +27,14 @@ namespace Allard.Configinator.Api.Controllers
             this.links = links;
         }
 
+        /// <summary>
+        /// Get the raw value stored for the habitat.
+        /// </summary>
+        /// <param name="orgId"></param>
+        /// <param name="realmId"></param>
+        /// <param name="sectionId"></param>
+        /// <param name="habitatId"></param>
+        /// <returns></returns>
         [HttpGet]
         [Route("config/{orgId}/{realmId}/{sectionId}/{habitatId}/value-raw")]
         public async Task<JsonDocument?> GetConfigurationValueRaw(
@@ -37,13 +44,21 @@ namespace Allard.Configinator.Api.Controllers
             string habitatId)
         {
             var id = new ConfigurationId(orgId, realmId, sectionId, habitatId);
-            var response = await mediator.Send(new GetConfigurationRawCommand(id));
+            var response = await mediator.Send(new GetValueCommand(id, ConfigValueFormat.Raw));
             if (response.Exists) return response.ResolvedValue;
             Response.StatusCode = 404;
             return null;
-
         }
 
+        /// <summary>
+        /// Set the raw value for the habitat.
+        /// </summary>
+        /// <param name="orgId"></param>
+        /// <param name="realmId"></param>
+        /// <param name="sectionId"></param>
+        /// <param name="habitatId"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         [HttpPut]
         [Route("config/{orgId}/{realmId}/{sectionId}/{habitatId}/value-raw")]
         public async Task<SetConfigurationResponse> SetConfigurationValueRaw(
@@ -55,7 +70,7 @@ namespace Allard.Configinator.Api.Controllers
         {
             // todo: location header
             var id = new ConfigurationId(orgId, realmId, sectionId, habitatId);
-            var response = await mediator.Send(new SetConfigurationRawCommand(id, value));
+            var response = await mediator.Send(new SetValueCommand(id, ConfigValueFormat.Raw, value));
             if (!response.Success)
             {
                 Response.StatusCode = (int) HttpStatusCode.BadRequest;
@@ -63,7 +78,17 @@ namespace Allard.Configinator.Api.Controllers
 
             return response;
         }
-        
+
+        /// <summary>
+        /// Get the resolved value for the habitat.
+        /// The values of the base habitats are merged into the
+        /// raw value of the requested habittat.
+        /// </summary>
+        /// <param name="orgId"></param>
+        /// <param name="realmId"></param>
+        /// <param name="sectionId"></param>
+        /// <param name="habitatId"></param>
+        /// <returns></returns>
         [HttpGet]
         [Route("config/{orgId}/{realmId}/{sectionId}/{habitatId}/value-resolved")]
         public async Task<JsonDocument> GetConfigurationValueResolved(
@@ -73,11 +98,27 @@ namespace Allard.Configinator.Api.Controllers
             string habitatId)
         {
             var id = new ConfigurationId(orgId, realmId, sectionId, habitatId);
-            var response = await mediator.Send(new GetConfigurationResolvedCommand(id));
+            var response = await mediator.Send(new GetValueCommand(id, ConfigValueFormat.Resolved));
             return response.ResolvedValue;
-
         }
-        
+
+        /// <summary>
+        /// Sets the value for the habitat
+        /// This may be a full document including values from
+        /// the bases. This will be crunched down to only the
+        /// values that are different from the bases.
+        /// IE: (not done)
+        /// If the base has the value x.password=y,
+        /// and the posted document contains x.password=y,
+        /// then the value will not be saved to the habitat.
+        /// to force the save, use value-raw instead.
+        /// </summary>
+        /// <param name="orgId"></param>
+        /// <param name="realmId"></param>
+        /// <param name="sectionId"></param>
+        /// <param name="habitatId"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         [HttpPut]
         [Route("config/{orgId}/{realmId}/{sectionId}/{habitatId}/value-resolved")]
         public async Task<SetConfigurationResponse> SetConfigurationValueResolved(
@@ -89,7 +130,7 @@ namespace Allard.Configinator.Api.Controllers
         {
             // todo: location header
             var id = new ConfigurationId(orgId, realmId, sectionId, habitatId);
-            var response = await mediator.Send(new SetConfigurationResolvedCommand(id, value));
+            var response = await mediator.Send(new SetValueCommand(id, ConfigValueFormat.Resolved, value));
             if (!response.Success)
             {
                 Response.StatusCode = (int) HttpStatusCode.BadRequest;
@@ -97,7 +138,7 @@ namespace Allard.Configinator.Api.Controllers
 
             return response;
         }
-        
+
         [HttpGet]
         [Route("config/{orgId}/{realmId}/{sectionId}/{habitatId}/value-explained")]
         public async Task<ExplainedViewModel> GetConfigurationValueExplained(
@@ -115,7 +156,6 @@ namespace Allard.Configinator.Api.Controllers
         // ========================================================
         // ========================================================
         // todo
-
 
 
         /*
@@ -191,16 +231,6 @@ namespace Allard.Configinator.Api.Controllers
         {
             return await mediator.Send(
                 new GetConfigurationSectionCommand(OrganizationName, realmName, configurationSectionName));
-        }
-
-
-        private static string ToJsonString(JsonDocument jdoc)
-        {
-            using var stream = new MemoryStream();
-            using var writer = new Utf8JsonWriter(stream, new JsonWriterOptions {Indented = true});
-            jdoc.WriteTo(writer);
-            writer.Flush();
-            return Encoding.UTF8.GetString(stream.ToArray());
         }
     }
 }

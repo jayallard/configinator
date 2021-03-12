@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -22,12 +23,7 @@ namespace Allard.Configinator.Core
 
         public OrganizationAggregate Organization => org;
 
-        public async Task<SetConfigurationResponse> SetValueResolvedAsync(SetConfigurationRequest request)
-        {
-            
-        }
-
-        public async Task<SetConfigurationResponse> SetValueRawAsync(SetConfigurationRequest request)
+        public async Task<SetConfigurationResponse> SetValueAsync(SetConfigurationRequest request)
         {
             var realm = org.GetRealmByName(request.ConfigurationId.RealmId);
             var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
@@ -42,8 +38,10 @@ namespace Allard.Configinator.Core
             toMerge.Add(requestMerge);
 
             // merge
-            var merged = await DocMerger.Merge(toMerge);
+            var merged = (await DocMerger.Merge(toMerge)).ToList();
             var mergedJson = merged.ToJsonString();
+            
+            // todo: get rid of ??
             var mergedDoc = JsonDocument.Parse(mergedJson ?? "{}");
 
             // validate
@@ -57,16 +55,58 @@ namespace Allard.Configinator.Core
                 // save
                 // todo: normalize this
                 var path = cs.Path.Replace("{{habitat}}", habitat.HabitatId.Name);
-
+                
+                // if it's resolved format, then reduce the input value down to just the values
+                // that changed in the last query.
+                // if there's only one doc, then nothing to reduce, do
+                // skip it
+                var toSave = request.Value;
+                if (request.format == ConfigValueFormat.Resolved && merged.First().Property.Layers.Count > 1)
+                {
+                    toSave = ReduceToRawJson(merged);
+                }
+                
                 // save the value that was passed in. 
-                var value = new SetConfigStoreValueRequest(path, request.Value);
+                var value = new SetConfigStoreValueRequest(path, toSave);
                 await configStore.SetValueAsync(value);
             }
 
             return new SetConfigurationResponse(request.ConfigurationId, errors);
         }
 
-        public async Task<GetConfigurationResponse> GetValueResolvedAsync(GetConfigurationRequest request)
+        public static JsonDocument ReduceToRawJson(List<MergedProperty> properties)
+        {
+            var reduced = properties
+                .Where(p =>
+                {
+                    // only keep properties that were somehow changed 
+                    // in the last layer.
+                    var last = p.Property.Layers.Last();
+                    return last.Transition == Transition.Set || last.Transition == Transition.Delete;
+                });
+            return JsonDocument.Parse(reduced.ToJsonString());
+        }
+
+        public async Task<GetConfigurationResponse> GetValueAsync(GetValueRequest request)
+        {
+            return request.Format switch
+            {
+                ConfigValueFormat.Raw => await GetValueRawAsync(request),
+                ConfigValueFormat.Resolved => await GetValueResolvedAsync(request),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
+
+        private async Task<GetConfigurationResponse> GetValueRawAsync(GetValueRequest request)
+        {
+            var cs = GetConfigurationSection(request.ConfigurationId);
+            var habitat = cs.Realm.GetHabitat(request.ConfigurationId.HabitatId);
+            var path = cs.Path.Replace("{{habitat}}", habitat.HabitatId.Name);
+            var value = await configStore.GetValueAsync(path);
+            return new GetConfigurationResponse(request.ConfigurationId, value.Exists, value.Value, null);
+        }
+        
+        private async Task<GetConfigurationResponse> GetValueResolvedAsync(GetValueRequest request)
         {
             var realm = org.GetRealmByName(request.ConfigurationId.RealmId);
             var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
@@ -78,24 +118,15 @@ namespace Allard.Configinator.Core
 
             // todo: doo much conversion
             var mergedJsonString = JsonDocument.Parse(merged.ToJsonString());
-            return new GetConfigurationResponse(request.ConfigurationId, false, mergedJsonString, merged);
+            return new GetConfigurationResponse(request.ConfigurationId, merged.Count > 0, mergedJsonString, merged);
         }
-
+        
         private ConfigurationSection GetConfigurationSection(ConfigurationId id)
         {
             var realm = org.GetRealmByName(id.RealmId);
             return realm.GetConfigurationSection(id.SectionId);
         }
-
-        public async Task<GetConfigurationResponse> GetValueRawAsync(GetConfigurationRequest request)
-        {
-            var cs = GetConfigurationSection(request.ConfigurationId);
-            var habitat = cs.Realm.GetHabitat(request.ConfigurationId.HabitatId);
-            var path = cs.Path.Replace("{{habitat}}", habitat.HabitatId.Name);
-            var value = await configStore.GetValueAsync(path);
-            return new GetConfigurationResponse(request.ConfigurationId, value.Exists, value.Value, null);
-        }
-
+        
         private async Task<List<DocumentToMerge>> GetDocsFromConfigStore(string path,
             List<Habitat> habitats)
         {
@@ -116,7 +147,6 @@ namespace Allard.Configinator.Core
                 .Select(ct =>
                 {
                     if (ct.GetTask.Result.Value == null) return null;
-
                     return new DocumentToMerge(ct.Habitat.HabitatId.Name,
                         new JsonObjectNode(string.Empty, ct.GetTask.Result.Value.RootElement));
                 })

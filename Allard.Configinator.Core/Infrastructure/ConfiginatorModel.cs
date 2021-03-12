@@ -5,7 +5,13 @@ using Allard.Configinator.Core.DocumentValidator;
 
 namespace Allard.Configinator.Core.Infrastructure
 {
-    public record GetConfigurationRequest(ConfigurationId ConfigurationId);
+    public record GetValueRequest(ConfigurationId ConfigurationId, ConfigValueFormat Format);
+
+    public enum ConfigValueFormat
+    {
+        Raw,
+        Resolved,
+    }
 
     // todo: return actual value
     public record GetConfigurationResponse(
@@ -19,6 +25,7 @@ namespace Allard.Configinator.Core.Infrastructure
 
     public record SetConfigurationRequest(
         ConfigurationId ConfigurationId, 
+        ConfigValueFormat format,
         JsonDocument Value);
 
     public record SetConfigurationResponse(

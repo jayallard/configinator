@@ -51,20 +51,22 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
         [Fact]
         public async Task BigAggregate()
         {
+            const int realmCount = 10;
+            const int habitCountPerRealm = 10;
             // create
             var repo = new OrganizationRepositoryMongo();
             var orgId = OrganizationId.NewOrganizationId("Allard");
             var org = new OrganizationAggregate(orgId);
-            for (var i = 0; i < 10; i++)
+            for (var i = 0; i < realmCount; i++)
             {
                 var realm = org.AddRealm("realm " + i);
-                for (var i2 = 0; i2 < 5; i2++) realm.AddHabitat("h " + i2);
+                for (var i2 = 0; i2 < habitCountPerRealm; i2++) realm.AddHabitat("h " + i2);
             }
 
             await repo.SaveAsync(org);
 
             var read = await repo.GetOrganizationByIdAsync(orgId.Id);
-            read.Realms.Count.Should().Be(500);
+            read.Realms.Count.Should().Be(realmCount);
         }
 
         [Fact]

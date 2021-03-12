@@ -7,10 +7,7 @@ namespace Allard.Configinator.Core
     public interface IConfiginator
     {
         public OrganizationAggregate Organization { get; }
-        public Task<SetConfigurationResponse> SetValueResolvedAsync(SetConfigurationRequest request);
-
-        public Task<SetConfigurationResponse> SetValueRawAsync(SetConfigurationRequest request);
-        public Task<GetConfigurationResponse> GetValueResolvedAsync(GetConfigurationRequest request);
-        public Task<GetConfigurationResponse> GetValueRawAsync(GetConfigurationRequest request);
+        public Task<SetConfigurationResponse> SetValueAsync(SetConfigurationRequest request);
+        public Task<GetConfigurationResponse> GetValueAsync(GetValueRequest request);
     }
 }
