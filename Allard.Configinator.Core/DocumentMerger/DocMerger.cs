@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Allard.Configinator.Core.DocumentValidator;
 
 namespace Allard.Configinator.Core.DocumentMerger
 {
@@ -45,7 +45,7 @@ namespace Allard.Configinator.Core.DocumentMerger
 
         private IEnumerable<MergedProperty> Merge()
         {
-            foreach (var m in toMerge) Merge(m, m.Doc.Document, "");
+            foreach (var m in toMerge) Merge(m, m.Doc.Document.RootElement, "");
 
             FillInTheBlanks();
             return merged
@@ -154,7 +154,7 @@ namespace Allard.Configinator.Core.DocumentMerger
         /// <param name="doc">This is the doc that the node belongs to. The doc contains many nodes.</param>
         /// <param name="node">The node to merge into the result set.</param>
         /// <param name="path"></param>
-        private void Merge(OrderedDocumentToMerge doc, IObjectNode node, string path)
+        private void Merge(OrderedDocumentToMerge doc, JsonElement node, string path)
         {
             // TODO: currently, doc isn't needed.
             // keep it around until complete, then delete if still not needed.
@@ -162,13 +162,13 @@ namespace Allard.Configinator.Core.DocumentMerger
             // iterate the properties and add them to the result.
             foreach (var property in node.GetPropertyValues())
             {
-                var propertyPath = path + "/" + property.Name;
+                var propertyPath = path + "/" + property.Key;
 
                 // add the property to the results, if it doesn't already exist.
                 if (!merged.ContainsKey(propertyPath))
                     merged.Add(propertyPath, new PropertyValue
                     {
-                        Name = property.Name
+                        Name = property.Key
                     });
 
                 // get the property, and set its new value.
@@ -190,8 +190,8 @@ namespace Allard.Configinator.Core.DocumentMerger
             // iterate the objects in the node, and merge them too.
             foreach (var n in node.GetObjectNodes())
             {
-                var nodePath = path + "/" + n.Name;
-                Merge(doc, n, nodePath);
+                var nodePath = path + "/" + n.Key;
+                Merge(doc, n.Value, nodePath);
             }
         }
     }
