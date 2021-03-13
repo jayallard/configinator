@@ -3,10 +3,12 @@ using System.Linq;
 
 namespace Allard.Configinator.Core.Model
 {
+    // todo: why isn't this a record?
+    
     public class Habitat
     {
-        private readonly Realm realm;
         private readonly List<Habitat> bases;
+        private readonly Realm realm;
 
         internal Habitat(HabitatId habitatId, Realm realm, IEnumerable<Habitat> bases)
         {

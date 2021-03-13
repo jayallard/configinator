@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,8 +25,8 @@ namespace Allard.Configinator.Core.Infrastructure
             {
                 readWriteLock.WaitOne();
                 return repo.TryGetValue(path, out var value)
-                    ? Task.FromResult(new ConfigStoreValue(path, value.ETag, value.Value))
-                    : Task.FromResult(new ConfigStoreValue(path, null, null));
+                    ? Task.FromResult(value)
+                    : Task.FromResult(new ConfigStoreValue(path, null, false));
             }
             finally
             {
@@ -35,34 +34,14 @@ namespace Allard.Configinator.Core.Infrastructure
             }
         }
 
-        public async Task<ConfigStoreValue> SetValueAsync(ConfigStoreValue value)
+        public Task<ConfigStoreValue> SetValueAsync(SetConfigStoreValueRequest value)
         {
             value.EnsureValue(nameof(value));
             try
             {
                 readWriteLock.WaitOne();
-                var existing = await GetValueAsync(value.Path).ConfigureAwait(false);
-                if (existing.Value == null)
-                {
-                    // insert
-                    value = value with {ETag = Guid.NewGuid().ToString()};
-                    repo[value.Path] = value;
-                    return value;
-                }
-
-                if (value.Value == existing.Value)
-                    // no change. nothing to do.
-                    return value;
-
-                // update
-                if (value.ETag == null) throw new Exception("etag required");
-
-                if (value.ETag != existing.ETag)
-                    throw new Exception("Invalid etag - the value may have changed since the lst get.");
-
-                value = value with {ETag = Guid.NewGuid().ToString()};
-                repo[value.Path] = value;
-                return value;
+                repo[value.Path] = new ConfigStoreValue(value.Path, value.Value, true);
+                return Task.FromResult(repo[value.Path]);
             }
             finally
             {

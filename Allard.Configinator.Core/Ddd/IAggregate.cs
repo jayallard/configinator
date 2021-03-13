@@ -1,6 +1,6 @@
 namespace Allard.Configinator.Core.Ddd
 {
-    public interface Aggregate<T>
+    public interface IAggregate<T>
     {
     }
 }

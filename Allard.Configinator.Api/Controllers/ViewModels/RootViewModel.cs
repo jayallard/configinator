@@ -5,6 +5,6 @@ namespace Allard.Configinator.Api.Controllers.ViewModels
 {
     public class RootViewModel
     {
-        public IEnumerable<Link> Links { get; set; }
+        public List<Link> Links { get; set; }
     }
 }

@@ -1,12 +1,10 @@
-using System.IO;
-using Allard.Configinator.Configuration;
-using Allard.Configinator.Habitats;
-using Allard.Configinator.Realms;
-using Allard.Configinator.Schema;
-using Allard.Configinator.Schema.Validator;
+using Allard.Configinator.Core;
+using Allard.Configinator.Core.Infrastructure;
+using Allard.Configinator.Infrastructure.MongoDb;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -31,21 +29,14 @@ namespace Allard.Configinator.Api
             const string DataFolder =
                 @"/Users/jallard/personal/ConfigurationManagement/Allard.Configinator.Tests/TestFiles/FullSetup";
 
-            services.AddControllers();
+            services.AddControllers(c => c.Filters.Add<HateosFilter>());
 
             // configinator!
             services
-                .AddSingleton<Configinator>()
                 .AddSingleton<IConfigStore, MemoryConfigStore>()
-                .AddSingleton<IHabitatService, HabitatService>()
-                .AddSingleton<IHabitatRepository>(
-                    new HabitatsRepositoryYamlFile(Path.Combine(DataFolder, "habitats.yml")))
-                .AddSingleton<IRealmService, RealmService>()
-                .AddSingleton<IRealmRepository>(new RealmRepositoryYamlFiles(DataFolder))
-                .AddSingleton<ISchemaValidator, SchemaValidator>()
-                .AddSingleton<ISchemaService, SchemaService>()
-                .AddSingleton<ITypeValidatorFactory, ValidatorFactoryServices>()
-                .AddSingleton<ISchemaRepository>(new SchemaRepositoryYamlFiles(DataFolder));
+                .AddSingleton<IConfiginatorService, ConfiginatorService>()
+                .AddSingleton<IOrganizationRepository, OrganizationRepositoryMongo>()
+                .AddTransient<IActionFilter, HateosFilter>();
 
             // MediatR
             services.AddMediatR(typeof(Startup).Assembly);

@@ -10,6 +10,6 @@ namespace Allard.Configinator.Core.Infrastructure
     public interface IConfigStore
     {
         Task<ConfigStoreValue> GetValueAsync(string path);
-        Task<ConfigStoreValue> SetValueAsync(ConfigStoreValue value);
+        Task<ConfigStoreValue> SetValueAsync(SetConfigStoreValueRequest value);
     }
 }

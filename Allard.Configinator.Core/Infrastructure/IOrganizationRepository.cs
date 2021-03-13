@@ -5,7 +5,8 @@ namespace Allard.Configinator.Core.Infrastructure
 {
     public interface IOrganizationRepository
     {
-        Task<OrganizationAggregate> GetOrganizationAsync(string id);
+        Task<OrganizationAggregate> GetOrganizationByIdAsync(string id);
+        Task<OrganizationAggregate> GetOrganizationByNameAsync(string name);
         Task SaveAsync(OrganizationAggregate organization);
     }
 }

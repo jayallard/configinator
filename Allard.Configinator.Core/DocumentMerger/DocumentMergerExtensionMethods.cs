@@ -10,17 +10,19 @@ namespace Allard.Configinator.Core.DocumentMerger
     public static class DocumentMergerExtensionMethods
     {
         /// <summary>
-        /// Returns true if the transition is any variation
-        /// of SET.
+        ///     Returns true if the transition is any variation
+        ///     of SET.
         /// </summary>
         /// <param name="transition"></param>
         /// <returns></returns>
-        public static bool IsSet(this Transition transition) =>
-            transition == Transition.Set
-            || transition == Transition.SetToSameValue;
+        public static bool IsSet(this Transition transition)
+        {
+            return transition == Transition.Set
+                   || transition == Transition.SetToSameValue;
+        }
 
         /// <summary>
-        /// Convert the results of a document merge to a JSON string.
+        ///     Convert the results of a document merge to a JSON string.
         /// </summary>
         /// <param name="properties"></param>
         /// <returns></returns>
@@ -51,11 +53,9 @@ namespace Allard.Configinator.Core.DocumentMerger
                 var currentObject = map;
                 var parts = p.Path.Split("/", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 for (var i = 0; i < parts.Length - 1; i++)
-                {
                     currentObject =
                         (ConcurrentDictionary<string, object>) currentObject.GetOrAdd(parts[i],
                             new ConcurrentDictionary<string, object>());
-                }
 
                 currentObject[parts[parts.Length - 1]] = p.Property.Value;
             }
@@ -75,15 +75,14 @@ namespace Allard.Configinator.Core.DocumentMerger
         }
 
         /// <summary>
-        /// Convert a dictionary (which represents an object)
-        /// to json.
+        ///     Convert a dictionary (which represents an object)
+        ///     to json.
         /// </summary>
         /// <param name="writer"></param>
         /// <param name="map"></param>
         private static void WriteObject(Utf8JsonWriter writer, ConcurrentDictionary<string, object> map)
         {
             foreach (var kv in map)
-            {
                 switch (kv.Value)
                 {
                     case ConcurrentDictionary<string, object> obj:
@@ -95,11 +94,10 @@ namespace Allard.Configinator.Core.DocumentMerger
                         WriteProperty(writer, kv.Key, kv.Value);
                         break;
                 }
-            }
         }
 
         /// <summary>
-        /// Writes a property to the json.
+        ///     Writes a property to the json.
         /// </summary>
         /// <param name="writer"></param>
         /// <param name="name"></param>

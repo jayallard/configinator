@@ -4,36 +4,41 @@ namespace Allard.Configinator.Core.Model.Builders
 {
     public class SchemaTypeBuilder
     {
-        private readonly List<Property> properties = new();
+        private readonly List<SchemaTypeProperty> properties = new();
 
-        public static SchemaTypeBuilder Create() => new SchemaTypeBuilder();
+        public IReadOnlyCollection<SchemaTypeProperty> Properties => properties.AsReadOnly();
 
-        public IReadOnlyCollection<Property> Properties => properties.AsReadOnly();
+        public string TypeId { get; protected set; }
 
-        public SchemaTypeBuilder AddProperty(Property property)
+        public static SchemaTypeBuilder Create()
         {
-            properties.Add(property);
+            return new();
+        }
+
+        public SchemaTypeBuilder AddProperty(SchemaTypeProperty schemaTypeProperty)
+        {
+            properties.Add(schemaTypeProperty);
             return this;
         }
 
         public SchemaTypeBuilder AddProperty(string name, string schemaTypeId, bool isSecret = false,
             bool isOptional = false)
         {
-            properties.Add(new Property(name, Model.SchemaTypeId.Parse(schemaTypeId), isSecret, isOptional));
+            properties.Add(new SchemaTypeProperty(name, SchemaTypeId.Parse(schemaTypeId), isSecret, isOptional));
             return this;
         }
 
         public SchemaTypeBuilder AddProperty(string name, SchemaTypeId schemaTypeId, bool isSecret = false,
             bool isOptional = false)
         {
-            properties.Add(new Property(name, schemaTypeId, isSecret, isOptional));
+            properties.Add(new SchemaTypeProperty(name, schemaTypeId, isSecret, isOptional));
             return this;
         }
 
         public SchemaTypeBuilder AddStringProperty(string name, bool isSecret = false, bool isOptional = false)
-            => AddProperty(name, SchemaTypeId.String, isSecret, isOptional);
-
-        public string TypeId { get; protected set; }
+        {
+            return AddProperty(name, SchemaTypeId.String, isSecret, isOptional);
+        }
 
         public SchemaType Build()
         {

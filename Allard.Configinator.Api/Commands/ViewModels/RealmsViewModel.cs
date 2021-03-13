@@ -4,7 +4,7 @@ namespace Allard.Configinator.Api.Commands.ViewModels
 {
     public record RealmsViewModel
     {
-        public IEnumerable<RealmViewModel> Realms { get; init; }
-        public IEnumerable<Link> Links { get; init; }
+        public List<RealmViewModel> Realms { get; init; }
+        public List<Link> Links { get; set; }
     }
 }

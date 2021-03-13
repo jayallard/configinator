@@ -1,11 +1,11 @@
+using Allard.Configinator.Blazor.Data;
+using Allard.Configinator.Core.Infrastructure;
+using Allard.Configinator.Infrastructure.MongoDb;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Allard.Configinator.Blazor.Data;
-using Allard.Configinator.Core.Infrastructure;
-using Allard.Configinator.Infrastructure.MongoDb;
 
 namespace Allard.Configinator.Blazor
 {

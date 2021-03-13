@@ -79,7 +79,6 @@ namespace Allard.Configinator.Core.Tests.Unit.Validators
             Action test = () => SchemaTypeValidator.Validate(a, new[] {b});
             test.Should().Throw<InvalidOperationException>()
                 .WithMessage("Type doesn't exist. Property Path=/AtoB/BtoC. Unknown Type=a/c");
-
         }
     }
 }

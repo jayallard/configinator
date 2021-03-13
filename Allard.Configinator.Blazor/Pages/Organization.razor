@@ -1,0 +1,80 @@
+@page "/Organization/{organizationId}"
+@using Allard.Configinator.Core.Infrastructure
+@using Allard.Configinator.Core.Model
+@inject IOrganizationRepository Repo;
+<h2>Organization: @org?.OrganizationId.Name</h2>
+
+@code {
+
+    [Parameter]
+    public string OrganizationId { get; set; }
+
+    private OrganizationAggregate org;
+    private readonly CreateRealmModel newRealm = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        org = await Repo.GetOrganizationByIdAsync(OrganizationId);
+    }
+
+    private async Task AddRealm()
+    {
+        org.AddRealm(newRealm.Name);
+        await Repo.SaveAsync(org);
+    }
+
+}
+
+@if (org != null)
+{
+    <h3>Types</h3>
+    @if (org.SchemaTypes.Count == 0)
+    {
+        <p>No Types</p>
+    }
+    else
+    {
+        <table>
+            @foreach (var type in org.SchemaTypes)
+            {
+                <tr>
+                    <td>@type.SchemaTypeId.FullId</td>
+                </tr>
+            }
+        </table>
+    }
+    <h3>Realms</h3>
+    @if (org.Realms.Count == 0)
+    {
+        <p>No Realms</p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Realm Name</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var realm in org.Realms)
+            {
+                <tr>
+                    <td>
+                        <a href="/organization/@org.OrganizationId.Id/realms/@realm.RealmId.Id">@realm.RealmId.Id</a>
+                    </td>
+                    <td>@realm.RealmId.Id</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+
+    <h3>Create Realm</h3>
+    <div>
+        <EditForm Model="@newRealm" OnSubmit="AddRealm">
+            <InputText id="name" @bind-Value="newRealm.Name"></InputText>
+            <input type="submit" value="Add"/>
+        </EditForm>
+    </div>
+}

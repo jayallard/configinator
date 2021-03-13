@@ -1,8 +1,8 @@
-using Allard.Configinator.Core.DocumentValidator;
+using System.Text.Json;
 
 namespace Allard.Configinator.Core.DocumentMerger
 {
-    public record DocumentToMerge(string Name, IObjectNode Document);
-    public record OrderedDocumentToMerge(DocumentToMerge Doc, int Order);
+    public record DocumentToMerge(string Name, JsonDocument Document);
 
+    public record OrderedDocumentToMerge(DocumentToMerge Doc, int Order);
 }
