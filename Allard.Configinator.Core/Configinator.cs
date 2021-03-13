@@ -115,8 +115,8 @@ namespace Allard.Configinator.Core
             var merged = (await DocMerger2.Merge(model, toMerge)).ToList();
 
             // todo: too much conversion
-            var mergedJsonString = JsonDocument.Parse(merged.ToJsonString());
-            return new GetConfigurationResponse(request.ConfigurationId, merged.Count > 0, mergedJsonString, merged);
+            var mergedJsonDoc = JsonDocument.Parse(merged.ToJsonString());
+            return new GetConfigurationResponse(request.ConfigurationId, merged.Count > 0, mergedJsonDoc, merged);
         }
 
         private ConfigurationSection GetConfigurationSection(ConfigurationId id)

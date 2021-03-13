@@ -7,7 +7,14 @@
 
 <h2>title</h2>
 
-@foreach (var x in Model.Properties)
-{
-    <h1>@x.Name</h1>
-}
+<table>
+    @foreach (var x in Model.Properties)
+    {
+        <tr>
+            <td>@x.Name</td>
+            <td>@x.Path</td>
+            <td>@x.Value</td>
+            <td>@x.LastTransition</td>
+        </tr>
+    }
+</table>

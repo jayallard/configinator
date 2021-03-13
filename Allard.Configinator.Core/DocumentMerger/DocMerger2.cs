@@ -33,7 +33,7 @@ namespace Allard.Configinator.Core.DocumentMerger
             var results = new List<MergedProperty>();
             foreach (var kv in flattenedModel)
             {
-                var propertyName = kv.Key;
+                var propertyName = kv.Key.Split("/").Last();
                 var value = new PropertyValue {Name = propertyName};
                 var prop = new MergedProperty(kv.Key, value);
                 results.Add(prop);
