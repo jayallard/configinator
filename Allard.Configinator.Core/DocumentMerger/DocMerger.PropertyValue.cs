@@ -1,11 +1,12 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Allard.Configinator.Core.DocumentMerger
 {
     public class PropertyValue
     {
         public string Name { get; set; }
-        public object Value { get; set; }
+        public object Value => Layers.Last()?.Value;
         public List<PropertyLayer> Layers { get; } = new();
     }
 }

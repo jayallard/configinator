@@ -13,11 +13,12 @@ namespace Allard.Configinator.Core
     public class Configinator : IConfiginator
     {
         private readonly IConfigStore configStore;
-
+        private readonly JsonStructureModelBuilder structureModelBuilder;
         public Configinator(OrganizationAggregate org, IConfigStore configStore)
         {
-            this.Organization = org.EnsureValue(nameof(org));
+            Organization = org.EnsureValue(nameof(org));
             this.configStore = configStore.EnsureValue(nameof(configStore));
+            structureModelBuilder = new JsonStructureModelBuilder(org.SchemaTypes);
         }
 
         public OrganizationAggregate Organization { get; }
@@ -110,17 +111,19 @@ namespace Allard.Configinator.Core
 
             // get the bases and the specific value, then merge.
             var toMerge = await GetDocsFromConfigStore(cs.Path, habitat.Bases.ToList().AddIfNotNull(habitat));
-            var merged = (await DocMerger.Merge(toMerge)).ToList();
+            var model = structureModelBuilder.ToStructureModel(cs);
+            var merged = (await DocMerger2.Merge(model, toMerge)).ToList();
 
-            // todo: doo much conversion
+            // todo: too much conversion
             var mergedJsonString = JsonDocument.Parse(merged.ToJsonString());
             return new GetConfigurationResponse(request.ConfigurationId, merged.Count > 0, mergedJsonString, merged);
         }
 
         private ConfigurationSection GetConfigurationSection(ConfigurationId id)
         {
-            var realm = Organization.GetRealmByName(id.RealmId);
-            return realm.GetConfigurationSection(id.SectionId);
+            return Organization
+                .GetRealmByName(id.RealmId)
+                .GetConfigurationSection(id.SectionId);
         }
 
         private async Task<List<DocumentToMerge>> GetDocsFromConfigStore(string path,
@@ -141,9 +144,8 @@ namespace Allard.Configinator.Core
             await Task.WhenAll(configTasks.Select(c => c.GetTask));
             return configTasks
                 .Select(ct => ct.GetTask.Result.Value == null
-                    ? null
+                    ? new DocumentToMerge(ct.Habitat.HabitatId.Id, JsonDocument.Parse("{}"))
                     : new DocumentToMerge(ct.Habitat.HabitatId.Id, ct.GetTask.Result.Value))
-                .Where(v => v != null)
                 .ToList();
         }
     }

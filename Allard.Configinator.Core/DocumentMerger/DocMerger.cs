@@ -171,7 +171,6 @@ namespace Allard.Configinator.Core.DocumentMerger
 
                 // get the property, and set its new value.
                 var resultProperty = merged[propertyPath];
-                resultProperty.Value = property.Value;
                 resultProperty.Layers.Add(new PropertyLayer
                 {
                     // if the value is null, then delete.
