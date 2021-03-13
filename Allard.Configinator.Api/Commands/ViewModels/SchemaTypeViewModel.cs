@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Allard.Configinator.Core.Model;
 
 namespace Allard.Configinator.Api.Commands.ViewModels
 {

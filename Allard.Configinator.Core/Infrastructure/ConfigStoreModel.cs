@@ -11,5 +11,6 @@ namespace Allard.Configinator.Core.Infrastructure
     // everything else is using the value objects... add an overload.
     public record ConfigurationId(string OrganizationId, string RealmId, string SectionId, string HabitatId);
 
-    public record ConfigurationValue(ConfigurationId Id, bool Exists, JsonDocument ResolvedValue, List<MergedProperty> Properties);
+    public record ConfigurationValue(ConfigurationId Id, bool Exists, JsonDocument ResolvedValue,
+        List<MergedProperty> Properties);
 }

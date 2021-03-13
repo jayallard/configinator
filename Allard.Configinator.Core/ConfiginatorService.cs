@@ -21,15 +21,9 @@ namespace Allard.Configinator.Core
             return new Configinator(org, configStore);
         }
 
-        public async Task<IConfiginator> GetConfiginatorByNameAsync(string organizationName)
+        public async Task<OrganizationAggregate> GetOrganizationByIdAsync(string organizationName)
         {
-            var org = await organizationRepository.GetOrganizationByNameAsync(organizationName);
-            return new Configinator(org, configStore);
-        }
-
-        public async Task<OrganizationAggregate> GetOrganizationByNameAsync(string organizationName)
-        {
-            return await organizationRepository.GetOrganizationByNameAsync(organizationName);
+            return await organizationRepository.GetOrganizationByIdAsync(organizationName);
         }
     }
 }

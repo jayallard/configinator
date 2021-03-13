@@ -3,7 +3,6 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Allard.Configinator.Core.DocumentMerger;
-using Allard.Configinator.Core.DocumentValidator;
 using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;

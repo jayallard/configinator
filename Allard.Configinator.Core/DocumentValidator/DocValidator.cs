@@ -72,7 +72,8 @@ namespace Allard.Configinator.Core.DocumentValidator
                     if (valueObjects.TryGetValue(schemaProperty.Name, out var o))
                     {
                         // object exists
-                        foreach (var value in Validate(schemaProperty.SchemaTypeId, o.Value, path + "/" + schemaProperty.Name)
+                        foreach (var value in Validate(schemaProperty.SchemaTypeId, o.Value,
+                            path + "/" + schemaProperty.Name)
                         ) yield return value;
                         continue;
                     }

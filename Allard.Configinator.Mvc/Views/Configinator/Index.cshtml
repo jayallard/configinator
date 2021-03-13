@@ -1,0 +1,13 @@
+@model Allard.Configinator.Mvc.Views.Configinator.ExplainedViewModel
+
+@{
+    ViewBag.Title = "title";
+    Layout = "_Layout";
+}
+
+<h2>title</h2>
+
+@foreach (var x in Model.Properties)
+{
+    <h1>@x.Name</h1>
+}

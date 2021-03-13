@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using Allard.Configinator.Core.Events;
@@ -23,7 +22,7 @@ namespace Allard.Configinator.Core.Tests.Unit
         [Fact]
         public void AddConfigurationSectionFailsIfSchemaTypeDoesntExist()
         {
-            var orgId = OrganizationId.NewOrganizationId("allard");
+            var orgId = new OrganizationId("allard");
             var org = new OrganizationAggregate(orgId);
             var realm = org.AddRealm("blah");
             Action test = () => realm.AddConfigurationSection("cs", "a/b", "path", "description");
@@ -34,7 +33,7 @@ namespace Allard.Configinator.Core.Tests.Unit
         [Fact]
         public void AddDuplicateRealmFails()
         {
-            var orgId = OrganizationId.NewOrganizationId("allard");
+            var orgId = new OrganizationId("allard");
             var org = new OrganizationAggregate(orgId);
 
             org.Realms.Should().BeEmpty();
@@ -47,7 +46,7 @@ namespace Allard.Configinator.Core.Tests.Unit
         [Fact]
         public void Build()
         {
-            var orgId = OrganizationId.NewOrganizationId("allard");
+            var orgId = new OrganizationId("allard");
             var org = new OrganizationAggregate(orgId);
 
             org.Realms.Should().BeEmpty();
@@ -79,7 +78,7 @@ namespace Allard.Configinator.Core.Tests.Unit
         [Fact]
         public void SerializationTest()
         {
-            var organizationId = OrganizationId.NewOrganizationId("allard");
+            var organizationId = new OrganizationId("allard");
             var evt = new AddedRealmToOrganizationEvent(organizationId, new RealmId("id"));
             var json = JsonSerializer.Serialize(evt);
 

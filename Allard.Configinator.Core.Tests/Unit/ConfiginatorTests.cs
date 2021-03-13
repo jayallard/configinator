@@ -50,7 +50,7 @@ namespace Allard.Configinator.Core.Tests.Unit
                 .AddProperty("kafka-target", "kafka/unsecured")
                 .Build();
 
-            var org = new OrganizationAggregate(OrganizationId.NewOrganizationId("allard"));
+            var org = new OrganizationAggregate(new OrganizationId("allard"));
             org.AddSchemaType(kafkaType);
             org.AddSchemaType(sqlType);
             org.AddSchemaType(shovelServiceType);
@@ -69,7 +69,7 @@ namespace Allard.Configinator.Core.Tests.Unit
         public async Task GetValueDoesntExist()
         {
             var configId = new ConfigurationId(
-                Organization.OrganizationId.Name,
+                Organization.OrganizationId.Id,
                 TestRealm1,
                 TestConfigurationSection1,
                 "staging");
@@ -83,7 +83,7 @@ namespace Allard.Configinator.Core.Tests.Unit
         [Fact]
         public async Task SetFailsIfDocFailsValidation()
         {
-            var configId = new ConfigurationId(Organization.OrganizationId.Name, TestRealm1,
+            var configId = new ConfigurationId(Organization.OrganizationId.Id, TestRealm1,
                 TestConfigurationSection1, "staging");
             var setRequest =
                 new SetConfigurationRequest(configId, ValueFormat.Raw,
@@ -97,7 +97,7 @@ namespace Allard.Configinator.Core.Tests.Unit
         public async Task SetSucceedsIfDocPassesValidation()
         {
             var input = JsonDocument.Parse(TestUtility.GetFile("FullDocumentPasses.json"));
-            var configId = new ConfigurationId(Organization.OrganizationId.Name, TestRealm1,
+            var configId = new ConfigurationId(Organization.OrganizationId.Id, TestRealm1,
                 TestConfigurationSection1, "staging");
             var setRequest = new SetConfigurationRequest(configId, ValueFormat.Raw, input);
             var setResponse = await Configinator.SetValueAsync(setRequest);
@@ -128,13 +128,13 @@ namespace Allard.Configinator.Core.Tests.Unit
             // set one value as a descendant: dev-jay
             // make sure only the one value is saved to dev-jay.
             var file = TestUtility.GetFile("FullDocumentPasses.json");
-            var configId = new ConfigurationId(Organization.OrganizationId.Name, TestRealm1,
+            var configId = new ConfigurationId(Organization.OrganizationId.Id, TestRealm1,
                 TestConfigurationSection1, "dev");
             var setRequest = new SetConfigurationRequest(configId, ValueFormat.Raw, JsonDocument.Parse(file));
             var setResponse = await Configinator.SetValueAsync(setRequest);
             setResponse.Success.Should().BeTrue();
 
-            var configId2 = new ConfigurationId(Organization.OrganizationId.Name, TestRealm1,
+            var configId2 = new ConfigurationId(Organization.OrganizationId.Id, TestRealm1,
                 TestConfigurationSection1, "dev-allard");
             var sqlPassword = " { \"sql-source\": { \"password\": \"new password\" } } ";
             var setRequest2 =

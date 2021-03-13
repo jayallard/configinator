@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using Allard.Configinator.Core.Model;
 
 namespace Allard.Configinator.Api.Commands.ViewModels
 {

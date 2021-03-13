@@ -6,8 +6,8 @@ using MediatR;
 
 namespace Allard.Configinator.Api.Commands
 {
-    public record GetRealmsCommand(string OrganizationName) : IRequest<RealmsViewModel>;
-    
+    public record GetRealmsCommand(string OrganizationId) : IRequest<RealmsViewModel>;
+
     public class GetRealmsHandler : IRequestHandler<GetRealmsCommand, RealmsViewModel>
     {
         private readonly IConfiginatorService configinatorService;
@@ -21,7 +21,7 @@ namespace Allard.Configinator.Api.Commands
             GetRealmsCommand request,
             CancellationToken cancellationToken)
         {
-            return (await configinatorService.GetOrganizationByNameAsync(request.OrganizationName))
+            return (await configinatorService.GetOrganizationByIdAsync(request.OrganizationId))
                 .Realms
                 .ToViewModel();
         }

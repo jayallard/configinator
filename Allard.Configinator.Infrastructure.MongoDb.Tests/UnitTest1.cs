@@ -22,7 +22,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
         [Fact]
         public void Test1()
         {
-            var orgId = OrganizationId.NewOrganizationId("Allard");
+            var orgId = new OrganizationId("Allard");
             var client = new MongoClient("mongodb://localhost:27017");
             var db = client.GetDatabase("test1");
             db.DropCollection("organization-events");
@@ -45,7 +45,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
         {
             var repo = new OrganizationRepositoryMongo();
             await repo.DevelopmentSetup();
-            var org = repo.GetOrganizationByNameAsync("allard");
+            var org = repo.GetOrganizationByIdAsync("allard");
         }
 
         [Fact]
@@ -55,7 +55,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
             const int habitCountPerRealm = 10;
             // create
             var repo = new OrganizationRepositoryMongo();
-            var orgId = OrganizationId.NewOrganizationId("Allard");
+            var orgId = new OrganizationId("Allard");
             var org = new OrganizationAggregate(orgId);
             for (var i = 0; i < realmCount; i++)
             {
@@ -74,7 +74,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
         {
             // create
             var repo = new OrganizationRepositoryMongo();
-            var orgId = OrganizationId.NewOrganizationId("Allard");
+            var orgId = new OrganizationId("Allard");
             var org = new OrganizationAggregate(orgId);
             var r1 = org.AddRealm("realm a");
             r1.AddHabitat("a");

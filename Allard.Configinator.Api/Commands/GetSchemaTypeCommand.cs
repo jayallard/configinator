@@ -10,16 +10,16 @@ namespace Allard.Configinator.Api.Commands
 {
     public record GetSchemaTypeCommand : IRequest<SchemaTypeViewModel>
     {
-        public GetSchemaTypeCommand(string organizationName, string schemaTypeId)
+        public GetSchemaTypeCommand(string organizationId, string schemaTypeId)
         {
             SchemaTypeId = HttpUtility.UrlDecode(schemaTypeId);
-            OrganizationName = organizationName;
+            OrganizationId = organizationId;
         }
 
         public string SchemaTypeId { get; }
-        public string OrganizationName { get; }
+        public string OrganizationId { get; }
     }
-    
+
     public class GetSchemaTypeHandler : IRequestHandler<GetSchemaTypeCommand, SchemaTypeViewModel>
     {
         private readonly IConfiginatorService configinatorService;
@@ -31,7 +31,7 @@ namespace Allard.Configinator.Api.Commands
 
         public async Task<SchemaTypeViewModel> Handle(GetSchemaTypeCommand request, CancellationToken cancellationToken)
         {
-            return (await configinatorService.GetOrganizationByNameAsync(request.OrganizationName))
+            return (await configinatorService.GetOrganizationByIdAsync(request.OrganizationId))
                 .GetSchemaType(SchemaTypeId.Parse(request.SchemaTypeId))
                 .ToViewModel();
         }

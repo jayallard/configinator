@@ -23,7 +23,7 @@ namespace Allard.Configinator.Core.Tests.Unit.SchemaValidatorTests
                 .Build();
 
             // the property "AtoB" is required but missing.
-            var doc =JsonDocument.Parse("{}");
+            var doc = JsonDocument.Parse("{}");
             var results = new DocValidator(new[] {a, b})
                 .Validate(SchemaTypeId.Parse("a/a"), doc)
                 .ToList();

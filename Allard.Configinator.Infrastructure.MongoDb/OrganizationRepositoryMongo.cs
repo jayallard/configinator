@@ -38,47 +38,6 @@ namespace Allard.Configinator.Infrastructure.MongoDb
             client = new MongoClient("mongodb://localhost:27017");
         }
 
-        public async Task DevelopmentSetup()
-        {
-            await GetDataase().DropCollectionAsync(StateCollectionName);
-            await GetDataase().DropCollectionAsync(EventsCollectionName);
-
-            var kafkaType = SchemaTypeBuilder
-                .Create("kafka/unsecured")
-                .AddStringProperty("broker-list")
-                .Build();
-
-            var sqlType = SchemaTypeBuilder
-                .Create("mssql/sql-user")
-                .AddStringProperty("host")
-                .AddStringProperty("user-id")
-                .AddStringProperty("password", true)
-                .AddStringProperty("instance", isOptional: true)
-                .AddStringProperty("initial-catalog", isOptional: true)
-                .Build();
-
-            var shovelServiceType = SchemaTypeBuilder
-                .Create("something-domain/shovel-service")
-                .AddProperty("sql-source", "mssql/sql-user")
-                .AddProperty("kafka-target", "kafka/unsecured")
-                .Build();
-
-            var org = new OrganizationAggregate(OrganizationId.NewOrganizationId("allard"));
-            org.AddSchemaType(kafkaType);
-            org.AddSchemaType(sqlType);
-            org.AddSchemaType(shovelServiceType);
-
-            var realm = org.AddRealm("domain-a");
-            realm.AddHabitat("production");
-            realm.AddHabitat("staging");
-            realm.AddHabitat("dev");
-            realm.AddHabitat("dev-allard", "dev");
-            realm.AddConfigurationSection("shovel-service", "something-domain/shovel-service",
-                "/{{habitat}}/something-domain/shovel-service", "description");
-
-            await SaveAsync(org);
-        }
-
 
         public IEnumerable<OrganizationId> GetOrganizationIds()
         {
@@ -96,19 +55,6 @@ namespace Allard.Configinator.Infrastructure.MongoDb
                 .Sort("{_id: 1}")
                 .ForEachAsync(e => { eventAccessor.ApplyEvent(e.Event); });
             return organization;
-        }
-
-        public Task<OrganizationAggregate> GetOrganizationByNameAsync(string name)
-        {
-            var organization = (OrganizationAggregate) Activator.CreateInstance(typeof(OrganizationAggregate), true);
-            var eventAccessor = new EventAccessor(organization);
-
-            var events = GetEventSourceCollection()
-                .Find(e => e.OrganizationId.Name == name)
-                .ToList();
-            
-            events.ForEach(e => { eventAccessor.ApplyEvent(e.Event); });
-            return Task.FromResult(organization);
         }
 
         public async Task SaveAsync(OrganizationAggregate organization)
@@ -138,6 +84,47 @@ namespace Allard.Configinator.Infrastructure.MongoDb
             });
 
             eventAccessor.ClearEvents();
+        }
+
+        public async Task DevelopmentSetup()
+        {
+            await GetDataase().DropCollectionAsync(StateCollectionName);
+            await GetDataase().DropCollectionAsync(EventsCollectionName);
+
+            var kafkaType = SchemaTypeBuilder
+                .Create("kafka/unsecured")
+                .AddStringProperty("broker-list")
+                .Build();
+
+            var sqlType = SchemaTypeBuilder
+                .Create("mssql/sql-user")
+                .AddStringProperty("host")
+                .AddStringProperty("user-id")
+                .AddStringProperty("password", true)
+                .AddStringProperty("instance", isOptional: true)
+                .AddStringProperty("initial-catalog", isOptional: true)
+                .Build();
+
+            var shovelServiceType = SchemaTypeBuilder
+                .Create("something-domain/shovel-service")
+                .AddProperty("sql-source", "mssql/sql-user")
+                .AddProperty("kafka-target", "kafka/unsecured")
+                .Build();
+
+            var org = new OrganizationAggregate(new OrganizationId("allard"));
+            org.AddSchemaType(kafkaType);
+            org.AddSchemaType(sqlType);
+            org.AddSchemaType(shovelServiceType);
+
+            var realm = org.AddRealm("domain-a");
+            realm.AddHabitat("production");
+            realm.AddHabitat("staging");
+            realm.AddHabitat("dev");
+            realm.AddHabitat("dev-allard", "dev");
+            realm.AddConfigurationSection("shovel-service", "something-domain/shovel-service",
+                "/{{habitat}}/something-domain/shovel-service", "description");
+
+            await SaveAsync(org);
         }
 
         private IMongoDatabase GetDataase()

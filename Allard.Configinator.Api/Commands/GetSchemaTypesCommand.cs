@@ -7,7 +7,7 @@ using MediatR;
 namespace Allard.Configinator.Api.Commands
 {
     public record GetSchemaTypesCommand(string OrganizationName) : IRequest<SchemaTypesViewModel>;
-    
+
     public class GetSchemaTypesHandler : IRequestHandler<GetSchemaTypesCommand, SchemaTypesViewModel>
     {
         private readonly IConfiginatorService configinatorService;
@@ -21,7 +21,7 @@ namespace Allard.Configinator.Api.Commands
             CancellationToken cancellationToken)
         {
             return (await configinatorService
-                    .GetOrganizationByNameAsync(request.OrganizationName))
+                    .GetOrganizationByIdAsync(request.OrganizationName))
                 .SchemaTypes
                 .ToViewModel();
         }

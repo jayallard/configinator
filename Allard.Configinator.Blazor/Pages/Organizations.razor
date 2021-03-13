@@ -24,7 +24,7 @@ else
         {
             <tr>
                 <td>
-                    <a href="/organization/@org.Id">@org.Name</a>
+                    <a href="/organization/@org.Id">@org.Id</a>
                 </td>
                 <td>@org.Id</td>
             </tr>
@@ -62,7 +62,7 @@ else
 
     private async Task AddOrg()
     {
-        var orgId = OrganizationId.NewOrganizationId(model.Name);
+        var orgId = new OrganizationId(model.Name);
         var org = new OrganizationAggregate(orgId);
         await OrganizationRepository.SaveAsync(org);
         LoadOrganizations();

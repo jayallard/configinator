@@ -80,6 +80,5 @@ namespace Allard.Configinator.Api
         {
             return new(schemaTypes.Select(schemaType => schemaType.ToViewModel()), new List<Link>());
         }
-        
     }
 }

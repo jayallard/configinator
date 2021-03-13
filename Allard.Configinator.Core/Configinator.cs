@@ -13,19 +13,18 @@ namespace Allard.Configinator.Core
     public class Configinator : IConfiginator
     {
         private readonly IConfigStore configStore;
-        private readonly OrganizationAggregate org;
 
         public Configinator(OrganizationAggregate org, IConfigStore configStore)
         {
-            this.org = org.EnsureValue(nameof(org));
+            this.Organization = org.EnsureValue(nameof(org));
             this.configStore = configStore.EnsureValue(nameof(configStore));
         }
 
-        public OrganizationAggregate Organization => org;
+        public OrganizationAggregate Organization { get; }
 
         public async Task<SetConfigurationResponse> SetValueAsync(SetConfigurationRequest request)
         {
-            var realm = org.GetRealmByName(request.ConfigurationId.RealmId);
+            var realm = Organization.GetRealmByName(request.ConfigurationId.RealmId);
             var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
 
@@ -44,7 +43,7 @@ namespace Allard.Configinator.Core
             var mergedDoc = JsonDocument.Parse(mergedJson ?? "{}");
 
             // validate
-            var errors = new DocValidator(org.SchemaTypes)
+            var errors = new DocValidator(Organization.SchemaTypes)
                 .Validate(cs.SchemaType.SchemaTypeId, mergedDoc)
                 .ToList();
 
@@ -61,9 +60,7 @@ namespace Allard.Configinator.Core
                 // skip it
                 var toSave = request.Value;
                 if (request.Format == ValueFormat.Resolved && merged.First().Property.Layers.Count > 1)
-                {
                     toSave = ReduceToRawJson(merged);
-                }
 
                 // save the value that was passed in. 
                 var value = new SetConfigStoreValueRequest(path, toSave);
@@ -71,6 +68,16 @@ namespace Allard.Configinator.Core
             }
 
             return new SetConfigurationResponse(request.ConfigurationId, errors);
+        }
+
+        public async Task<GetConfigurationResponse> GetValueAsync(GetValueRequest request)
+        {
+            return request.Format switch
+            {
+                ValueFormat.Raw => await GetValueRawAsync(request),
+                ValueFormat.Resolved => await GetValueResolvedAsync(request),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
 
         public static JsonDocument ReduceToRawJson(List<MergedProperty> properties)
@@ -86,16 +93,6 @@ namespace Allard.Configinator.Core
             return JsonDocument.Parse(reduced.ToJsonString());
         }
 
-        public async Task<GetConfigurationResponse> GetValueAsync(GetValueRequest request)
-        {
-            return request.Format switch
-            {
-                ValueFormat.Raw => await GetValueRawAsync(request),
-                ValueFormat.Resolved => await GetValueResolvedAsync(request),
-                _ => throw new ArgumentOutOfRangeException()
-            };
-        }
-
         private async Task<GetConfigurationResponse> GetValueRawAsync(GetValueRequest request)
         {
             var cs = GetConfigurationSection(request.ConfigurationId);
@@ -107,7 +104,7 @@ namespace Allard.Configinator.Core
 
         private async Task<GetConfigurationResponse> GetValueResolvedAsync(GetValueRequest request)
         {
-            var realm = org.GetRealmByName(request.ConfigurationId.RealmId);
+            var realm = Organization.GetRealmByName(request.ConfigurationId.RealmId);
             var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
 
@@ -122,7 +119,7 @@ namespace Allard.Configinator.Core
 
         private ConfigurationSection GetConfigurationSection(ConfigurationId id)
         {
-            var realm = org.GetRealmByName(id.RealmId);
+            var realm = Organization.GetRealmByName(id.RealmId);
             return realm.GetConfigurationSection(id.SectionId);
         }
 
