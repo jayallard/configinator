@@ -5,4 +5,8 @@
         <Nullable>warnings</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Compile Remove="DocumentMerger\DocMerger.cs" />
+    </ItemGroup>
+
 </Project>

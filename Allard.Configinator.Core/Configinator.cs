@@ -37,7 +37,8 @@ namespace Allard.Configinator.Core
             toMerge.Add(requestMerge);
 
             // merge
-            var merged = (await DocMerger.Merge(toMerge)).ToList();
+            var model = structureModelBuilder.ToStructureModel(cs);
+            var merged = (await DocMerger2.Merge(model, toMerge)).ToList();
             var mergedJson = merged.ToJsonString();
 
             // todo: get rid of ??

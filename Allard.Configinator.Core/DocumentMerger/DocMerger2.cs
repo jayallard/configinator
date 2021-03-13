@@ -26,27 +26,28 @@ namespace Allard.Configinator.Core.DocumentMerger
 
         private IEnumerable<MergedProperty> Merge()
         {
-            var flattenedModel = Flatten(structureModel, true);
-            var flattenedToMerge = toMerge.Select(m => Flatten(m.Document, true))
+            var flattenedModel = Flatten(structureModel, true).Select(m => m.Key).ToHashSet();
+            var flattenedToMerge = toMerge
+                .Select(m => Flatten(m.Document, true))
                 .ToList();
 
             var results = new List<MergedProperty>();
-            foreach (var kv in flattenedModel)
+            foreach (var propertyPath in flattenedModel)
             {
-                var propertyName = kv.Key.Split("/").Last();
+                var propertyName = propertyPath.Split("/").Last();
                 var value = new PropertyValue {Name = propertyName};
-                var prop = new MergedProperty(kv.Key, value);
+                var prop = new MergedProperty(propertyPath, value);
                 results.Add(prop);
 
                 // set layer 0
                 var v = flattenedToMerge[0];
-                var exists = v.ContainsKey(propertyName);
+                var exists = v.ContainsKey(propertyPath);
                 value.Layers.Add(new PropertyLayer
                 {
                     LayerIndex = 0,
                     LayerName = toMerge[0].Name,
                     Transition = exists ? Transition.Set : Transition.DoesntExist,
-                    Value = exists ? v[propertyName] : null
+                    Value = exists ? v[propertyPath] : null
                 });
 
                 for (var layerIndex = 1; layerIndex < flattenedToMerge.Count; layerIndex++)
@@ -60,10 +61,10 @@ namespace Allard.Configinator.Core.DocumentMerger
 
                     value.Layers.Add(l);
                     var layerFlattened = flattenedToMerge[layerIndex];
-                    var existsThisLayer = layerFlattened.ContainsKey(propertyName);
+                    var existsThisLayer = layerFlattened.ContainsKey(propertyPath);
                     if (existsThisLayer)
                     {
-                        var lv = layerFlattened[propertyName];
+                        var lv = layerFlattened[propertyPath];
                         if (lv == null)
                         {
                             l.Transition = Transition.Delete;

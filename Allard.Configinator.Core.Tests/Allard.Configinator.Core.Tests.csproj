@@ -29,4 +29,7 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
     </ItemGroup>
+    <ItemGroup>
+      <Compile Remove="Unit\DocumentMerger\DocMergerTests.cs" />
+    </ItemGroup>
 </Project>
