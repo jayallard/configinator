@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Allard.Configinator.Core.DocumentMerger;
@@ -14,6 +15,7 @@ namespace Allard.Configinator.Core
     {
         private readonly IConfigStore configStore;
         private readonly JsonStructureModelBuilder structureModelBuilder;
+
         public Configinator(OrganizationAggregate org, IConfigStore configStore)
         {
             Organization = org.EnsureValue(nameof(org));
@@ -30,7 +32,8 @@ namespace Allard.Configinator.Core
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
 
             // get all of the docs for the base habitats, if there are any.
-            var toMerge = await GetDocsFromConfigStore(cs.Path, habitat.Bases.ToList());
+            var configDocs = (await GetDocsFromConfigStore(cs.Path, habitat.Bases.ToList())).ToList();
+            var toMerge = configDocs.Select(d => d.Item1).ToList();
 
             // add the current request to the doc list.
             var requestMerge = new DocumentToMerge(request.ConfigurationId.HabitatId, request.Value);
@@ -113,11 +116,12 @@ namespace Allard.Configinator.Core
             // get the bases and the specific value, then merge.
             var toMerge = await GetDocsFromConfigStore(cs.Path, habitat.Bases.ToList().AddIfNotNull(habitat));
             var model = structureModelBuilder.ToStructureModel(cs);
-            var merged = (await DocMerger2.Merge(model, toMerge)).ToList();
+            var merged = (await DocMerger2.Merge(model, toMerge.Select(m => m.Item1))).ToList();
 
             // todo: too much conversion
             var mergedJsonDoc = JsonDocument.Parse(merged.ToJsonString());
-            return new GetConfigurationResponse(request.ConfigurationId, merged.Count > 0, mergedJsonDoc, merged);
+            var anyExists = toMerge.Any(m => m.Item2.Exists);
+            return new GetConfigurationResponse(request.ConfigurationId, anyExists, mergedJsonDoc, merged);
         }
 
         private ConfigurationSection GetConfigurationSection(ConfigurationId id)
@@ -127,27 +131,21 @@ namespace Allard.Configinator.Core
                 .GetConfigurationSection(id.SectionId);
         }
 
-        private async Task<List<DocumentToMerge>> GetDocsFromConfigStore(string path,
+        private async Task<IEnumerable<(DocumentToMerge, ConfigStoreValue)>> GetDocsFromConfigStore(string path,
             IEnumerable<Habitat> habitats)
         {
             // get all values.
-            var configTasks = habitats
-                .Select(h =>
+            var results = habitats
+                .Select(async h =>
                 {
                     var resolvedPath = path.Replace("{{habitat}}", h.HabitatId.Id);
-                    return new
-                    {
-                        GetTask = configStore.GetValueAsync(resolvedPath),
-                        Habitat = h
-                    };
-                }).ToList();
-
-            await Task.WhenAll(configTasks.Select(c => c.GetTask));
-            return configTasks
-                .Select(ct => ct.GetTask.Result.Value == null
-                    ? new DocumentToMerge(ct.Habitat.HabitatId.Id, JsonDocument.Parse("{}"))
-                    : new DocumentToMerge(ct.Habitat.HabitatId.Id, ct.GetTask.Result.Value))
-                .ToList();
+                    var value = await configStore.GetValueAsync(resolvedPath);
+                    var v = value.Exists
+                        ? value.Value
+                        : JsonDocument.Parse("{}");
+                    return (new DocumentToMerge(h.HabitatId.Id, v), value);
+                });
+            return await Task.WhenAll(results);
         }
     }
 }

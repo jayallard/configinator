@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Allard.Configinator.Core.Infrastructure;
@@ -75,9 +76,13 @@ namespace Allard.Configinator.Core.Tests.Unit
                 "staging");
             var request = new GetValueRequest(configId, ValueFormat.Resolved);
             var value = await Configinator.GetValueAsync(request);
-            value.Existing.Should().BeFalse();
+            //value.Existing.Should().BeFalse();
             value.ConfigurationId.Should().Be(configId);
-            value.PropertyDetail.Count.Should().Be(0);
+            value.PropertyDetail.Count.Should().Be(6);
+            value.PropertyDetail
+                .All(p => p.Property.Value == null)
+                .Should()
+                .BeTrue();
         }
 
         [Fact]
@@ -89,7 +94,12 @@ namespace Allard.Configinator.Core.Tests.Unit
                 new SetConfigurationRequest(configId, ValueFormat.Raw,
                     JsonDocument.Parse("{ \"nothing-to\": \"see-here\" }"));
             var setResponse = await Configinator.SetValueAsync(setRequest);
-            setResponse.Failures.Count.Should().Be(2);
+            
+            // there are 4 properties, and all 4 are null.
+            // the passed in is is effectively ignored
+            // because it doesn't have any of the properties
+            // defined in the config section.
+            setResponse.Failures.Count.Should().Be(4);
             setResponse.Success.Should().BeFalse();
         }
 
