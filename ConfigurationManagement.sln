@@ -14,9 +14,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Core.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Infrastructure.MongoDb.Tests", "Allard.Configinator.Infrastructure.MongoDb.Tests\Allard.Configinator.Infrastructure.MongoDb.Tests.csproj", "{A870290C-0BDD-4A3B-853C-4511E4CF75E4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Blazor", "Allard.Configinator.Blazor\Allard.Configinator.Blazor.csproj", "{CAAA3FFB-AD94-4CAE-B16A-0C131C325B4F}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Mvc", "Allard.Configinator.Mvc\Allard.Configinator.Mvc.csproj", "{0678FB15-514D-4241-B010-906ADDD36AD8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrpcService", "GrpcService\GrpcService.csproj", "{D1BA3FF0-A58B-4FAD-8E6C-94E9A562503F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -52,13 +50,9 @@ Global
 		{A870290C-0BDD-4A3B-853C-4511E4CF75E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A870290C-0BDD-4A3B-853C-4511E4CF75E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A870290C-0BDD-4A3B-853C-4511E4CF75E4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CAAA3FFB-AD94-4CAE-B16A-0C131C325B4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CAAA3FFB-AD94-4CAE-B16A-0C131C325B4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CAAA3FFB-AD94-4CAE-B16A-0C131C325B4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CAAA3FFB-AD94-4CAE-B16A-0C131C325B4F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0678FB15-514D-4241-B010-906ADDD36AD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0678FB15-514D-4241-B010-906ADDD36AD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0678FB15-514D-4241-B010-906ADDD36AD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0678FB15-514D-4241-B010-906ADDD36AD8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1BA3FF0-A58B-4FAD-8E6C-94E9A562503F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1BA3FF0-A58B-4FAD-8E6C-94E9A562503F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1BA3FF0-A58B-4FAD-8E6C-94E9A562503F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1BA3FF0-A58B-4FAD-8E6C-94E9A562503F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
