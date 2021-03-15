@@ -1,7 +1,7 @@
 @page "/Organization/{organizationid}"
 @using Allard.Configinator.Blazor.Shared.ViewModels
 @using System.Web
-@inject HttpClient Client;
+@inject HttpClient client;
 <h3>Organization</h3>
 
 @code {
@@ -15,21 +15,21 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Realms = await Client.GetFromJsonAsync<RealmsViewModel>("api/v1/organizations/" + HttpUtility.UrlEncode(OrganizationId) + "/realms");
+        Realms = await client.GetFromJsonAsync<RealmsViewModel>("api/v1/organizations/" + HttpUtility.UrlEncode(OrganizationId) + "/realms");
         await base.OnInitializedAsync();
     }
 
 }
 
-<h1>@OrganizationId</h1>
+<h1>Organization: @OrganizationId</h1>
 @if (Realms != null)
 {
     @foreach (var realm in Realms.Realms)
     {
-        <h3>@realm.RealmId</h3>
+        <h2>Realm: @realm.RealmId</h2>
         @foreach (var cs in realm.ConfigurationSections)
         {
-            <h2>@cs.SectionId</h2>
+            <h3>Section: @cs.SectionId.Id</h3>
             <table class="table">
                 <tbody>
                 <tr>

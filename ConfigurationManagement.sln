@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Blazor.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Blazor.Shared", "Allard.Configinator.Blazor\Shared\Allard.Configinator.Blazor.Shared.csproj", "{39F4ACD8-F27E-4068-9CF2-13907896A523}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Blazor", "Blazor", "{76A58CEC-730D-4753-B5D0-7ECAE6F21BB4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -66,5 +68,10 @@ Global
 		{39F4ACD8-F27E-4068-9CF2-13907896A523}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{39F4ACD8-F27E-4068-9CF2-13907896A523}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{39F4ACD8-F27E-4068-9CF2-13907896A523}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A5A25DC9-0F1D-4B97-87E8-A19E363D7C5E} = {76A58CEC-730D-4753-B5D0-7ECAE6F21BB4}
+		{DE7FE9C0-814B-43A3-93EE-78F2339EE251} = {76A58CEC-730D-4753-B5D0-7ECAE6F21BB4}
+		{39F4ACD8-F27E-4068-9CF2-13907896A523} = {76A58CEC-730D-4753-B5D0-7ECAE6F21BB4}
 	EndGlobalSection
 EndGlobal

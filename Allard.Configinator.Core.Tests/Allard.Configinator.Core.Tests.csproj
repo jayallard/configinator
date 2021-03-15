@@ -23,6 +23,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Allard.Configinator.Core\Allard.Configinator.Core.csproj" />
+      <ProjectReference Include="..\Allard.Configinator.Infrastructure.MongoDb\Allard.Configinator.Infrastructure.MongoDb.csproj" />
     </ItemGroup>
     <ItemGroup>
         <Content Include="__TestFiles\**\*">

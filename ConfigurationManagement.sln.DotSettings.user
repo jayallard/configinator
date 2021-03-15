@@ -1,9 +1,8 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=065d665a_002D3e63_002D4b22_002Db0b3_002Da440d08d7bd8/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from &amp;lt;Allard.Configinator.Core.Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;Or&gt;
-    &lt;Project Location="/Users/jallard/personal/ConfigurationManagement/Allard.Configinator.Core.Tests" Presentation="&amp;lt;Allard.Configinator.Core.Tests&amp;gt;" /&gt;
-    &lt;Project Location="/Users/jallard/personal/ConfigurationManagement/Allard.Configinator.Infrastructure.MongoDb.Tests" Presentation="&amp;lt;Allard.Configinator.Infrastructure.MongoDb.Tests&amp;gt;" /&gt;
-  &lt;/Or&gt;
+  &lt;TestAncestor&gt;
+    &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.Tools.SetupDatabase&lt;/TestId&gt;
+  &lt;/TestAncestor&gt;
 &lt;/SessionState&gt;</s:String>
 	
 	
