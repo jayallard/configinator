@@ -117,7 +117,6 @@ namespace Allard.Configinator.Core.Tests.Unit
             var getRequest = new GetValueRequest(configId, ValueFormat.Resolved);
             var get = await Configinator.GetValueAsync(getRequest);
 
-
             var expectedString = input.ToStupidComparisonString();
             var actualString = get.Value.ToStupidComparisonString();
             actualString.Should().Be(expectedString);

@@ -1,14 +1,16 @@
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Allard.Configinator.Api;
 using Allard.Configinator.Api.Commands;
 using Allard.Configinator.Api.Commands.ViewModels;
-using Allard.Configinator.Api.Controllers.ViewModels;
+using Allard.Configinator.Blazor.Server.Controllers.ViewModels;
+using Allard.Configinator.Blazor.Shared.ViewModels;
 using Allard.Configinator.Core.Infrastructure;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Allard.Configinator.Api.Controllers
+namespace Allard.Configinator.Blazor.Server.Controllers
 {
     [ApiController]
     [Route("/api/v1")]
@@ -199,10 +201,10 @@ namespace Allard.Configinator.Api.Controllers
         }
 
         [HttpGet]
-        [Route("{organizationId}/realms")]
-        public async Task<RealmsViewModel> GetRealms(string organizationid)
+        [Route("organizations/{organizationId}/realms")]
+        public async Task<RealmsViewModel> GetRealms(string organizationId)
         {
-            return await mediator.Send(new GetRealmsCommand(organizationid));
+            return await mediator.Send(new GetRealmsCommand(OrganizationId));
         }
 
         [HttpGet]

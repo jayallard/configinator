@@ -1,0 +1,47 @@
+@page "/Organization/{organizationid}"
+@using Allard.Configinator.Blazor.Shared.ViewModels
+@using System.Web
+@inject HttpClient Client;
+<h3>Organization</h3>
+
+@code {
+
+    [Parameter]
+    public string OrganizationId { get; set; }
+
+    // should be org, but don't have a view model
+    // for that yet...experimenting. 
+    public RealmsViewModel Realms { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Realms = await Client.GetFromJsonAsync<RealmsViewModel>("api/v1/organizations/" + HttpUtility.UrlEncode(OrganizationId) + "/realms");
+        await base.OnInitializedAsync();
+    }
+
+}
+
+<h1>@OrganizationId</h1>
+@if (Realms != null)
+{
+    @foreach (var realm in Realms.Realms)
+    {
+        <h3>@realm.RealmId</h3>
+        @foreach (var cs in realm.ConfigurationSections)
+        {
+            <h2>@cs.SectionId</h2>
+            <table class="table">
+                <tbody>
+                <tr>
+                    <td>Type</td>
+                    <td>@cs.SchemaTypeId</td>
+                </tr>
+                <tr>
+                    <td>Path</td>
+                    <td>@cs.Path</td>
+                </tr>
+                </tbody>
+            </table>
+        }
+    }
+}
