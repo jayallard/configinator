@@ -94,7 +94,7 @@ namespace Allard.Configinator.Core.Tests.Unit
                 new SetConfigurationRequest(configId, ValueFormat.Raw,
                     JsonDocument.Parse("{ \"nothing-to\": \"see-here\" }"));
             var setResponse = await Configinator.SetValueAsync(setRequest);
-            
+
             // there are 4 properties, and all 4 are null.
             // the passed in is is effectively ignored
             // because it doesn't have any of the properties

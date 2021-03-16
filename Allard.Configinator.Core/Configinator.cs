@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Allard.Configinator.Core.DocumentMerger;
@@ -41,7 +40,7 @@ namespace Allard.Configinator.Core
 
             // merge
             var model = structureModelBuilder.ToStructureModel(cs);
-            var merged = (await DocMerger2.Merge(model, toMerge)).ToList();
+            var merged = (await DocMerger3.Merge(model, toMerge)).ToList();
             var mergedJson = merged.ToJsonString();
 
             // todo: get rid of ??
@@ -53,24 +52,23 @@ namespace Allard.Configinator.Core
                 .ToList();
 
             // if no errors, save
-            if (errors.Count == 0)
-            {
-                // save
-                // todo: normalize this
-                var path = cs.Path.Replace("{{habitat}}", habitat.HabitatId.Id);
+            if (errors.Count > 0) return new SetConfigurationResponse(request.ConfigurationId, errors);
 
-                // if it's resolved format, then reduce the input value down to just the values
-                // that changed in the last query.
-                // if there's only one doc, then nothing to reduce, do
-                // skip it
-                var toSave = request.Value;
-                if (request.Format == ValueFormat.Resolved && merged.First().Property.Layers.Count > 1)
-                    toSave = ReduceToRawJson(merged);
+            // save
+            // todo: normalize this
+            var path = cs.Path.Replace("{{habitat}}", habitat.HabitatId.Id);
 
-                // save the value that was passed in. 
-                var value = new SetConfigStoreValueRequest(path, toSave);
-                await configStore.SetValueAsync(value);
-            }
+            // if it's resolved format, then reduce the input value down to just the values
+            // that changed in the last query.
+            // if there's only one doc, then nothing to reduce, do
+            // skip it
+            var toSave = request.Value;
+            if (request.Format == ValueFormat.Resolved && merged.First().Property.Layers.Count > 1)
+                toSave = ReduceToRawJson(merged);
+
+            // save the value that was passed in. 
+            var value = new SetConfigStoreValueRequest(path, toSave);
+            await configStore.SetValueAsync(value);
 
             return new SetConfigurationResponse(request.ConfigurationId, errors);
         }
@@ -114,9 +112,10 @@ namespace Allard.Configinator.Core
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
 
             // get the bases and the specific value, then merge.
-            var toMerge = await GetDocsFromConfigStore(cs.Path, habitat.Bases.ToList().AddIfNotNull(habitat));
+            var toMerge = (await GetDocsFromConfigStore(cs.Path, habitat.Bases.ToList().AddIfNotNull(habitat)))
+                .ToList();
             var model = structureModelBuilder.ToStructureModel(cs);
-            var merged = (await DocMerger2.Merge(model, toMerge.Select(m => m.Item1))).ToList();
+            var merged = (await DocMerger3.Merge(model, toMerge.Select(m => m.Item1))).ToList();
 
             // todo: too much conversion
             var mergedJsonDoc = JsonDocument.Parse(merged.ToJsonString());

@@ -1,6 +1,5 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Allard.Configinator.Api.Commands.ViewModels;
 using Allard.Configinator.Blazor.Shared.ViewModels;
 using Allard.Configinator.Core;
 using MediatR;

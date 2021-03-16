@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Allard.Configinator.Infrastructure.MongoDb;
 using Xunit;

@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
 using Allard.Configinator.Core.Model;
 using Allard.Configinator.Core.Model.Builders;
 using Xunit;
@@ -29,7 +24,7 @@ namespace Allard.Configinator.Core.Tests.Unit.Model
                 .AddStringProperty("c")
                 .AddStringProperty("d")
                 .Build();
-            
+
             var kafkaType = SchemaTypeBuilder
                 .Create("kafka/unsecured")
                 .AddStringProperty("broker-list")

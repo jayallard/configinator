@@ -49,7 +49,13 @@ namespace Allard.Configinator.Core
                 {
                     if (property.SchemaTypeId.IsPrimitive)
                     {
-                        writer.WriteNull(property.Name);
+                        // need a value of the proper type.
+                        // currently only support strings.
+                        // this is how the model parser will know
+                        // what type of values to expect.
+                        // ie; when we support int, set the value to 0
+                        // so everything knows its an int.
+                        writer.WriteString(property.Name, string.Empty);
                         continue;
                     }
 

@@ -13,6 +13,18 @@ namespace Allard.Configinator.Core.DocumentMerger
         private readonly JsonDocument structureModel;
         private readonly List<DocumentToMerge> toMerge;
 
+        private DocMerger3(JsonDocument structureModel, params DocumentToMerge[] toMerge)
+        {
+            this.toMerge = toMerge.ToList();
+            this.structureModel = structureModel;
+        }
+
+        private DocMerger3(JsonDocument structureModel, IEnumerable<DocumentToMerge> toMerge)
+        {
+            this.toMerge = toMerge.ToList();
+            this.structureModel = structureModel;
+        }
+
         public static async Task<IEnumerable<MergedProperty>> Merge(JsonDocument structureModel,
             params JsonDocument[] documents)
         {
@@ -31,10 +43,10 @@ namespace Allard.Configinator.Core.DocumentMerger
             return await Task.Run(() => new DocMerger3(structureModel, documents).Merge());
         }
 
-        private DocMerger3(JsonDocument structureModel, params DocumentToMerge[] toMerge)
+        public static async Task<IEnumerable<MergedProperty>> Merge(JsonDocument structureModel,
+            IEnumerable<DocumentToMerge> documents)
         {
-            this.toMerge = toMerge.ToList();
-            this.structureModel = structureModel;
+            return await Task.Run(() => new DocMerger3(structureModel, documents.ToList()).Merge());
         }
 
         public List<MergedProperty> Merge()
@@ -54,16 +66,10 @@ namespace Allard.Configinator.Core.DocumentMerger
         private MergedProperty Merge(string path, JsonProperty model, List<JsonElement> parents)
         {
             var value = new PropertyValue {Name = model.Name};
-            if (model.Value.ValueKind == JsonValueKind.String)
-            {
-                return GetValue(path, model, parents);
-            }
+            if (model.Value.ValueKind == JsonValueKind.String) return GetValue(path, model, parents);
 
-            if (model.Value.ValueKind != JsonValueKind.Object)
-            {
-                throw new Exception("Invalid model");
-            }
-            
+            if (model.Value.ValueKind != JsonValueKind.Object) throw new Exception("Invalid model");
+
             var newPath = path + "/" + model.Name;
             var result = new MergedProperty(newPath, value, new List<MergedProperty>());
             foreach (var p in model.Value.EnumerateObject())
@@ -72,11 +78,8 @@ namespace Allard.Configinator.Core.DocumentMerger
                     parents
                         .Select(d =>
                         {
-                            if (d.ValueKind == JsonValueKind.Undefined)
-                            {
-                                return d;
-                            }
-                            
+                            if (d.ValueKind == JsonValueKind.Undefined) return d;
+
                             return d.TryGetProperty(p.Name, out var e) ? e : default;
                         }).ToList();
                 result.Children.Add(Merge(newPath, p, next));
@@ -110,7 +113,7 @@ namespace Allard.Configinator.Core.DocumentMerger
                 };
 
                 value.Layers.Add(l);
-                var existsThisLayer = 
+                var existsThisLayer =
                     parents[layerIndex].ValueKind == JsonValueKind.String
                     || parents[layerIndex].ValueKind == JsonValueKind.Null;
                 if (existsThisLayer)
