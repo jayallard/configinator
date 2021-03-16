@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Allard.Configinator.Core.Infrastructure;
 
 namespace Allard.Configinator.Core.DocumentMerger
 {
@@ -15,12 +14,24 @@ namespace Allard.Configinator.Core.DocumentMerger
         private readonly List<DocumentToMerge> toMerge;
 
         public static async Task<IEnumerable<MergedProperty>> Merge(JsonDocument structureModel,
-            IEnumerable<DocumentToMerge> documents)
+            params JsonDocument[] documents)
+        {
+            return await Task.Run(() =>
+            {
+                var toMerge = Enumerable.Range(0, documents.Length)
+                    .Select(i => new DocumentToMerge(i.ToString(), documents[i]))
+                    .ToArray();
+                return new DocMerger3(structureModel, toMerge).Merge();
+            });
+        }
+
+        public static async Task<IEnumerable<MergedProperty>> Merge(JsonDocument structureModel,
+            params DocumentToMerge[] documents)
         {
             return await Task.Run(() => new DocMerger3(structureModel, documents).Merge());
         }
 
-        private DocMerger3(JsonDocument structureModel, IEnumerable<DocumentToMerge> toMerge)
+        private DocMerger3(JsonDocument structureModel, params DocumentToMerge[] toMerge)
         {
             this.toMerge = toMerge.ToList();
             this.structureModel = structureModel;
@@ -28,114 +39,110 @@ namespace Allard.Configinator.Core.DocumentMerger
 
         public List<MergedProperty> Merge()
         {
-            // root object contains only objects.
-            var result = new List<MergedProperty>();
-            var allPerDoc = toMerge
-                .Select(m => m.Document.RootElement.EnumerateObject().ToDictionary(p => p.Name))
-                .ToList();
-
-            foreach (var property in structureModel.RootElement.EnumerateObject())
+            var results = new List<MergedProperty>();
+            foreach (var p in structureModel.RootElement.EnumerateObject())
             {
-                // if (property.Value.ValueKind == JsonValueKind.Object)
-                // {
-                //     var parents = allPerDoc
-                //         .Select(a => a[property.Name])
-                //         .ToList();
-                //     var props = Merge(property, parents);
-                //     result.Add(props);
-                // }
-                //
-                // throw new Exception("Invalid root level structure model");
-                var parents = allPerDoc
-                    .Select(a => a[property.Name])
-                    .ToList();
-                var props = Merge(property, parents);
-                result.Add(props);
+                var parents =
+                    toMerge.Select(d => d.Document.RootElement.TryGetProperty(p.Name, out var e) ? e : default)
+                        .ToList();
+                results.Add(Merge("", p, parents));
             }
 
-            // var parents = toMerge
-            //     .Select(m => m.Document.RootElement.GetProperty())
-            // return Merge(structureModel.RootElement, structureModel
-            //     .RootElement
-            //     .EnumerateObject()
-            //     .Where(o => o.Value.ValueKind == JsonValueKind.Object)
-            //     .ToList());
+            return results;
+        }
+
+        private MergedProperty Merge(string path, JsonProperty model, List<JsonElement> parents)
+        {
+            var value = new PropertyValue {Name = model.Name};
+            if (model.Value.ValueKind == JsonValueKind.String)
+            {
+                return GetValue(path, model, parents);
+            }
+
+            if (model.Value.ValueKind != JsonValueKind.Object)
+            {
+                throw new Exception("Invalid model");
+            }
+            
+            var newPath = path + "/" + model.Name;
+            var result = new MergedProperty(newPath, value, new List<MergedProperty>());
+            foreach (var p in model.Value.EnumerateObject())
+            {
+                var next =
+                    parents
+                        .Select(d =>
+                        {
+                            if (d.ValueKind == JsonValueKind.Undefined)
+                            {
+                                return d;
+                            }
+                            
+                            return d.TryGetProperty(p.Name, out var e) ? e : default;
+                        }).ToList();
+                result.Children.Add(Merge(newPath, p, next));
+            }
+
             return result;
         }
 
-        private MergedProperty Merge(JsonProperty model, List<JsonProperty> parents)
+        private MergedProperty GetValue(string path, JsonProperty model, List<JsonElement> parents)
         {
-            var result = new MergedProperty("TODO", new PropertyValue {Name = model.Name}, new List<MergedProperty>());
-            if (model.Value.ValueKind == JsonValueKind.String)
+            var value = new PropertyValue {Name = model.Name};
+            var prop = new MergedProperty(path + "/" + model.Name, value, new List<MergedProperty>());
+
+            // set layer 0
+            var exists0 = parents[0].ValueKind == JsonValueKind.String;
+            value.Layers.Add(new PropertyLayer
             {
-                var value = new PropertyValue();
-                value.Layers.Add(new PropertyLayer
+                LayerIndex = 0,
+                LayerName = toMerge[0].Name,
+                Transition = exists0 ? Transition.Set : Transition.DoesntExist,
+                Value = exists0 ? parents[0].GetString() : null
+            });
+
+            for (var layerIndex = 1; layerIndex < parents.Count; layerIndex++)
+            {
+                var previousLayer = value.Layers[layerIndex - 1];
+                var l = new PropertyLayer
                 {
-                    LayerIndex = 0,
-                    LayerName = toMerge[0].Name,
-                    Transition = parents[0].Value.ValueKind == JsonValueKind.String
-                        ? Transition.Set
-                        : Transition.DoesntExist,
-                    Value = parents[0].Value.ValueKind == JsonValueKind.String ? parents[0].Value.GetString() : null
-                });
+                    LayerIndex = layerIndex,
+                    LayerName = toMerge[layerIndex].Name
+                };
 
-                for (var layerIndex = 1; layerIndex < parents.Count; layerIndex++)
+                value.Layers.Add(l);
+                var existsThisLayer = 
+                    parents[layerIndex].ValueKind == JsonValueKind.String
+                    || parents[layerIndex].ValueKind == JsonValueKind.Null;
+                if (existsThisLayer)
                 {
-                    var previousLayer = value.Layers[layerIndex - 1];
-                    var l = new PropertyLayer
+                    var lv = parents[layerIndex].GetString();
+                    if (lv == null)
                     {
-                        LayerIndex = layerIndex,
-                        LayerName = toMerge[layerIndex].Name
-                    };
-
-                    value.Layers.Add(l);
-                    //var layerFlattened = flattenedToMerge[layerIndex];
-                    var existsThisLayer = parents[layerIndex].Value.ValueKind == JsonValueKind.String;
-                    if (existsThisLayer)
-                    {
-                        var lv = parents[layerIndex].Value.GetString();
-                        if (lv == null)
-                        {
-                            l.Transition = Transition.Delete;
-                            continue;
-                        }
-
-                        l.Transition = Object.Equals(lv, previousLayer.Value)
-                            ? Transition.SetToSameValue
-                            : Transition.Set;
-                        l.Value = lv;
+                        l.Transition = Transition.Delete;
                         continue;
                     }
 
-                    if (previousLayer.Transition == Transition.Inherit
-                        || previousLayer.Transition.IsSet())
-                    {
-                        l.Transition = Transition.Inherit;
-                        l.Value = previousLayer.Value;
-                        continue;
-                    }
-
-                    l.Transition = Transition.DoesntExist;
+                    // a simple == didn't work here in a previous iteration.
+                    // i don't know why... utf8 vs non-utf8?
+                    l.Transition = Equals(lv, previousLayer.Value)
+                        ? Transition.SetToSameValue
+                        : Transition.Set;
+                    l.Value = lv;
+                    continue;
                 }
 
-                return result;
+                if (previousLayer.Transition == Transition.Inherit
+                    || previousLayer.Transition.IsSet())
+                {
+                    l.Transition = Transition.Inherit;
+                    l.Value = previousLayer.Value;
+                    continue;
+                }
+
+                l.Transition = Transition.DoesntExist;
             }
 
-
-            if (model.Value.ValueKind == JsonValueKind.Object)
-            {
-                var allPerDoc = toMerge
-                    .Select(m => m.Document.RootElement.EnumerateObject().ToDictionary(p => p.Name))
-                    .ToList();
-                var p = allPerDoc
-                    .Select(a => a[model.Name])
-                    .ToList();
-                result.Children.Add(Merge(model, p));
-                return result;
-
-            }
-
-            throw new Exception("unhandled node type");
+            return prop;
         }
     }
 }
