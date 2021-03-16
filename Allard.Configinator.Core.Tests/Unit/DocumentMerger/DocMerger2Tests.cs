@@ -79,9 +79,61 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
             prop.Layers[0].Transition.Should().Be(Transition.Set);
             prop.Layers[1].Transition.Should().Be(Transition.Delete);
         }
+        
+        [Fact]
+        public async Task DeleteProperty3()
+        {
+            var top = JsonDocument.Parse("{ \"test\": \"world\" }");
+            var bottom = JsonDocument.Parse("{ \"test\": null }");
+
+            var merge = new List<DocumentToMerge>
+            {
+                new("top", top),
+                new("bottom", bottom)
+            };
+
+            var result = (await DocMerger3.Merge(top, merge))
+                .ToDictionary(m => m.Path, m => m.Property);
+            testOutputHelper.WriteLine(JsonSerializer.Serialize(result));
+
+            var prop = result["/test"];
+            prop.Layers.Count.Should().Be(2);
+            prop.Value.Should().BeNull();
+            prop.Layers[0].Transition.Should().Be(Transition.Set);
+            prop.Layers[1].Transition.Should().Be(Transition.Delete);
+        }
 
         [Fact]
         public async Task DeleteThenAddBack()
+        {
+            var top = JsonDocument.Parse("{ \"test\": \"world\" }");
+            var middle = JsonDocument.Parse("{ \"test\": null }");
+            var middle2 = JsonDocument.Parse("{  }");
+            var bottom = JsonDocument.Parse("{ \"test\": \"planet\" }");
+
+            var merge = new List<DocumentToMerge>
+            {
+                new("top", top),
+                new("middle", middle),
+                new("middle2", middle2),
+                new("bottom", bottom)
+            };
+
+            var result = (await DocMerger2.Merge(top, merge))
+                .ToDictionary(m => m.Path, m => m.Property);
+            testOutputHelper.WriteLine(JsonSerializer.Serialize(result));
+
+            var prop = result["/test"];
+            prop.Layers.Count.Should().Be(4);
+            prop.Value.Should().Be("planet");
+            prop.Layers[0].Transition.Should().Be(Transition.Set);
+            prop.Layers[1].Transition.Should().Be(Transition.Delete);
+            prop.Layers[2].Transition.Should().Be(Transition.DoesntExist);
+            prop.Layers[3].Transition.Should().Be(Transition.Set);
+        }
+
+        [Fact]
+        public async Task DeleteThenAddBack3()
         {
             var top = JsonDocument.Parse("{ \"test\": \"world\" }");
             var middle = JsonDocument.Parse("{ \"test\": null }");
