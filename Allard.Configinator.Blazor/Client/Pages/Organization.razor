@@ -19,6 +19,7 @@
         await base.OnInitializedAsync();
     }
 
+
 }
 
 <h1>Organization: @OrganizationId</h1>
@@ -39,6 +40,19 @@
                 <tr>
                     <td>Path</td>
                     <td>@cs.Path</td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <h4>Habitats</h4>
+                        <ul>
+                            @foreach (var h in realm.Habitats)
+                            {
+                                <li>
+                                    @h.HabitatId: <a href="/configuration/@OrganizationId/@realm.RealmId/@cs.SectionId.Id/@h.HabitatId">Configuration Values</a>
+                                </li>
+                            }
+                        </ul>
+                    </td>
                 </tr>
                 </tbody>
             </table>

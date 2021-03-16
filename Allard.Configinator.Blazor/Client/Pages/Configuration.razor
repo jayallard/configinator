@@ -1,0 +1,68 @@
+@page "/configuration/{organizationId}/{realmId}/{sectionId}/{habitatId}"
+@inject HttpClient client;
+@using Allard.Configinator.Core.Model
+@using Allard.Configinator.Api.Commands.ViewModels
+@using Allard.Configinator.Blazor.Shared.ViewModels
+@using System.Text.Json
+<h3>Configuration</h3>
+
+@code {
+
+    [Parameter]
+    public string OrganizationId { get; set; }
+
+    [Parameter]
+    public string RealmId { get; set; }
+
+    [Parameter]
+    public string SectionId { get; set; }
+
+    [Parameter]
+    public string HabitatId { get; set; }
+
+
+    private ExplainedViewModel explained;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var url = $"/api/v1/config/{OrganizationId}/{RealmId}/{SectionId}/{HabitatId}/value-explained";
+        explained = await client.GetFromJsonAsync<ExplainedViewModel>(url);
+    }
+
+    public void Save()
+    {
+        var result = new Dictionary<string, object>();
+        foreach (var p in explained.Properties)
+        {
+            result[p.Name] = ToDictionary(p);
+        }
+        
+        Json = JsonSerializer.Serialize(result);
+    }
+
+    private Dictionary<string, object> ToDictionary(ExplainedProperty property)
+    {
+        var result = new Dictionary<string, object>();
+        foreach (var p in explained.Properties)
+        {
+            result[p.Name] = p.Children.Count == 0 ? p.Value : ToDictionary(p);
+        }
+        return result;
+    }
+    
+    public string Json { get; set; }
+
+}
+
+<h1>@OrganizationId/@RealmId/@SectionId/@HabitatId</h1>
+
+@if (explained != null)
+{
+    foreach (var p in explained.Properties)
+    {
+        <ConfigurationSection Property=@p/>
+    }
+    
+    <button @onclick="Save">Save</button>
+    <h1>@Json</h1>
+}

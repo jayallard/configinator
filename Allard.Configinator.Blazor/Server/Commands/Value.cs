@@ -5,7 +5,7 @@ using Allard.Configinator.Core;
 using Allard.Configinator.Core.Infrastructure;
 using MediatR;
 
-namespace Allard.Configinator.Api.Commands
+namespace Allard.Configinator.Blazor.Server.Commands
 {
     public record SetValueCommand(
         ConfigurationId ConfigurationId,

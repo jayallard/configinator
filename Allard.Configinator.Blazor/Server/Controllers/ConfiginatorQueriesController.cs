@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Allard.Configinator.Api;
 using Allard.Configinator.Api.Commands;
 using Allard.Configinator.Api.Commands.ViewModels;
+using Allard.Configinator.Blazor.Server.Commands;
 using Allard.Configinator.Blazor.Server.Controllers.ViewModels;
 using Allard.Configinator.Blazor.Shared.ViewModels;
 using Allard.Configinator.Core.Infrastructure;
@@ -64,7 +65,7 @@ namespace Allard.Configinator.Blazor.Server.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("config/{orgId}/{realmId}/{sectionId}/{habitatId}/value-raw")]
-        public async Task<JsonDocument?> GetConfigurationValueRaw(
+        public async Task<JsonDocument> GetConfigurationValueRaw(
             string orgId,
             string realmId,
             string sectionId,
@@ -169,7 +170,8 @@ namespace Allard.Configinator.Blazor.Server.Controllers
             string habitatId)
         {
             var id = new ConfigurationId(orgId, realmId, sectionId, habitatId);
-            return await mediator.Send(new GetConfigurationExplainedCommand(id));
+            var result = await mediator.Send(new GetConfigurationExplainedCommand(id));
+            return result;
         }
 
         [HttpGet]

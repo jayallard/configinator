@@ -1,0 +1,41 @@
+@using Allard.Configinator.Core.DocumentMerger
+@using Allard.Configinator.Blazor.Shared.ViewModels
+
+@code {
+
+    [Parameter]
+    public ExplainedProperty Property { get; set; }
+
+    [Parameter]
+    public bool Edit { get; set; } = true;
+    
+}
+
+<table class="table-bordered">
+    <thead>
+    <tr>
+        <th class="col text-primary" colspan="2">
+            <h3>@Property.Name</h3>
+        </th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var c in Property.Children.Where(c => c.Children.Count == 0))
+    {
+        <tr>
+            <td>@c.Name</td>
+            @if (Edit)
+            {
+                <td>
+                    @c.IsValueChanged
+                    <input @bind="c.Value" @bind:event="oninput"/>
+                </td>
+            }
+            else
+            {
+                <td>@c.Value</td>
+            }
+        </tr>
+    }
+    </tbody>
+</table>
