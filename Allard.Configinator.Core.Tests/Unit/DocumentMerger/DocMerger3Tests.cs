@@ -26,7 +26,6 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
             var c = JsonDocument.Parse("{ \"a\": \"d\" }");
 
             var only = (await DocMerger3.Merge(model, a, b, c));
-                var x = only.Objects.Single();
             only.Objects.Count.Should().Be(0);
             only.Properties.Count.Should().Be(1);
             only.Properties.Single().Path.Should().Be("/a");
@@ -83,8 +82,12 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
             var d = JsonDocument.Parse("{ \"hello\": \"bob\",   \"stuff\": { \"stuff2\": { \"hi\": \"bye\" }}}");
             var merged = (await DocMerger3.Merge(model, a, b, c, d));
 
-            // hello and stuff
-            merged.Properties.Count.Should().Be(2);
+            // hello
+            merged.Properties.Count.Should().Be(1);
+            
+            // stuff
+            merged.Objects.Count.Should().Be(1);
+            
             var hello = merged.Properties.Single(m => m.Name == "hello");
             hello.Value.Should().Be("bob");
             hello.Layers[0].Transition.Should().Be(Transition.Set);
@@ -93,7 +96,8 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
             hello.Layers[3].Transition.Should().Be(Transition.Set);
 
             var stuff = merged.Objects.Single(m => m.Name == "stuff");
-            stuff.Properties.Count.Should().Be(1);
+            stuff.Objects.Count.Should().Be(1);
+            stuff.Properties.Should().BeEmpty();
 
             var stuff2 = stuff.Objects.Single(c => c.Name == "stuff2");
             stuff2.Properties.Count.Should().Be(1);

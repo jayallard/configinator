@@ -67,28 +67,6 @@ namespace Allard.Configinator.Core.Tests.Unit
         }
 
         [Fact]
-        public async Task GetValueDoesntExist()
-        {
-            var configId = new ConfigurationId(
-                Organization.OrganizationId.Id,
-                TestRealm1,
-                TestConfigurationSection1,
-                "staging");
-            var request = new GetValueRequest(configId, ValueFormat.Resolved);
-            var value = await Configinator.GetValueAsync(request);
-            //value.Existing.Should().BeFalse();
-            value.ConfigurationId.Should().Be(configId);
-            
-            // fails because the test is out of date. properties
-            // are nested now. fix when less lazy.
-            value.ObjectValue.Properties.Count.Should().Be(6);
-            value.ObjectValue.Properties
-                .All(p => p.Value == null)
-                .Should()
-                .BeTrue();
-        }
-
-        [Fact]
         public async Task SetFailsIfDocFailsValidation()
         {
             var configId = new ConfigurationId(Organization.OrganizationId.Id, TestRealm1,

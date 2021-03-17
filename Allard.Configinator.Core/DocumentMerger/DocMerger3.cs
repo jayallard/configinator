@@ -12,18 +12,12 @@ namespace Allard.Configinator.Core.DocumentMerger
         private readonly JsonDocument structureModel;
         private readonly List<DocumentToMerge> toMerge;
 
-        private DocMerger3(JsonDocument structureModel, params DocumentToMerge[] toMerge)
-        {
-            this.toMerge = toMerge.ToList();
-            this.structureModel = structureModel;
-        }
-
-        private DocMerger3(JsonDocument structureModel, IEnumerable<DocumentToMerge> toMerge)
-        {
-            this.toMerge = toMerge.ToList();
-            this.structureModel = structureModel;
-        }
-
+        /// <summary>
+        /// Merge multiple documents into one.
+        /// </summary>
+        /// <param name="structureModel"></param>
+        /// <param name="documents"></param>
+        /// <returns></returns>
         public static async Task<ObjectValue> Merge(JsonDocument structureModel,
             params JsonDocument[] documents)
         {
@@ -35,19 +29,32 @@ namespace Allard.Configinator.Core.DocumentMerger
                 return new DocMerger3(structureModel, toMerge).Merge();
             });
         }
-
-        public static async Task<ObjectValue> Merge(JsonDocument structureModel,
-            params DocumentToMerge[] documents)
-        {
-            return await Task.Run(() => new DocMerger3(structureModel, documents).Merge());
-        }
-
+        
+        /// <summary>
+        /// Merge multiple documents into one.
+        /// </summary>
+        /// <param name="structureModel"></param>
+        /// <param name="documents"></param>
+        /// <returns></returns>
         public static async Task<ObjectValue> Merge(JsonDocument structureModel,
             IEnumerable<DocumentToMerge> documents)
         {
             return await Task.Run(() => new DocMerger3(structureModel, documents.ToList()).Merge());
         }
 
+        private DocMerger3(JsonDocument structureModel, IEnumerable<DocumentToMerge> toMerge)
+        {
+            this.toMerge = toMerge.ToList();
+            this.structureModel = structureModel;
+        }
+
+        /// <summary>
+        /// Entry point - merge.
+        /// This method takes care of the base level of the document.
+        /// This is only used once. Recursion is handled by the parameterized
+        /// merge method.
+        /// </summary>
+        /// <returns></returns>
         private ObjectValue Merge()
         {
             var objects = structureModel
@@ -55,7 +62,7 @@ namespace Allard.Configinator.Core.DocumentMerger
                 .GetObjects()
                 .ToList();
 
-            var merged = objects
+            var mergedObjects = objects
                 .Select(o =>
                 {
                     var layers = GetLayers(o.Name, toMerge.Select(m => m.Document.RootElement));
@@ -64,34 +71,71 @@ namespace Allard.Configinator.Core.DocumentMerger
                 .ToList()
                 .AsReadOnly();
 
-            return new ObjectValue("/", "root", new List<PropertyValue>().AsReadOnly(), merged);
+            var properties = structureModel
+                .RootElement
+                .GetProperties()
+                .Select(p =>
+                {
+                    var layers = toMerge.Select(m => GetProperty(p.Name, m.Document.RootElement)).ToList();
+                    return GetValue(string.Empty, p, layers);
+                })
+                .ToList()
+                .AsReadOnly();
+            
+            return new ObjectValue("/", "root", properties, mergedObjects);
         }
 
-        private JsonElement GetLayer(string name, JsonElement layerParent)
+        /// <summary>
+        /// Gets a  form the parent element.
+        /// If the property doesn't exist,
+        /// returns an Undefined json element.
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <param name="parentElement"></param>
+        /// <returns></returns>
+        private static JsonElement GetProperty(string propertyName, JsonElement parentElement)
         {
-            return layerParent.TryGetProperty(name, out var existing) ? existing : default;
+            if (parentElement.ValueKind == JsonValueKind.Undefined)
+            {
+                return parentElement;
+            }
+            
+            return parentElement.TryGetProperty(propertyName, out var existing) ? existing : default;
         }
 
-        private List<JsonElement> GetLayers(string name, IEnumerable<JsonElement> layerParents)
+        /// <summary>
+        /// Gets the property from each of the elements.
+        /// If the property doesn't exist, it returns
+        /// Undefined for that item.
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <param name="layerParents"></param>
+        /// <returns></returns>
+        private static List<JsonElement> GetLayers(string propertyName, IEnumerable<JsonElement> layerParents)
         {
             return layerParents
-                .Select(p => GetLayer(name, p))
+                .Select(p => GetProperty(propertyName, p))
                 .ToList();
         }
 
+        /// <summary>
+        /// The worker horse.
+        /// Merge JSON elements into each.
+        /// It calls itself to recurse the tree.
+        /// </summary>
+        /// <param name="path">The path of the current node to be merged.</param>
+        /// <param name="model"></param>
+        /// <param name="layers"></param>
+        /// <returns></returns>
         private ObjectValue Merge(string path, JsonProperty model, List<JsonElement> layers)
         {
             var newPath = path + "/" + model.Name;
-            var properties = model
-                .Value
-                .EnumerateObject()
-                .Where(o => o.Value.ValueKind == JsonValueKind.String)
-                .ToList();
+
+            // merge the objects that are within this object
             var objects = model
                 .Value
                 .GetObjects()
                 .ToList();
-
             var mergedObjects = objects
                 .Select(o =>
                 {
@@ -101,14 +145,35 @@ namespace Allard.Configinator.Core.DocumentMerger
                 .ToList()
                 .AsReadOnly();
 
+            // merge the properties
+            var properties = model
+                .Value
+                .EnumerateObject()
+                .Where(o => o.Value.ValueKind == JsonValueKind.String)
+                .ToList();
             var mergedProperties = properties
-                .Select(p => GetValue(newPath, p, layers))
+                .Select(p =>
+                {
+                    var nextLayers = GetLayers(p.Name, layers);
+                    return GetValue(newPath, p, nextLayers);
+                })
                 .ToList()
                 .AsReadOnly();
 
             return new ObjectValue(path + "/" + model.Name, model.Name, mergedProperties, mergedObjects);
         }
 
+        /// <summary>
+        /// Create the property values.
+        /// Determine the transition state
+        /// based on each layer, and the layers that
+        /// preceded it. IE: If the value[x] is undefined, and
+        /// value[x-1] is set, then value[x] inherits value[x-1].
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="model"></param>
+        /// <param name="parents"></param>
+        /// <returns></returns>
         private PropertyValue GetValue(string path, JsonProperty model, List<JsonElement> parents)
         {
             var layers = new List<PropertyLayer>();
@@ -123,6 +188,7 @@ namespace Allard.Configinator.Core.DocumentMerger
                 Value = exists0 ? parents[0].GetString() : null
             });
 
+            // iterate the remaining layers.
             for (var layerIndex = 1; layerIndex < parents.Count; layerIndex++)
             {
                 var previousLayer = layers[layerIndex - 1];
