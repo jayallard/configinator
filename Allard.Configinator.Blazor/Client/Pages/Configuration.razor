@@ -21,21 +21,21 @@
     public bool Edit { get; set; }
 
 
-    private ExplainedViewModel explained;
+    private ExplainedObject explained;
     private SaveResponseViewModel SaveResponse;
     public string Json { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         var url = $"/api/v1/config/{OrganizationId}/{RealmId}/{SectionId}/{HabitatId}/value-explained";
-        explained = await client.GetFromJsonAsync<ExplainedViewModel>(url);
+        explained = await client.GetFromJsonAsync<ExplainedObject>(url);
         await Load();
     }
 
     private async Task Load()
     {
         var url = $"/api/v1/config/{OrganizationId}/{RealmId}/{SectionId}/{HabitatId}/value-explained";
-        explained = await client.GetFromJsonAsync<ExplainedViewModel>(url);
+        explained = await client.GetFromJsonAsync<ExplainedObject>(url);
     }
     
     private async Task CancelEdit()
@@ -49,7 +49,7 @@
     public async Task Save()
     {
         var result = new Dictionary<string, object>();
-        foreach (var p in explained.Properties)
+        foreach (var p in explained.Objects)
         {
             result[p.Name] = ToDictionary(p);
         }
@@ -65,18 +65,11 @@
         }
     }
 
-    private Dictionary<string, object> ToDictionary(ExplainedProperty property)
+    private Dictionary<string, object> ToDictionary(ExplainedObject obj)
     {
         var result = new Dictionary<string, object>();
-        foreach (var p in property.Children)
+        foreach (var p in obj.Properties)
         {
-            Console.WriteLine("=====" + p.Name);
-            if (p.Children.Count > 0)
-            {
-                result[p.Name] = ToDictionary(p);
-                continue;
-            }
-
             // if the value is null, don't set it.
             // the lack of the property will allow
             // it to inherit from the base.
@@ -88,6 +81,12 @@
                 result[p.Name] = value;
             }
         }
+
+        foreach (var o in obj.Objects)
+        {
+            result[o.Name] = ToDictionary(o);
+        }
+        
         return result;
     }
 
@@ -123,9 +122,9 @@
 
 @if (explained != null)
 {
-    foreach (var p in explained.Properties)
+    foreach (var obj in explained.Objects)
     {
-        <ConfigurationSection Edit=@Edit Property=@p/>
+        <ConfigurationSection Edit=@Edit Object=@obj/>
     }
 
     <button hidden="@(!Edit)" @onclick="Save">Save</button>

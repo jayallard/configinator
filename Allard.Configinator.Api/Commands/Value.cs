@@ -34,7 +34,7 @@ namespace Allard.Configinator.Api.Commands
                 await configinatorService.GetConfiginatorByIdAsync(request.ConfigurationId.OrganizationId);
             var result = await configinator.GetValueAsync(get);
             return new ConfigurationValue(request.ConfigurationId, result.Exists, result.Value,
-                result.PropertyDetail);
+                result.ObjectValue);
         }
     }
 

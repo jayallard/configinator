@@ -4,7 +4,7 @@
 @code {
 
     [Parameter]
-    public ExplainedProperty Property { get; set; }
+    public ExplainedObject Object { get; set; }
 
     [Parameter]
     public bool Edit { get; set; } = true;
@@ -15,30 +15,35 @@
     <thead>
     <tr>
         <th colspan="2">
-            <h3>@Property.Name</h3>
+            <h3>@Object.Name</h3>
         </th>
     </tr>
     </thead>
     <tbody>
-    @foreach (var c in Property.Children.Where(c => c.Children.Count == 0))
+    @foreach (var p in Object.Properties)
     {
         <tr>
-            <td>@c.Name</td>
+            <td>@p.Name</td>
             <td>
                 @if (Edit)
                 {
-                    <input @bind="c.Value" @bind:event="oninput"/>
+                    <input @bind="p.Value" @bind:event="oninput"/>
                 }
                 else
                 {
-                    @c.Value
+                    @p.Value
                 }
-                    @if (c.Layers.Last().Transition == "Inherit")
-                    {
-                        <span style="margin-left:15px" class="badge-pill badge-primary">Inherited</span>
-                    }
+                @if (p.Layers.Last().Transition == "Inherit")
+                {
+                    <span style="margin-left:15px" class="badge-pill badge-primary">Inherited</span>
+                }
             </td>
         </tr>
+    }
+
+    @foreach (var o in Object.Objects)
+    {
+        <ConfigurationSection Edit=@Edit Object=@o/>
     }
     </tbody>
 </table>

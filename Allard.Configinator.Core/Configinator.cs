@@ -40,7 +40,8 @@ namespace Allard.Configinator.Core
 
             // merge
             var model = structureModelBuilder.ToStructureModel(cs);
-            var merged = (await DocMerger3.Merge(model, toMerge)).ToList();
+            var merged = (await DocMerger3.Merge(model, toMerge));
+            // TODO: change to single object.
             var mergedJson = merged.ToJsonString();
 
             // todo: get rid of ??
@@ -83,37 +84,29 @@ namespace Allard.Configinator.Core
             };
         }
 
-        public static JsonDocument ReduceToRawJson(List<MergedProperty> properties)
+        public static JsonDocument ReduceToRawJson(ObjectValue o)
         {
-            var reduced = properties
-                .Select(ReduceToChanges)
-                .Where(r => r != null);
-
+            var reduced = ReduceToChanges(o);
             return JsonDocument.Parse(reduced.ToJsonString());
         }
 
-        private static MergedProperty ReduceToChanges(MergedProperty p)
+        private static ObjectValue ReduceToChanges(ObjectValue o)
         {
-            if (p.Children.Count > 0)
-            {
-                // todo: can't use children to determine if its an object or not.
-                // no children when everything is reduced out, which results in a null value,
-                // which results in it being treated as a scalar
-                var copy = new MergedProperty(p.Path, p.Property, new List<MergedProperty>());
-                foreach (var r in p
-                    .Children
-                    .Select(ReduceToChanges)
-                    .Where(r => r != null))
+            var childObjects = o
+                .Objects
+                .Select(ReduceToChanges)
+                .ToList();
+
+            var childProperties = o
+                .Properties
+                .Select(p =>
                 {
-                    copy.Children.Add(r);
-                }
-
-                return copy;
-            }
-
-            var last = p.Property.Layers.Last();
-            var changed = last.Transition == Transition.Set || last.Transition == Transition.Delete;
-            return changed ? p : null;
+                    var lastLayer = p.Layers.Last();
+                    var changed = lastLayer.Transition == Transition.Set || lastLayer.Transition == Transition.Delete;
+                    return changed ? p : null;
+                })
+                .ToList();
+            return new ObjectValue(o.Path, o.Name, childProperties.AsReadOnly(), childObjects.AsReadOnly());
         }
 
         private async Task<GetConfigurationResponse> GetValueRawAsync(GetValueRequest request)
@@ -135,7 +128,7 @@ namespace Allard.Configinator.Core
             var toMerge = (await GetDocsFromConfigStore(cs.Path, habitat.Bases.ToList().AddIfNotNull(habitat)))
                 .ToList();
             var model = structureModelBuilder.ToStructureModel(cs);
-            var merged = (await DocMerger3.Merge(model, toMerge.Select(m => m.Item1))).ToList();
+            var merged = await DocMerger3.Merge(model, toMerge.Select(m => m.Item1));
 
             // todo: too much conversion
             var mergedJsonDoc = JsonDocument.Parse(merged.ToJsonString());

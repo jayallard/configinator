@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -6,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Allard.Configinator.Core.DocumentMerger
 {
-    public record Property(string name, List<Property> ChildProperties);
+    public record Property(string Name, List<Property> ChildProperties);
 
     public class DocMerger3
     {
@@ -25,7 +24,7 @@ namespace Allard.Configinator.Core.DocumentMerger
             this.structureModel = structureModel;
         }
 
-        public static async Task<IEnumerable<MergedProperty>> Merge(JsonDocument structureModel,
+        public static async Task<ObjectValue> Merge(JsonDocument structureModel,
             params JsonDocument[] documents)
         {
             return await Task.Run(() =>
@@ -37,65 +36,86 @@ namespace Allard.Configinator.Core.DocumentMerger
             });
         }
 
-        public static async Task<IEnumerable<MergedProperty>> Merge(JsonDocument structureModel,
+        public static async Task<ObjectValue> Merge(JsonDocument structureModel,
             params DocumentToMerge[] documents)
         {
             return await Task.Run(() => new DocMerger3(structureModel, documents).Merge());
         }
 
-        public static async Task<IEnumerable<MergedProperty>> Merge(JsonDocument structureModel,
+        public static async Task<ObjectValue> Merge(JsonDocument structureModel,
             IEnumerable<DocumentToMerge> documents)
         {
             return await Task.Run(() => new DocMerger3(structureModel, documents.ToList()).Merge());
         }
 
-        public List<MergedProperty> Merge()
+        private ObjectValue Merge()
         {
-            var results = new List<MergedProperty>();
-            foreach (var p in structureModel.RootElement.EnumerateObject())
-            {
-                var parents =
-                    toMerge.Select(d => d.Document.RootElement.TryGetProperty(p.Name, out var e) ? e : default)
-                        .ToList();
-                results.Add(Merge("", p, parents));
-            }
+            var objects = structureModel
+                .RootElement
+                .GetObjects()
+                .ToList();
 
-            return results;
+            var merged = objects
+                .Select(o =>
+                {
+                    var layers = GetLayers(o.Name, toMerge.Select(m => m.Document.RootElement));
+                    return Merge("", o, layers);
+                })
+                .ToList()
+                .AsReadOnly();
+
+            return new ObjectValue("/", "root", new List<PropertyValue>().AsReadOnly(), merged);
         }
 
-        private MergedProperty Merge(string path, JsonProperty model, List<JsonElement> parents)
+        private JsonElement GetLayer(string name, JsonElement layerParent)
         {
-            var value = new PropertyValue {Name = model.Name};
-            if (model.Value.ValueKind == JsonValueKind.String) return GetValue(path, model, parents);
+            return layerParent.TryGetProperty(name, out var existing) ? existing : default;
+        }
 
-            if (model.Value.ValueKind != JsonValueKind.Object) throw new Exception("Invalid model");
+        private List<JsonElement> GetLayers(string name, IEnumerable<JsonElement> layerParents)
+        {
+            return layerParents
+                .Select(p => GetLayer(name, p))
+                .ToList();
+        }
 
+        private ObjectValue Merge(string path, JsonProperty model, List<JsonElement> layers)
+        {
             var newPath = path + "/" + model.Name;
-            var result = new MergedProperty(newPath, value, new List<MergedProperty>());
-            foreach (var p in model.Value.EnumerateObject())
-            {
-                var next =
-                    parents
-                        .Select(d =>
-                        {
-                            if (d.ValueKind == JsonValueKind.Undefined) return d;
+            var properties = model
+                .Value
+                .EnumerateObject()
+                .Where(o => o.Value.ValueKind == JsonValueKind.String)
+                .ToList();
+            var objects = model
+                .Value
+                .GetObjects()
+                .ToList();
 
-                            return d.TryGetProperty(p.Name, out var e) ? e : default;
-                        }).ToList();
-                result.Children.Add(Merge(newPath, p, next));
-            }
+            var mergedObjects = objects
+                .Select(o =>
+                {
+                    var nextLayers = GetLayers(o.Name, layers);
+                    return Merge(path, o, nextLayers);
+                })
+                .ToList()
+                .AsReadOnly();
 
-            return result;
+            var mergedProperties = properties
+                .Select(p => GetValue(newPath, p, layers))
+                .ToList()
+                .AsReadOnly();
+
+            return new ObjectValue(path + "/" + model.Name, model.Name, mergedProperties, mergedObjects);
         }
 
-        private MergedProperty GetValue(string path, JsonProperty model, List<JsonElement> parents)
+        private PropertyValue GetValue(string path, JsonProperty model, List<JsonElement> parents)
         {
-            var value = new PropertyValue {Name = model.Name};
-            var prop = new MergedProperty(path + "/" + model.Name, value, new List<MergedProperty>());
+            var layers = new List<PropertyLayer>();
 
             // set layer 0
             var exists0 = parents[0].ValueKind == JsonValueKind.String;
-            value.Layers.Add(new PropertyLayer
+            layers.Add(new PropertyLayer
             {
                 LayerIndex = 0,
                 LayerName = toMerge[0].Name,
@@ -105,14 +125,14 @@ namespace Allard.Configinator.Core.DocumentMerger
 
             for (var layerIndex = 1; layerIndex < parents.Count; layerIndex++)
             {
-                var previousLayer = value.Layers[layerIndex - 1];
+                var previousLayer = layers[layerIndex - 1];
                 var l = new PropertyLayer
                 {
                     LayerIndex = layerIndex,
                     LayerName = toMerge[layerIndex].Name
                 };
 
-                value.Layers.Add(l);
+                layers.Add(l);
                 var existsThisLayer =
                     parents[layerIndex].ValueKind == JsonValueKind.String
                     || parents[layerIndex].ValueKind == JsonValueKind.Null;
@@ -145,7 +165,7 @@ namespace Allard.Configinator.Core.DocumentMerger
                 l.Transition = Transition.DoesntExist;
             }
 
-            return prop;
+            return new PropertyValue(path + "/" + model.Name, model.Name, layers);
         }
     }
 }

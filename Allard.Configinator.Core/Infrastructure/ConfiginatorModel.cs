@@ -29,10 +29,7 @@ namespace Allard.Configinator.Core.Infrastructure
         ConfigurationId ConfigurationId,
         bool Exists,
         JsonDocument Value,
-        List<MergedProperty> PropertyDetail)
-    {
-        public bool Existing => PropertyDetail.Count > 0;
-    }
+        ObjectValue ObjectValue);
 
     public record SetConfigurationRequest(
         ConfigurationId ConfigurationId,

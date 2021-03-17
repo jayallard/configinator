@@ -8,6 +8,6 @@ namespace Allard.Configinator.Core.DocumentMerger
         public int LayerIndex { get; set; }
         public string LayerName { get; set; }
         public Transition Transition { get; set; }
-        public object Value { get; set; }
+        public string Value { get; set; }
     }
 }

@@ -12,5 +12,5 @@ namespace Allard.Configinator.Core.Infrastructure
     public record ConfigurationId(string OrganizationId, string RealmId, string SectionId, string HabitatId);
 
     public record ConfigurationValue(ConfigurationId Id, bool Exists, JsonDocument ResolvedValue,
-        List<MergedProperty> Properties);
+        ObjectValue Object);
 }

@@ -81,9 +81,9 @@ namespace Allard.Configinator.Core.Tests.Unit
             
             // fails because the test is out of date. properties
             // are nested now. fix when less lazy.
-            value.PropertyDetail.Count.Should().Be(6);
-            value.PropertyDetail
-                .All(p => p.Property.Value == null)
+            value.ObjectValue.Properties.Count.Should().Be(6);
+            value.ObjectValue.Properties
+                .All(p => p.Value == null)
                 .Should()
                 .BeTrue();
         }
