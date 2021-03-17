@@ -57,7 +57,7 @@ namespace Allard.Configinator.Blazor.Server.Commands
                 Path = input.Path,
                 Name = input.Property.Name,
                 Value = (string)input.Property.Value ?? string.Empty,
-                OriginalValue = (string)input.Property.Value ?? string.Empty,
+                //OriginalValue = (string)input.Property.Value ?? string.Empty,
                 Layers = layers,
                 Children = children
             };

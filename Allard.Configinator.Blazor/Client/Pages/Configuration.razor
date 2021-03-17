@@ -29,29 +29,49 @@
         explained = await client.GetFromJsonAsync<ExplainedViewModel>(url);
     }
 
-    public void Save()
+    public async Task Save()
     {
         var result = new Dictionary<string, object>();
         foreach (var p in explained.Properties)
         {
             result[p.Name] = ToDictionary(p);
         }
-        
+
         Json = JsonSerializer.Serialize(result);
+        var url = $"/api/v1/config/{OrganizationId}/{RealmId}/{SectionId}/{HabitatId}/value-resolved";
+        await client.PutAsJsonAsync(url, result);
     }
 
     private Dictionary<string, object> ToDictionary(ExplainedProperty property)
     {
         var result = new Dictionary<string, object>();
-        foreach (var p in explained.Properties)
+        foreach (var p in property.Children)
         {
-            result[p.Name] = p.Children.Count == 0 ? p.Value : ToDictionary(p);
+            Console.WriteLine("=====" + p.Name);
+            result[p.Name] =
+                p.Children.Count == 0
+                    ? GetJsonValue(p.Value)
+                    : ToDictionary(p);
         }
         return result;
     }
-    
-    public string Json { get; set; }
 
+    private static object GetJsonValue(object value)
+    {
+        if (value == null)
+        {
+            return value;
+        }
+
+        if (value is string s)
+        {
+            return string.IsNullOrWhiteSpace(s) ? null : s;
+        }
+
+        return value;
+    }
+
+    public string Json { get; set; }
 }
 
 <h1>@OrganizationId/@RealmId/@SectionId/@HabitatId</h1>
@@ -62,7 +82,7 @@
     {
         <ConfigurationSection Property=@p/>
     }
-    
+
     <button @onclick="Save">Save</button>
     <h1>@Json</h1>
 }

@@ -8,13 +8,13 @@
 
     [Parameter]
     public bool Edit { get; set; } = true;
-    
+
 }
 
-<table class="table-bordered">
+<table class="table table-bordered">
     <thead>
     <tr>
-        <th class="col text-primary" colspan="2">
+        <th colspan="2">
             <h3>@Property.Name</h3>
         </th>
     </tr>
@@ -27,9 +27,12 @@
             @if (Edit)
             {
                 <td>
-                    @c.IsValueChanged
                     <input @bind="c.Value" @bind:event="oninput"/>
-                </td>
+                    @if (c.Layers.Last().Transition == "Inherit")
+                    {
+                        <span style="margin-left:15px" class="badge-pill badge-primary">Inherited</span>
+                    }
+                 </td>
             }
             else
             {
