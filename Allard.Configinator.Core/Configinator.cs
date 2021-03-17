@@ -63,7 +63,7 @@ namespace Allard.Configinator.Core
             // if there's only one doc, then nothing to reduce, do
             // skip it
             var toSave = request.Value;
-            if (request.Format == ValueFormat.Resolved && merged.First().Property.Layers.Count > 1)
+            if (request.Format == ValueFormat.Resolved) // && merged.First().Property.Layers.Count > 1)
                 toSave = ReduceToRawJson(merged);
 
             // save the value that was passed in. 
@@ -86,14 +86,34 @@ namespace Allard.Configinator.Core
         public static JsonDocument ReduceToRawJson(List<MergedProperty> properties)
         {
             var reduced = properties
-                .Where(p =>
-                {
-                    // only keep properties that were somehow changed 
-                    // in the last layer.
-                    var last = p.Property.Layers.Last();
-                    return last.Transition == Transition.Set || last.Transition == Transition.Delete;
-                });
+                .Select(ReduceToChanges)
+                .Where(r => r != null);
+
             return JsonDocument.Parse(reduced.ToJsonString());
+        }
+
+        private static MergedProperty ReduceToChanges(MergedProperty p)
+        {
+            if (p.Children.Count > 0)
+            {
+                // todo: can't use children to determine if its an object or not.
+                // no children when everything is reduced out, which results in a null value,
+                // which results in it being treated as a scalar
+                var copy = new MergedProperty(p.Path, p.Property, new List<MergedProperty>());
+                foreach (var r in p
+                    .Children
+                    .Select(ReduceToChanges)
+                    .Where(r => r != null))
+                {
+                    copy.Children.Add(r);
+                }
+
+                return copy;
+            }
+
+            var last = p.Property.Layers.Last();
+            var changed = last.Transition == Transition.Set || last.Transition == Transition.Delete;
+            return changed ? p : null;
         }
 
         private async Task<GetConfigurationResponse> GetValueRawAsync(GetValueRequest request)

@@ -1,7 +1,5 @@
 @page "/configuration/{organizationId}/{realmId}/{sectionId}/{habitatId}"
 @inject HttpClient client;
-@using Allard.Configinator.Core.Model
-@using Allard.Configinator.Api.Commands.ViewModels
 @using Allard.Configinator.Blazor.Shared.ViewModels
 @using System.Text.Json
 <h3>Configuration</h3>
@@ -20,14 +18,33 @@
     [Parameter]
     public string HabitatId { get; set; }
 
+    public bool Edit { get; set; }
+
 
     private ExplainedViewModel explained;
+    private SaveResponseViewModel SaveResponse;
+    public string Json { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         var url = $"/api/v1/config/{OrganizationId}/{RealmId}/{SectionId}/{HabitatId}/value-explained";
         explained = await client.GetFromJsonAsync<ExplainedViewModel>(url);
+        await Load();
     }
+
+    private async Task Load()
+    {
+        var url = $"/api/v1/config/{OrganizationId}/{RealmId}/{SectionId}/{HabitatId}/value-explained";
+        explained = await client.GetFromJsonAsync<ExplainedViewModel>(url);
+    }
+    
+    private async Task CancelEdit()
+    {
+        Edit = false;
+        // todo: this should be a FORM RESET or something. brute force for now.
+        await Load();
+    }
+
 
     public async Task Save()
     {
@@ -39,7 +56,13 @@
 
         Json = JsonSerializer.Serialize(result);
         var url = $"/api/v1/config/{OrganizationId}/{RealmId}/{SectionId}/{HabitatId}/value-resolved";
-        await client.PutAsJsonAsync(url, result);
+        var x = await client.PutAsJsonAsync(url, result);
+        SaveResponse = await x.Content.ReadFromJsonAsync<SaveResponseViewModel>();
+        if (SaveResponse is {Success: true })
+        {
+            Edit = false;
+            await Load();
+        }
     }
 
     private Dictionary<string, object> ToDictionary(ExplainedProperty property)
@@ -48,10 +71,22 @@
         foreach (var p in property.Children)
         {
             Console.WriteLine("=====" + p.Name);
-            result[p.Name] =
-                p.Children.Count == 0
-                    ? GetJsonValue(p.Value)
-                    : ToDictionary(p);
+            if (p.Children.Count > 0)
+            {
+                result[p.Name] = ToDictionary(p);
+                continue;
+            }
+
+            // if the value is null, don't set it.
+            // the lack of the property will allow
+            // it to inherit from the base.
+            // if its explicitly set to anything,
+            // including null, the value isn't inherited.
+            var value = GetJsonValue(p.Value);
+            if (value != null)
+            {
+                result[p.Name] = value;
+            }
         }
         return result;
     }
@@ -71,18 +106,30 @@
         return value;
     }
 
-    public string Json { get; set; }
+    
 }
 
 <h1>@OrganizationId/@RealmId/@SectionId/@HabitatId</h1>
+
+@if (SaveResponse != null)
+{
+    <ul>
+        @foreach (var error in SaveResponse.Failures)
+        {
+            <li>@(error.Code == "RequiredPropertyValueMissing" ? "Required" : error.Code) : @error.Path</li>
+        }
+    </ul>
+}
 
 @if (explained != null)
 {
     foreach (var p in explained.Properties)
     {
-        <ConfigurationSection Property=@p/>
+        <ConfigurationSection Edit=@Edit Property=@p/>
     }
 
-    <button @onclick="Save">Save</button>
-    <h1>@Json</h1>
+    <button hidden="@(!Edit)" @onclick="Save">Save</button>
+    <h1 hidden>@Json</h1>
+    <button hidden="@Edit" @onclick="@(() => Edit=true)">Edit</button>
+    <button hidden="@(!Edit)" @onclick="CancelEdit">Cancel</button>
 }

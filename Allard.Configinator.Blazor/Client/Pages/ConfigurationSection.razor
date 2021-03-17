@@ -24,20 +24,20 @@
     {
         <tr>
             <td>@c.Name</td>
-            @if (Edit)
-            {
-                <td>
+            <td>
+                @if (Edit)
+                {
                     <input @bind="c.Value" @bind:event="oninput"/>
+                }
+                else
+                {
+                    @c.Value
+                }
                     @if (c.Layers.Last().Transition == "Inherit")
                     {
                         <span style="margin-left:15px" class="badge-pill badge-primary">Inherited</span>
                     }
-                 </td>
-            }
-            else
-            {
-                <td>@c.Value</td>
-            }
+            </td>
         </tr>
     }
     </tbody>
