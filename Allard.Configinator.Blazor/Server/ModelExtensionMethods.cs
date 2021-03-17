@@ -3,6 +3,7 @@ using System.Linq;
 using Allard.Configinator.Api.Commands.ViewModels;
 using Allard.Configinator.Blazor.Shared.ViewModels;
 using Allard.Configinator.Core.Model;
+using PropertyViewModel = Allard.Configinator.Api.Commands.ViewModels.PropertyViewModel;
 
 namespace Allard.Configinator.Api
 {

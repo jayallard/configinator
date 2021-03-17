@@ -163,7 +163,7 @@ namespace Allard.Configinator.Blazor.Server.Controllers
 
         [HttpGet]
         [Route("config/{orgId}/{realmId}/{sectionId}/{habitatId}/value-explained")]
-        public async Task<ExplainedObject> GetConfigurationValueExplained(
+        public async Task<ObjectViewModel> GetConfigurationValueExplained(
             string orgId,
             string realmId,
             string sectionId,

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,10 +9,10 @@ using MediatR;
 namespace Allard.Configinator.Blazor.Server.Commands
 {
     public record GetConfigurationExplainedCommand(
-        ConfigurationId ConfigurationId) : IRequest<ExplainedObject>;
+        ConfigurationId ConfigurationId) : IRequest<ObjectViewModel>;
 
     public class GetConfigurationValueExplainedHandler
-        : IRequestHandler<GetConfigurationExplainedCommand, ExplainedObject>
+        : IRequestHandler<GetConfigurationExplainedCommand, ObjectViewModel>
     {
         private readonly IMediator mediator;
 
@@ -23,36 +22,32 @@ namespace Allard.Configinator.Blazor.Server.Commands
             this.mediator = mediator;
         }
 
-        public async Task<ExplainedObject> Handle(
+        public async Task<ObjectViewModel> Handle(
             GetConfigurationExplainedCommand request,
             CancellationToken cancellationToken)
         {
             var resolvedRequest = new GetValueCommand(request.ConfigurationId, ValueFormat.Resolved);
             var resolved = await mediator.Send(resolvedRequest, cancellationToken);
-
-            var props = resolved
-                .Object
-                .Properties
-                .Select(ToViewModel);
-            return new ExplainedObject("", "", props.ToList(), new List<ExplainedObject>());
+            return ToViewModel(resolved.Object);
         }
 
-        private ExplainedProperty ToViewModel(PropertyValue input)
+        private static ObjectViewModel ToViewModel(ObjectValue value)
         {
-            // todo: layers dto
-            var layers = input
-                .Layers
-                .Select(l => new ExplainedPropertyLayer(l.LayerName, l.Transition.ToString(), l.Value))
+            var properties = value
+                .Properties
+                .Select(p => new PropertyViewModel
+                {
+                    Layers = p.Layers
+                        .Select(l => new PropertyLayerViewModel(l.LayerName, l.Transition.ToString(), l.Value))
+                        .ToList(),
+                    Name = p.Name,
+                    Path = p.Path,
+                    Value = p.Value
+                })
                 .ToList();
-            
-            var output = new ExplainedProperty
-            {
-                Path = input.Path,
-                Name = input.Name,
-                Value = input.Value ?? string.Empty,
-                Layers = layers
-            };
-            return output;
+
+            var objects = value.Objects.Select(ToViewModel).ToList();
+            return new ObjectViewModel(value.Path, value.Name, properties, objects);
         }
     }
 }

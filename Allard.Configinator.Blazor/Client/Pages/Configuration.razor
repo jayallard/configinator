@@ -21,21 +21,19 @@
     public bool Edit { get; set; }
 
 
-    private ExplainedObject explained;
+    private ObjectViewModel explained;
     private SaveResponseViewModel SaveResponse;
-    public string Json { get; set; }
+    private string Json { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        var url = $"/api/v1/config/{OrganizationId}/{RealmId}/{SectionId}/{HabitatId}/value-explained";
-        explained = await client.GetFromJsonAsync<ExplainedObject>(url);
         await Load();
     }
 
     private async Task Load()
     {
         var url = $"/api/v1/config/{OrganizationId}/{RealmId}/{SectionId}/{HabitatId}/value-explained";
-        explained = await client.GetFromJsonAsync<ExplainedObject>(url);
+        explained = await client.GetFromJsonAsync<ObjectViewModel>(url);
     }
     
     private async Task CancelEdit()
@@ -65,7 +63,7 @@
         }
     }
 
-    private Dictionary<string, object> ToDictionary(ExplainedObject obj)
+    private Dictionary<string, object> ToDictionary(ObjectViewModel obj)
     {
         var result = new Dictionary<string, object>();
         foreach (var p in obj.Properties)
@@ -124,7 +122,7 @@
 {
     foreach (var obj in explained.Objects)
     {
-        <ConfigurationSection Edit=@Edit Object=@obj/>
+        <ConfigurationSection Edit=@Edit ObjectViewModel=@obj/>
     }
 
     <button hidden="@(!Edit)" @onclick="Save">Save</button>

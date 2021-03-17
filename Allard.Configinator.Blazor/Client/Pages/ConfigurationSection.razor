@@ -4,7 +4,7 @@
 @code {
 
     [Parameter]
-    public ExplainedObject Object { get; set; }
+    public ObjectViewModel ObjectViewModel { get; set; }
 
     [Parameter]
     public bool Edit { get; set; } = true;
@@ -15,12 +15,12 @@
     <thead>
     <tr>
         <th colspan="2">
-            <h3>@Object.Name</h3>
+            <h3>@ObjectViewModel.Name</h3>
         </th>
     </tr>
     </thead>
     <tbody>
-    @foreach (var p in Object.Properties)
+    @foreach (var p in ObjectViewModel.Properties)
     {
         <tr>
             <td>@p.Name</td>
@@ -41,9 +41,9 @@
         </tr>
     }
 
-    @foreach (var o in Object.Objects)
+    @foreach (var o in ObjectViewModel.Objects)
     {
-        <ConfigurationSection Edit=@Edit Object=@o/>
+        <ConfigurationSection Edit=@Edit ObjectViewModel=@o/>
     }
     </tbody>
 </table>
