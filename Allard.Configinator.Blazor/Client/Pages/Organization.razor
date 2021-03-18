@@ -1,0 +1,61 @@
+@page "/Organization/{organizationid}"
+@using Allard.Configinator.Blazor.Shared.ViewModels
+@using System.Web
+@inject HttpClient client;
+<h3>Organization</h3>
+
+@code {
+
+    [Parameter]
+    public string OrganizationId { get; set; }
+
+    // should be org, but don't have a view model
+    // for that yet...experimenting. 
+    public RealmsViewModel Realms { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Realms = await client.GetFromJsonAsync<RealmsViewModel>("api/v1/organizations/" + HttpUtility.UrlEncode(OrganizationId) + "/realms");
+        await base.OnInitializedAsync();
+    }
+
+
+}
+
+<h1>Organization: @OrganizationId</h1>
+@if (Realms != null)
+{
+    @foreach (var realm in Realms.Realms)
+    {
+        <h2>Realm: @realm.RealmId</h2>
+        @foreach (var cs in realm.ConfigurationSections)
+        {
+            <h3>Section: @cs.SectionId.Id</h3>
+            <table class="table">
+                <tbody>
+                <tr>
+                    <td>Type</td>
+                    <td>@cs.SchemaTypeId</td>
+                </tr>
+                <tr>
+                    <td>Path</td>
+                    <td>@cs.Path</td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <h4>Habitats</h4>
+                        <ul>
+                            @foreach (var h in realm.Habitats)
+                            {
+                                <li>
+                                    @h.HabitatId: <a href="/configuration/@OrganizationId/@realm.RealmId/@cs.SectionId.Id/@h.HabitatId">Configuration Values</a>
+                                </li>
+                            }
+                        </ul>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        }
+    }
+}

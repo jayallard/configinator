@@ -53,7 +53,7 @@ namespace Allard.Configinator.Core.DocumentValidator
                             // property exists. validate the value.
                             if (p.Value == null)
                                 if (schemaProperty.IsRequired)
-                                    yield return new ValidationFailure(path, "RequiredPropertyValueMissing",
+                                    yield return new ValidationFailure(path + "/" + schemaProperty.Name, "RequiredPropertyValueMissing",
                                         schemaProperty.Name);
 
                             continue;
@@ -61,7 +61,7 @@ namespace Allard.Configinator.Core.DocumentValidator
 
                         // property doesn't exist. if required, go boom.
                         if (schemaProperty.IsRequired)
-                            yield return new ValidationFailure(path, "RequiredPropertyMissing", schemaProperty.Name);
+                            yield return new ValidationFailure(path + "/" + schemaProperty.Name, "RequiredPropertyMissing", schemaProperty.Name);
 
                         continue;
                     }
@@ -72,7 +72,8 @@ namespace Allard.Configinator.Core.DocumentValidator
                     if (valueObjects.TryGetValue(schemaProperty.Name, out var o))
                     {
                         // object exists
-                        foreach (var value in Validate(schemaProperty.SchemaTypeId, o.Value, path + "/" + schemaProperty.Name)
+                        foreach (var value in Validate(schemaProperty.SchemaTypeId, o.Value,
+                            path + "/" + schemaProperty.Name)
                         ) yield return value;
                         continue;
                     }

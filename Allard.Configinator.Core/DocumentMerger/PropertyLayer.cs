@@ -1,12 +1,13 @@
+using System.Diagnostics;
+
 namespace Allard.Configinator.Core.DocumentMerger
 {
+    [DebuggerDisplay("Layer={LayerName}, Transition={Transition}, Value={Value}")]
     public class PropertyLayer
     {
-        //public OrderedDocumentToMerge DocName { get; set; }
-     
         public int LayerIndex { get; set; }
         public string LayerName { get; set; }
         public Transition Transition { get; set; }
-        public object Value { get; set; }
+        public string Value { get; set; }
     }
 }

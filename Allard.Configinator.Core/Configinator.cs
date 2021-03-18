@@ -13,77 +13,65 @@ namespace Allard.Configinator.Core
     public class Configinator : IConfiginator
     {
         private readonly IConfigStore configStore;
-        private readonly OrganizationAggregate org;
+        private readonly JsonStructureModelBuilder structureModelBuilder;
 
         public Configinator(OrganizationAggregate org, IConfigStore configStore)
         {
-            this.org = org.EnsureValue(nameof(org));
+            Organization = org.EnsureValue(nameof(org));
             this.configStore = configStore.EnsureValue(nameof(configStore));
+            structureModelBuilder = new JsonStructureModelBuilder(org.SchemaTypes);
         }
 
-        public OrganizationAggregate Organization => org;
+        public OrganizationAggregate Organization { get; }
 
         public async Task<SetConfigurationResponse> SetValueAsync(SetConfigurationRequest request)
         {
-            var realm = org.GetRealmByName(request.ConfigurationId.RealmId);
+            var realm = Organization.GetRealmByName(request.ConfigurationId.RealmId);
             var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
 
             // get all of the docs for the base habitats, if there are any.
-            var toMerge = await GetDocsFromConfigStore(cs.Path, habitat.Bases.ToList());
+            var configDocs = (await GetDocsFromConfigStore(cs.Path, habitat.Bases.ToList())).ToList();
+            var toMerge = configDocs.Select(d => d.Item1).ToList();
 
             // add the current request to the doc list.
             var requestMerge = new DocumentToMerge(request.ConfigurationId.HabitatId, request.Value);
             toMerge.Add(requestMerge);
 
             // merge
-            var merged = (await DocMerger.Merge(toMerge)).ToList();
+            var model = structureModelBuilder.ToStructureModel(cs);
+            var merged = (await DocMerger3.Merge(model, toMerge));
+            // TODO: change to single object.
             var mergedJson = merged.ToJsonString();
 
             // todo: get rid of ??
             var mergedDoc = JsonDocument.Parse(mergedJson ?? "{}");
 
             // validate
-            var errors = new DocValidator(org.SchemaTypes)
+            var errors = new DocValidator(Organization.SchemaTypes)
                 .Validate(cs.SchemaType.SchemaTypeId, mergedDoc)
                 .ToList();
 
             // if no errors, save
-            if (errors.Count == 0)
-            {
-                // save
-                // todo: normalize this
-                var path = cs.Path.Replace("{{habitat}}", habitat.HabitatId.Id);
+            if (errors.Count > 0) return new SetConfigurationResponse(request.ConfigurationId, errors);
 
-                // if it's resolved format, then reduce the input value down to just the values
-                // that changed in the last query.
-                // if there's only one doc, then nothing to reduce, do
-                // skip it
-                var toSave = request.Value;
-                if (request.Format == ValueFormat.Resolved && merged.First().Property.Layers.Count > 1)
-                {
-                    toSave = ReduceToRawJson(merged);
-                }
+            // save
+            // todo: normalize this
+            var path = cs.Path.Replace("{{habitat}}", habitat.HabitatId.Id);
 
-                // save the value that was passed in. 
-                var value = new SetConfigStoreValueRequest(path, toSave);
-                await configStore.SetValueAsync(value);
-            }
+            // if it's resolved format, then reduce the input value down to just the values
+            // that changed in the last query.
+            // if there's only one doc, then nothing to reduce, do
+            // skip it
+            var toSave = request.Value;
+            if (request.Format == ValueFormat.Resolved) // && merged.First().Property.Layers.Count > 1)
+                toSave = ReduceToRawJson(merged);
+
+            // save the value that was passed in. 
+            var value = new SetConfigStoreValueRequest(path, toSave);
+            await configStore.SetValueAsync(value);
 
             return new SetConfigurationResponse(request.ConfigurationId, errors);
-        }
-
-        public static JsonDocument ReduceToRawJson(List<MergedProperty> properties)
-        {
-            var reduced = properties
-                .Where(p =>
-                {
-                    // only keep properties that were somehow changed 
-                    // in the last layer.
-                    var last = p.Property.Layers.Last();
-                    return last.Transition == Transition.Set || last.Transition == Transition.Delete;
-                });
-            return JsonDocument.Parse(reduced.ToJsonString());
         }
 
         public async Task<GetConfigurationResponse> GetValueAsync(GetValueRequest request)
@@ -94,6 +82,32 @@ namespace Allard.Configinator.Core
                 ValueFormat.Resolved => await GetValueResolvedAsync(request),
                 _ => throw new ArgumentOutOfRangeException()
             };
+        }
+
+        public static JsonDocument ReduceToRawJson(ObjectValue o)
+        {
+            var reduced = ReduceToChanges(o);
+            return JsonDocument.Parse(reduced.ToJsonString());
+        }
+
+        private static ObjectValue ReduceToChanges(ObjectValue o)
+        {
+            var childObjects = o
+                .Objects
+                .Select(ReduceToChanges)
+                .ToList();
+
+            var childProperties = o
+                .Properties
+                .Select(p =>
+                {
+                    var lastLayer = p.Layers.Last();
+                    var changed = lastLayer.Transition == Transition.Set || lastLayer.Transition == Transition.Delete;
+                    return changed ? p : null;
+                })
+                .Where(p => p != null)
+                .ToList();
+            return new ObjectValue(o.Path, o.Name, childProperties.AsReadOnly(), childObjects.AsReadOnly());
         }
 
         private async Task<GetConfigurationResponse> GetValueRawAsync(GetValueRequest request)
@@ -107,47 +121,44 @@ namespace Allard.Configinator.Core
 
         private async Task<GetConfigurationResponse> GetValueResolvedAsync(GetValueRequest request)
         {
-            var realm = org.GetRealmByName(request.ConfigurationId.RealmId);
+            var realm = Organization.GetRealmByName(request.ConfigurationId.RealmId);
             var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
 
             // get the bases and the specific value, then merge.
-            var toMerge = await GetDocsFromConfigStore(cs.Path, habitat.Bases.ToList().AddIfNotNull(habitat));
-            var merged = (await DocMerger.Merge(toMerge)).ToList();
+            var toMerge = (await GetDocsFromConfigStore(cs.Path, habitat.Bases.ToList().AddIfNotNull(habitat)))
+                .ToList();
+            var model = structureModelBuilder.ToStructureModel(cs);
+            var merged = await DocMerger3.Merge(model, toMerge.Select(m => m.Item1));
 
-            // todo: doo much conversion
-            var mergedJsonString = JsonDocument.Parse(merged.ToJsonString());
-            return new GetConfigurationResponse(request.ConfigurationId, merged.Count > 0, mergedJsonString, merged);
+            // todo: too much conversion
+            var mergedJsonDoc = JsonDocument.Parse(merged.ToJsonString());
+            var anyExists = toMerge.Any(m => m.Item2.Exists);
+            return new GetConfigurationResponse(request.ConfigurationId, anyExists, mergedJsonDoc, merged);
         }
 
         private ConfigurationSection GetConfigurationSection(ConfigurationId id)
         {
-            var realm = org.GetRealmByName(id.RealmId);
-            return realm.GetConfigurationSection(id.SectionId);
+            return Organization
+                .GetRealmByName(id.RealmId)
+                .GetConfigurationSection(id.SectionId);
         }
 
-        private async Task<List<DocumentToMerge>> GetDocsFromConfigStore(string path,
+        private async Task<IEnumerable<(DocumentToMerge, ConfigStoreValue)>> GetDocsFromConfigStore(string path,
             IEnumerable<Habitat> habitats)
         {
             // get all values.
-            var configTasks = habitats
-                .Select(h =>
+            var results = habitats
+                .Select(async h =>
                 {
                     var resolvedPath = path.Replace("{{habitat}}", h.HabitatId.Id);
-                    return new
-                    {
-                        GetTask = configStore.GetValueAsync(resolvedPath),
-                        Habitat = h
-                    };
-                }).ToList();
-
-            await Task.WhenAll(configTasks.Select(c => c.GetTask));
-            return configTasks
-                .Select(ct => ct.GetTask.Result.Value == null
-                    ? null
-                    : new DocumentToMerge(ct.Habitat.HabitatId.Id, ct.GetTask.Result.Value))
-                .Where(v => v != null)
-                .ToList();
+                    var value = await configStore.GetValueAsync(resolvedPath);
+                    var v = value.Exists
+                        ? value.Value
+                        : JsonDocument.Parse("{}");
+                    return (new DocumentToMerge(h.HabitatId.Id, v), value);
+                });
+            return await Task.WhenAll(results);
         }
     }
 }

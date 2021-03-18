@@ -1,9 +1,7 @@
-using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Allard.Configinator.Core;
-using Allard.Configinator.Core.DocumentValidator;
 using Allard.Configinator.Core.Infrastructure;
 using MediatR;
 
@@ -17,7 +15,7 @@ namespace Allard.Configinator.Api.Commands
     public record GetValueCommand(
         ConfigurationId ConfigurationId,
         ValueFormat Format) : IRequest<ConfigurationValue>;
-    
+
     public class GetValueHandler : IRequestHandler<GetValueCommand, ConfigurationValue>
     {
         private readonly IConfiginatorService configinatorService;
@@ -33,10 +31,10 @@ namespace Allard.Configinator.Api.Commands
         {
             var get = new GetValueRequest(request.ConfigurationId, request.Format);
             var configinator =
-                await configinatorService.GetConfiginatorByNameAsync(request.ConfigurationId.OrganizationId);
+                await configinatorService.GetConfiginatorByIdAsync(request.ConfigurationId.OrganizationId);
             var result = await configinator.GetValueAsync(get);
             return new ConfigurationValue(request.ConfigurationId, result.Exists, result.Value,
-                result.PropertyDetail);
+                result.ObjectValue);
         }
     }
 
@@ -53,7 +51,7 @@ namespace Allard.Configinator.Api.Commands
             CancellationToken cancellationToken)
         {
             var configinator =
-                await configinatorService.GetConfiginatorByNameAsync(request.ConfigurationId.OrganizationId);
+                await configinatorService.GetConfiginatorByIdAsync(request.ConfigurationId.OrganizationId);
             var setRequest = new SetConfigurationRequest(request.ConfigurationId, request.Format, request.Value);
             var response = await configinator.SetValueAsync(setRequest);
 

@@ -14,7 +14,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Core.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Infrastructure.MongoDb.Tests", "Allard.Configinator.Infrastructure.MongoDb.Tests\Allard.Configinator.Infrastructure.MongoDb.Tests.csproj", "{A870290C-0BDD-4A3B-853C-4511E4CF75E4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Blazor", "Allard.Configinator.Blazor\Allard.Configinator.Blazor.csproj", "{CAAA3FFB-AD94-4CAE-B16A-0C131C325B4F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Blazor.Client", "Allard.Configinator.Blazor\Client\Allard.Configinator.Blazor.Client.csproj", "{A5A25DC9-0F1D-4B97-87E8-A19E363D7C5E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Blazor.Server", "Allard.Configinator.Blazor\Server\Allard.Configinator.Blazor.Server.csproj", "{DE7FE9C0-814B-43A3-93EE-78F2339EE251}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Blazor.Shared", "Allard.Configinator.Blazor\Shared\Allard.Configinator.Blazor.Shared.csproj", "{39F4ACD8-F27E-4068-9CF2-13907896A523}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Blazor", "Blazor", "{76A58CEC-730D-4753-B5D0-7ECAE6F21BB4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -50,9 +56,22 @@ Global
 		{A870290C-0BDD-4A3B-853C-4511E4CF75E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A870290C-0BDD-4A3B-853C-4511E4CF75E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A870290C-0BDD-4A3B-853C-4511E4CF75E4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CAAA3FFB-AD94-4CAE-B16A-0C131C325B4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CAAA3FFB-AD94-4CAE-B16A-0C131C325B4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CAAA3FFB-AD94-4CAE-B16A-0C131C325B4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CAAA3FFB-AD94-4CAE-B16A-0C131C325B4F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5A25DC9-0F1D-4B97-87E8-A19E363D7C5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5A25DC9-0F1D-4B97-87E8-A19E363D7C5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5A25DC9-0F1D-4B97-87E8-A19E363D7C5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5A25DC9-0F1D-4B97-87E8-A19E363D7C5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE7FE9C0-814B-43A3-93EE-78F2339EE251}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE7FE9C0-814B-43A3-93EE-78F2339EE251}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE7FE9C0-814B-43A3-93EE-78F2339EE251}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE7FE9C0-814B-43A3-93EE-78F2339EE251}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39F4ACD8-F27E-4068-9CF2-13907896A523}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39F4ACD8-F27E-4068-9CF2-13907896A523}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39F4ACD8-F27E-4068-9CF2-13907896A523}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39F4ACD8-F27E-4068-9CF2-13907896A523}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A5A25DC9-0F1D-4B97-87E8-A19E363D7C5E} = {76A58CEC-730D-4753-B5D0-7ECAE6F21BB4}
+		{DE7FE9C0-814B-43A3-93EE-78F2339EE251} = {76A58CEC-730D-4753-B5D0-7ECAE6F21BB4}
+		{39F4ACD8-F27E-4068-9CF2-13907896A523} = {76A58CEC-730D-4753-B5D0-7ECAE6F21BB4}
 	EndGlobalSection
 EndGlobal

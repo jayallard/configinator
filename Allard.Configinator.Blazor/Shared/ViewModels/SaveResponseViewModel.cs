@@ -1,0 +1,21 @@
+using System;
+using System.Collections.Generic;
+using Allard.Configinator.Core.Infrastructure;
+
+namespace Allard.Configinator.Blazor.Shared.ViewModels
+{
+    public class SaveResponseViewModel
+    {
+        public ConfigurationId ConfigurationId { get; set; }
+        public List<FailureMessage> Failures { get; set; }
+        
+        public bool Success { get; set; }
+    }
+
+    public class FailureMessage
+    {
+        public string Code { get; set; }
+        public string Path { get; set; }
+        public string Message { get; set; }
+    }
+}

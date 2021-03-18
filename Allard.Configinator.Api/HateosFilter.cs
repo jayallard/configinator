@@ -21,10 +21,7 @@ namespace Allard.Configinator.Api
 
         public void OnActionExecuted(ActionExecutedContext context)
         {
-            if (context.Result is not ObjectResult obj)
-            {
-                return;
-            }
+            if (context.Result is not ObjectResult obj) return;
 
             if (obj.Value is RealmViewModel realm)
             {
@@ -39,11 +36,7 @@ namespace Allard.Configinator.Api
                     .CreateBuilder()
                     .AddRealms(true)
                     .Build();
-                foreach (var r in realms.Realms)
-                {
-                    AddToRealm(r, false);
-                }
-                return;
+                foreach (var r in realms.Realms) AddToRealm(r, false);
             }
         }
 
@@ -54,10 +47,7 @@ namespace Allard.Configinator.Api
                 .CreateBuilder()
                 .AddRealm(realm.RealmId, self)
                 .Build();
-            foreach (var cs in realm.ConfigurationSections)
-            {
-                AddToConfigurationSection(cs, false);
-            }
+            foreach (var cs in realm.ConfigurationSections) AddToConfigurationSection(cs, false);
         }
 
         private void AddToConfigurationSection(ConfigurationSectionViewModel cs, bool self)

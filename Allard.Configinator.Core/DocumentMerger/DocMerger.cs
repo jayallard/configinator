@@ -16,17 +16,17 @@ namespace Allard.Configinator.Core.DocumentMerger
     /// </summary>
     public class DocMerger
     {
+        // to get the index when you have the name
+        private readonly Dictionary<string, int> layerIndexesByName;
+
+        // to get the name when you have the index
+        private readonly Dictionary<int, string> layerNamesByIndex;
+
         // the result doc.
         private readonly Dictionary<string, PropertyValue> merged = new();
 
         private readonly List<OrderedDocumentToMerge> toMerge;
 
-        // to get the name when you have the index
-        private readonly Dictionary<int, string> layerNamesByIndex;
-        
-        // to get the index when you have the name
-        private readonly Dictionary<string, int> layerIndexesByName;
-        
         private DocMerger(IEnumerable<DocumentToMerge> toMerge)
         {
             var index = 0;
@@ -85,15 +85,13 @@ namespace Allard.Configinator.Core.DocumentMerger
                         var currentLayer = currentObject.Layers[layerIndex];
                         if (previousLayer.Value != null && previousLayer.Transition.IsSet() &&
                             currentLayer.Transition.IsSet() && previousLayer.Value.Equals(currentLayer.Value))
-                        {
                             // TODO: need a test for this. there was a bug. it was setting
                             // the value to SetToSameValue even when the value was different.
                             currentLayerNode.Transition = Transition.SetToSameValue;
-                        }
 
                         continue;
                     }
-                    
+
                     // TODO: add TransitionFrom property.
                     // if a value is inherited, indicate which layer set the value.
 
@@ -139,7 +137,7 @@ namespace Allard.Configinator.Core.DocumentMerger
                         Transition = transition,
                         LayerName = layerNamesByIndex[layerIndex],
                         LayerIndex = layerIndex,
-                        
+
                         // if inheriting the value, then get the value
                         // TODO: need a test for this
                         Value = transition == Transition.Inherit ? previous.Value : null
@@ -173,7 +171,6 @@ namespace Allard.Configinator.Core.DocumentMerger
 
                 // get the property, and set its new value.
                 var resultProperty = merged[propertyPath];
-                resultProperty.Value = property.Value;
                 resultProperty.Layers.Add(new PropertyLayer
                 {
                     // if the value is null, then delete.

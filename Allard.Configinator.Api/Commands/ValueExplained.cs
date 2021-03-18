@@ -28,20 +28,18 @@ namespace Allard.Configinator.Api.Commands
         {
             var resolvedRequest = new GetValueCommand(request.ConfigurationId, ValueFormat.Resolved);
             var resolved = await mediator.Send(resolvedRequest, cancellationToken);
-            if (!resolved.Exists)
-            {
-                return new ExplainedViewModel(new List<ExplainedProperty>());
-            }
-            
+            if (!resolved.Exists) return new ExplainedViewModel(new List<ExplainedProperty>());
+
             var properties = resolved
+                .Object
                 .Properties
                 .Select(p => new ExplainedProperty(
                     p.Path,
-                    p.Property.Name,
-                    p.Property.Value,
-                    p.Property.Layers.Select(l => new ExplainedPropertyLayer(
+                    p.Name,
+                    p.Value,
+                    p.Layers.Select(l => new ExplainedPropertyLayer(
                             l.LayerName,
-                            l.Transition,
+                            l.Transition.ToString(),
                             l.Value))
                         .ToList()));
             return new ExplainedViewModel(properties.ToList());

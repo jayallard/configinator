@@ -50,7 +50,7 @@ namespace Allard.Configinator.Core.Tests.Unit
                 .AddProperty("kafka-target", "kafka/unsecured")
                 .Build();
 
-            var org = new OrganizationAggregate(OrganizationId.NewOrganizationId("allard"));
+            var org = new OrganizationAggregate(new OrganizationId("allard"));
             org.AddSchemaType(kafkaType);
             org.AddSchemaType(sqlType);
             org.AddSchemaType(shovelServiceType);
@@ -66,30 +66,20 @@ namespace Allard.Configinator.Core.Tests.Unit
         }
 
         [Fact]
-        public async Task GetValueDoesntExist()
-        {
-            var configId = new ConfigurationId(
-                Organization.OrganizationId.Name,
-                TestRealm1,
-                TestConfigurationSection1,
-                "staging");
-            var request = new GetValueRequest(configId, ValueFormat.Resolved);
-            var value = await Configinator.GetValueAsync(request);
-            value.Existing.Should().BeFalse();
-            value.ConfigurationId.Should().Be(configId);
-            value.PropertyDetail.Count.Should().Be(0);
-        }
-
-        [Fact]
         public async Task SetFailsIfDocFailsValidation()
         {
-            var configId = new ConfigurationId(Organization.OrganizationId.Name, TestRealm1,
+            var configId = new ConfigurationId(Organization.OrganizationId.Id, TestRealm1,
                 TestConfigurationSection1, "staging");
             var setRequest =
                 new SetConfigurationRequest(configId, ValueFormat.Raw,
                     JsonDocument.Parse("{ \"nothing-to\": \"see-here\" }"));
             var setResponse = await Configinator.SetValueAsync(setRequest);
-            setResponse.Failures.Count.Should().Be(2);
+
+            // there are 4 properties, and all 4 are null.
+            // the passed in is is effectively ignored
+            // because it doesn't have any of the properties
+            // defined in the config section.
+            setResponse.Failures.Count.Should().Be(4);
             setResponse.Success.Should().BeFalse();
         }
 
@@ -97,7 +87,7 @@ namespace Allard.Configinator.Core.Tests.Unit
         public async Task SetSucceedsIfDocPassesValidation()
         {
             var input = JsonDocument.Parse(TestUtility.GetFile("FullDocumentPasses.json"));
-            var configId = new ConfigurationId(Organization.OrganizationId.Name, TestRealm1,
+            var configId = new ConfigurationId(Organization.OrganizationId.Id, TestRealm1,
                 TestConfigurationSection1, "staging");
             var setRequest = new SetConfigurationRequest(configId, ValueFormat.Raw, input);
             var setResponse = await Configinator.SetValueAsync(setRequest);
@@ -106,7 +96,6 @@ namespace Allard.Configinator.Core.Tests.Unit
 
             var getRequest = new GetValueRequest(configId, ValueFormat.Resolved);
             var get = await Configinator.GetValueAsync(getRequest);
-
 
             var expectedString = input.ToStupidComparisonString();
             var actualString = get.Value.ToStupidComparisonString();
@@ -128,13 +117,13 @@ namespace Allard.Configinator.Core.Tests.Unit
             // set one value as a descendant: dev-jay
             // make sure only the one value is saved to dev-jay.
             var file = TestUtility.GetFile("FullDocumentPasses.json");
-            var configId = new ConfigurationId(Organization.OrganizationId.Name, TestRealm1,
+            var configId = new ConfigurationId(Organization.OrganizationId.Id, TestRealm1,
                 TestConfigurationSection1, "dev");
             var setRequest = new SetConfigurationRequest(configId, ValueFormat.Raw, JsonDocument.Parse(file));
             var setResponse = await Configinator.SetValueAsync(setRequest);
             setResponse.Success.Should().BeTrue();
 
-            var configId2 = new ConfigurationId(Organization.OrganizationId.Name, TestRealm1,
+            var configId2 = new ConfigurationId(Organization.OrganizationId.Id, TestRealm1,
                 TestConfigurationSection1, "dev-allard");
             var sqlPassword = " { \"sql-source\": { \"password\": \"new password\" } } ";
             var setRequest2 =

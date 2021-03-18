@@ -10,7 +10,7 @@ namespace Allard.Configinator.Core.Tests.Unit
         [Fact]
         public void RealmDoesntExistThrowsException()
         {
-            var org = new OrganizationAggregate(OrganizationId.NewOrganizationId("allard"));
+            var org = new OrganizationAggregate(new OrganizationId("allard"));
             Action test = () => org.GetRealmByName("boom");
             test.Should().Throw<InvalidOperationException>()
                 .WithMessage("Realm doesn't exist. Name=boom");

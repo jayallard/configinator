@@ -2,7 +2,9 @@
   "sql-source": {
     "password": "password",
     "host": "localhost",
-    "user-id": "sa"
+    "user-id": "sa",
+    "instance": null,
+    "initial-catalog": null
   },
   "kafka-target": {
     "broker-list": "localhost:9092"

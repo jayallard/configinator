@@ -23,10 +23,15 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Allard.Configinator.Core\Allard.Configinator.Core.csproj" />
+      <ProjectReference Include="..\Allard.Configinator.Infrastructure.MongoDb\Allard.Configinator.Infrastructure.MongoDb.csproj" />
     </ItemGroup>
     <ItemGroup>
         <Content Include="__TestFiles\**\*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
+    </ItemGroup>
+    <ItemGroup>
+      <Compile Remove="Unit\DocumentMerger\DocMergerTests.cs" />
+      <Compile Remove="Unit\DocumentMerger\DocMerger2Tests.cs" />
     </ItemGroup>
 </Project>
