@@ -17,5 +17,11 @@
     <ProjectReference Include="..\Shared\Allard.Configinator.Blazor.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Commands\GetRealmCommand.cs" />
+    <Compile Remove="Commands\GetSchemaTypeCommand.cs" />
+    <Compile Remove="Commands\GetSchemaTypesCommand.cs" />
+  </ItemGroup>
+
 
 </Project>

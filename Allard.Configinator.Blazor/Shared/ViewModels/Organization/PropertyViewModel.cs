@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace Allard.Configinator.Api.Commands.ViewModels
+namespace Allard.Configinator.Blazor.Shared.ViewModels
 {
     public class PropertyViewModel
     {

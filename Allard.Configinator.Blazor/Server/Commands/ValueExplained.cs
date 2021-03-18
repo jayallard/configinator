@@ -35,10 +35,10 @@ namespace Allard.Configinator.Blazor.Server.Commands
         {
             var properties = value
                 .Properties
-                .Select(p => new PropertyViewModel
+                .Select(p => new PropertyValueViewModel
                 {
                     Layers = p.Layers
-                        .Select(l => new PropertyLayerViewModel(l.LayerName, l.Transition.ToString(), l.Value))
+                        .Select(l => new PropertyValueLayerViewModel(l.LayerName, l.Transition.ToString(), l.Value))
                         .ToList(),
                     Name = p.Name,
                     Path = p.Path,

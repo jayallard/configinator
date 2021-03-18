@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Allard.Configinator.Api.Commands;
+using Allard.Configinator.Blazor.Server.Commands;
 using Allard.Configinator.Blazor.Shared.ViewModels;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

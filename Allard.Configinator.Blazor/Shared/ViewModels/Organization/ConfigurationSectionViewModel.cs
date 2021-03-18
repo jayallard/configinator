@@ -1,7 +1,8 @@
 using System.Collections.Generic;
+using Allard.Configinator.Api;
 using Allard.Configinator.Core.Model;
 
-namespace Allard.Configinator.Api.Commands.ViewModels
+namespace Allard.Configinator.Blazor.Shared.ViewModels
 {
     public class ConfigurationSectionViewModel
     {

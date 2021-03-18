@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Allard.Configinator.Blazor.Shared.ViewModels;
 
 namespace Allard.Configinator.Api.Commands.ViewModels
 {
