@@ -12,8 +12,14 @@ namespace Allard.Configinator.Core.DocumentMerger
         private readonly JsonDocument structureModel;
         private readonly List<DocumentToMerge> toMerge;
 
+        private DocMerger3(JsonDocument structureModel, IEnumerable<DocumentToMerge> toMerge)
+        {
+            this.toMerge = toMerge.ToList();
+            this.structureModel = structureModel;
+        }
+
         /// <summary>
-        /// Merge multiple documents into one.
+        ///     Merge multiple documents into one.
         /// </summary>
         /// <param name="structureModel"></param>
         /// <param name="documents"></param>
@@ -29,9 +35,9 @@ namespace Allard.Configinator.Core.DocumentMerger
                 return new DocMerger3(structureModel, toMerge).Merge();
             });
         }
-        
+
         /// <summary>
-        /// Merge multiple documents into one.
+        ///     Merge multiple documents into one.
         /// </summary>
         /// <param name="structureModel"></param>
         /// <param name="documents"></param>
@@ -42,17 +48,11 @@ namespace Allard.Configinator.Core.DocumentMerger
             return await Task.Run(() => new DocMerger3(structureModel, documents.ToList()).Merge());
         }
 
-        private DocMerger3(JsonDocument structureModel, IEnumerable<DocumentToMerge> toMerge)
-        {
-            this.toMerge = toMerge.ToList();
-            this.structureModel = structureModel;
-        }
-
         /// <summary>
-        /// Entry point - merge.
-        /// This method takes care of the base level of the document.
-        /// This is only used once. Recursion is handled by the parameterized
-        /// merge method.
+        ///     Entry point - merge.
+        ///     This method takes care of the base level of the document.
+        ///     This is only used once. Recursion is handled by the parameterized
+        ///     merge method.
         /// </summary>
         /// <returns></returns>
         private ObjectValue Merge()
@@ -81,32 +81,29 @@ namespace Allard.Configinator.Core.DocumentMerger
                 })
                 .ToList()
                 .AsReadOnly();
-            
+
             return new ObjectValue("/", "root", properties, mergedObjects);
         }
 
         /// <summary>
-        /// Gets a  form the parent element.
-        /// If the property doesn't exist,
-        /// returns an Undefined json element.
+        ///     Gets a  form the parent element.
+        ///     If the property doesn't exist,
+        ///     returns an Undefined json element.
         /// </summary>
         /// <param name="propertyName"></param>
         /// <param name="parentElement"></param>
         /// <returns></returns>
         private static JsonElement GetProperty(string propertyName, JsonElement parentElement)
         {
-            if (parentElement.ValueKind == JsonValueKind.Undefined)
-            {
-                return parentElement;
-            }
-            
+            if (parentElement.ValueKind == JsonValueKind.Undefined) return parentElement;
+
             return parentElement.TryGetProperty(propertyName, out var existing) ? existing : default;
         }
 
         /// <summary>
-        /// Gets the property from each of the elements.
-        /// If the property doesn't exist, it returns
-        /// Undefined for that item.
+        ///     Gets the property from each of the elements.
+        ///     If the property doesn't exist, it returns
+        ///     Undefined for that item.
         /// </summary>
         /// <param name="propertyName"></param>
         /// <param name="layerParents"></param>
@@ -119,9 +116,9 @@ namespace Allard.Configinator.Core.DocumentMerger
         }
 
         /// <summary>
-        /// The worker horse.
-        /// Merge JSON elements into each.
-        /// It calls itself to recurse the tree.
+        ///     The worker horse.
+        ///     Merge JSON elements into each.
+        ///     It calls itself to recurse the tree.
         /// </summary>
         /// <param name="path">The path of the current node to be merged.</param>
         /// <param name="model"></param>
@@ -164,11 +161,11 @@ namespace Allard.Configinator.Core.DocumentMerger
         }
 
         /// <summary>
-        /// Create the property values.
-        /// Determine the transition state
-        /// based on each layer, and the layers that
-        /// preceded it. IE: If the value[x] is undefined, and
-        /// value[x-1] is set, then value[x] inherits value[x-1].
+        ///     Create the property values.
+        ///     Determine the transition state
+        ///     based on each layer, and the layers that
+        ///     preceded it. IE: If the value[x] is undefined, and
+        ///     value[x-1] is set, then value[x] inherits value[x-1].
         /// </summary>
         /// <param name="path"></param>
         /// <param name="model"></param>

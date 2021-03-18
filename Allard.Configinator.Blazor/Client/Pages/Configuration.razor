@@ -1,7 +1,7 @@
 @page "/configuration/{organizationId}/{realmId}/{sectionId}/{habitatId}"
-@inject HttpClient client;
 @using Allard.Configinator.Blazor.Shared.ViewModels
 @using System.Text.Json
+@inject HttpClient client;
 <h3>Configuration</h3>
 
 @code {
@@ -35,11 +35,11 @@
         var url = $"/api/v1/config/{OrganizationId}/{RealmId}/{SectionId}/{HabitatId}/value-explained";
         explained = await client.GetFromJsonAsync<ObjectViewModel>(url);
     }
-    
+
     private async Task CancelEdit()
     {
         Edit = false;
-        // todo: this should be a FORM RESET or something. brute force for now.
+    // todo: this should be a FORM RESET or something. brute force for now.
         await Load();
     }
 
@@ -68,11 +68,11 @@
         var result = new Dictionary<string, object>();
         foreach (var p in obj.Properties)
         {
-            // if the value is null, don't set it.
-            // the lack of the property will allow
-            // it to inherit from the base.
-            // if its explicitly set to anything,
-            // including null, the value isn't inherited.
+    // if the value is null, don't set it.
+    // the lack of the property will allow
+    // it to inherit from the base.
+    // if its explicitly set to anything,
+    // including null, the value isn't inherited.
             var value = GetJsonValue(p.Value);
             if (value != null)
             {
@@ -84,7 +84,7 @@
         {
             result[o.Name] = ToDictionary(o);
         }
-        
+
         return result;
     }
 
@@ -103,7 +103,7 @@
         return value;
     }
 
-    
+
 }
 
 <h1>@OrganizationId/@RealmId/@SectionId/@HabitatId</h1>
@@ -127,6 +127,6 @@
 
     <button hidden="@(!Edit)" @onclick="Save">Save</button>
     <h1 hidden>@Json</h1>
-    <button hidden="@Edit" @onclick="@(() => Edit=true)">Edit</button>
+    <button hidden="@Edit" @onclick="@(() => Edit = true)">Edit</button>
     <button hidden="@(!Edit)" @onclick="CancelEdit">Cancel</button>
 }

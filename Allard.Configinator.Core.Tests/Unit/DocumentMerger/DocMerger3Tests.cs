@@ -25,7 +25,7 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
             var b = JsonDocument.Parse("{ \"a\": \"c\" }");
             var c = JsonDocument.Parse("{ \"a\": \"d\" }");
 
-            var only = (await DocMerger3.Merge(model, a, b, c));
+            var only = await DocMerger3.Merge(model, a, b, c);
             only.Objects.Count.Should().Be(0);
             only.Properties.Count.Should().Be(1);
             only.Properties.Single().Path.Should().Be("/a");
@@ -43,7 +43,7 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
             var c = JsonDocument.Parse("{ }");
             var d = JsonDocument.Parse("{ \"test\": \"planet\" }");
             var e = JsonDocument.Parse("{ }");
-            var merged = (await DocMerger3.Merge(model, a, b, c, d, e));
+            var merged = await DocMerger3.Merge(model, a, b, c, d, e);
             merged.Properties.Single().Value.Should().Be("planet");
             merged.Properties.Single().Layers[0].Transition.Should().Be(Transition.Set);
             merged.Properties.Single().Layers[0].Value.Should().Be("world");
@@ -80,14 +80,14 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
             var b = JsonDocument.Parse("{                       \"stuff\": { \"stuff2\": { \"hi\": \"there\" }}}");
             var c = JsonDocument.Parse("{                       \"stuff\": { \"stuff2\": { \"hi\": \"bye\" }}}");
             var d = JsonDocument.Parse("{ \"hello\": \"bob\",   \"stuff\": { \"stuff2\": { \"hi\": \"bye\" }}}");
-            var merged = (await DocMerger3.Merge(model, a, b, c, d));
+            var merged = await DocMerger3.Merge(model, a, b, c, d);
 
             // hello
             merged.Properties.Count.Should().Be(1);
-            
+
             // stuff
             merged.Objects.Count.Should().Be(1);
-            
+
             var hello = merged.Properties.Single(m => m.Name == "hello");
             hello.Value.Should().Be("bob");
             hello.Layers[0].Transition.Should().Be(Transition.Set);

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Allard.Configinator.Core.Infrastructure;
 
@@ -8,7 +7,7 @@ namespace Allard.Configinator.Blazor.Shared.ViewModels
     {
         public ConfigurationId ConfigurationId { get; set; }
         public List<FailureMessage> Failures { get; set; }
-        
+
         public bool Success { get; set; }
     }
 

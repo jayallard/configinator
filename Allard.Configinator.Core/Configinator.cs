@@ -40,7 +40,7 @@ namespace Allard.Configinator.Core
 
             // merge
             var model = structureModelBuilder.ToStructureModel(cs);
-            var merged = (await DocMerger3.Merge(model, toMerge));
+            var merged = await DocMerger3.Merge(model, toMerge);
             // TODO: change to single object.
             var mergedJson = merged.ToJsonString();
 
