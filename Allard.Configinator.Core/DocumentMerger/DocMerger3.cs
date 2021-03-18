@@ -124,7 +124,7 @@ namespace Allard.Configinator.Core.DocumentMerger
         /// <param name="model"></param>
         /// <param name="layers"></param>
         /// <returns></returns>
-        private ObjectValue Merge(string path, JsonProperty model, List<JsonElement> layers)
+        private ObjectValue Merge(string path, JsonProperty model, IEnumerable<JsonElement> layers)
         {
             var newPath = path + "/" + model.Name;
 
@@ -171,7 +171,7 @@ namespace Allard.Configinator.Core.DocumentMerger
         /// <param name="model"></param>
         /// <param name="parents"></param>
         /// <returns></returns>
-        private PropertyValue GetValue(string path, JsonProperty model, List<JsonElement> parents)
+        private PropertyValue GetValue(string path, JsonProperty model, IReadOnlyList<JsonElement> parents)
         {
             var layers = new List<PropertyLayer>();
 

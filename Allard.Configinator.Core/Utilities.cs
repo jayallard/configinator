@@ -7,13 +7,6 @@ namespace Allard.Configinator.Core
 {
     public static class Utilities
     {
-        public static List<T> SingleList<T>(T item)
-        {
-            var items = new List<T>();
-            items.Add(item);
-            return items;
-        }
-
         // todo: temporary. bite the bullet and go full json
         public static string ConvertToString(this JsonDocument document)
         {

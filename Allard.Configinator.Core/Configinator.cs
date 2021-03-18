@@ -80,11 +80,11 @@ namespace Allard.Configinator.Core
             {
                 ValueFormat.Raw => await GetValueRawAsync(request),
                 ValueFormat.Resolved => await GetValueResolvedAsync(request),
-                _ => throw new ArgumentOutOfRangeException()
+                _ => throw new ArgumentOutOfRangeException(nameof(request.Format))
             };
         }
 
-        public static JsonDocument ReduceToRawJson(ObjectValue o)
+        private static JsonDocument ReduceToRawJson(ObjectValue o)
         {
             var reduced = ReduceToChanges(o);
             return JsonDocument.Parse(reduced.ToJsonString());

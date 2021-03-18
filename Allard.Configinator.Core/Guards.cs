@@ -26,14 +26,5 @@ namespace Allard.Configinator.Core
             // todo: regex validation. only letters, numbers and -.
             return modelItemName.EnsureValue(parameterName).Trim().ToLowerInvariant();
         }
-
-        public static ISet<string> ToNormalizedMemberNames(this IEnumerable<string> modelItemNames,
-            string parameterName)
-        {
-            return
-                modelItemNames == null
-                    ? new HashSet<string>()
-                    : modelItemNames.Select(i => i.ToNormalizedMemberName(parameterName)).ToHashSet();
-        }
     }
 }

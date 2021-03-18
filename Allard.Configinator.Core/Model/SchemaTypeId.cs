@@ -4,7 +4,7 @@ namespace Allard.Configinator.Core.Model
 {
     public record SchemaTypeId
     {
-        public SchemaTypeId(string namesSpace, string id)
+        private SchemaTypeId(string namesSpace, string id)
         {
             Namespace = namesSpace.ToNormalizedMemberName(namesSpace);
             Id = id.ToNormalizedMemberName(namesSpace);
@@ -35,9 +35,9 @@ namespace Allard.Configinator.Core.Model
             return Create(parts[0], parts[1]);
         }
 
-        public static SchemaTypeId Create(string Namespace, string type)
+        public static SchemaTypeId Create(string nameSpace, string type)
         {
-            return new(Namespace, type);
+            return new(nameSpace, type);
         }
     }
 }

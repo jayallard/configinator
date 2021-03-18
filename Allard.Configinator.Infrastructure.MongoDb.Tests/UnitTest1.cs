@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Allard.Configinator.Core.Events;
+using Allard.Configinator.Core.Infrastructure;
 using Allard.Configinator.Core.Model;
 using FluentAssertions;
 using MongoDB.Driver;
@@ -54,7 +55,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
             const int realmCount = 10;
             const int habitCountPerRealm = 10;
             // create
-            var repo = new OrganizationRepositoryMongo();
+            var repo = (IOrganizationRepository) new OrganizationRepositoryMongo();
             var orgId = new OrganizationId("Allard");
             var org = new OrganizationAggregate(orgId);
             for (var i = 0; i < realmCount; i++)
@@ -73,7 +74,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
         public async Task WriteGet()
         {
             // create
-            var repo = new OrganizationRepositoryMongo();
+            var repo = (IOrganizationRepository) new OrganizationRepositoryMongo();
             var orgId = new OrganizationId("Allard");
             var org = new OrganizationAggregate(orgId);
             var r1 = org.AddRealm("realm a");
