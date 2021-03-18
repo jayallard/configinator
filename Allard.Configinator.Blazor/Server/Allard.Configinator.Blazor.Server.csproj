@@ -21,6 +21,11 @@
     <Compile Remove="Commands\GetRealmCommand.cs" />
     <Compile Remove="Commands\GetSchemaTypeCommand.cs" />
     <Compile Remove="Commands\GetSchemaTypesCommand.cs" />
+    <Compile Remove="Controllers\ViewModels\RootViewModel.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Controllers\ViewModels" />
   </ItemGroup>
 
 

@@ -1,11 +1,10 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Allard.Configinator.Api.Commands.ViewModels;
-using Allard.Configinator.Blazor.Shared.ViewModels;
+using Allard.Configinator.Blazor.Shared.ViewModels.Organization;
 using Allard.Configinator.Core;
 using MediatR;
 
-namespace Allard.Configinator.Api.Commands
+namespace Allard.Configinator.Blazor.Server.Commands
 {
     public record GetConfigurationSectionCommand(
         string OrganizationId,

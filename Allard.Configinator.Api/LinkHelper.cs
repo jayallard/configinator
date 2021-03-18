@@ -79,7 +79,7 @@ namespace Allard.Configinator.Api
             {
                 links.Add(new Link(
                     // trim the / from the end of the base address.
-                    baseAddress.Substring(0, baseAddress.Length - 1),
+                    baseAddress[..^1],
                     HttpMethod.Get.ToString(),
                     Rel(self, Root)
                 ));

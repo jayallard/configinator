@@ -200,9 +200,9 @@ namespace Allard.Configinator.Api.Controllers
 
         [HttpGet]
         [Route("{organizationId}/realms")]
-        public async Task<RealmsViewModel> GetRealms(string organizationid)
+        public async Task<RealmsViewModel> GetRealms(string organizationId)
         {
-            return await mediator.Send(new GetRealmsCommand(organizationid));
+            return await mediator.Send(new GetRealmsCommand(organizationId));
         }
 
         [HttpGet]

@@ -7,7 +7,7 @@ using Allard.Configinator.Core.Model.Validators;
 
 namespace Allard.Configinator.Core.Model
 {
-    public class OrganizationAggregate : IAggregate<OrganizationId>
+    public class OrganizationAggregate : IAggregate
     {
         private readonly Dictionary<RealmId, Realm> realms = new();
         private readonly Dictionary<SchemaTypeId, SchemaType> schemaTypes = new();

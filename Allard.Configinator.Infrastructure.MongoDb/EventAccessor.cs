@@ -11,12 +11,10 @@ namespace Allard.Configinator.Infrastructure.MongoDb
         private static readonly PropertyInfo RegistryField = GetRegistryFieldFromOrganization();
         private static readonly MethodInfo ApplyMethod = GetApplyMethod();
         private static readonly FieldInfo EventsField = GetEventsFieldFromEventHandlerRegistry();
-        private readonly OrganizationAggregate organization;
         private readonly EventHandlerRegistry registry;
 
         public EventAccessor(OrganizationAggregate organization)
         {
-            this.organization = organization;
             registry = (EventHandlerRegistry) RegistryField.GetValue(organization);
         }
 

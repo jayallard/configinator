@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using Allard.Configinator.Blazor.Shared.ViewModels;
 
-namespace Allard.Configinator.Api.Commands.ViewModels
+namespace Allard.Configinator.Blazor.Shared.ViewModels.Organization
 {
     public class SchemaTypeViewModel
     {

@@ -5,6 +5,8 @@ namespace Allard.Configinator.Core.Ddd
 {
     public class EventHandlerRegistry
     {
+        // this is accessed via reflection.
+        // ReSharper disable once CollectionNeverQueried.Local
         private readonly List<DomainEvent> events = new();
         private readonly Dictionary<Type, EventHandlerRegistryBuilder.Executor> handlers;
 

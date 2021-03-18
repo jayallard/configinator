@@ -1,7 +1,6 @@
 using System;
-using Allard.Configinator.Api;
-using Allard.Configinator.Api.Commands.ViewModels;
-using Allard.Configinator.Blazor.Shared.ViewModels;
+using Allard.Configinator.Blazor.Shared;
+using Allard.Configinator.Blazor.Shared.ViewModels.Organization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
@@ -25,20 +24,21 @@ namespace Allard.Configinator.Blazor.Server
         {
             if (context.Result is not ObjectResult obj) return;
 
-            if (obj.Value is RealmViewModel realm)
+            switch (obj.Value)
             {
-                AddToRealm(realm, true);
-                return;
-            }
-
-            if (obj.Value is OrganizationViewModel realms)
-            {
-                realms
-                    .Links = linkHelper
-                    .CreateBuilder()
-                    .AddRealms(true)
-                    .Build();
-                foreach (var r in realms.Realms) AddToRealm(r, false);
+                case RealmViewModel realm:
+                    AddToRealm(realm, true);
+                    return;
+                case OrganizationViewModel realms:
+                {
+                    realms
+                        .Links = linkHelper
+                        .CreateBuilder()
+                        .AddRealms(true)
+                        .Build();
+                    foreach (var r in realms.Realms) AddToRealm(r, false);
+                    break;
+                }
             }
         }
 

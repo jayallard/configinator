@@ -2,6 +2,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Allard.Configinator.Blazor.Shared.ViewModels;
+using Allard.Configinator.Blazor.Shared.ViewModels.Organization;
 
 namespace Allard.Configinator.Blazor.Client.Services
 {

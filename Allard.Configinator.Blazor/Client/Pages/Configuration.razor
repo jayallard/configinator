@@ -2,8 +2,10 @@
 @using Allard.Configinator.Blazor.Shared.ViewModels
 @using System.Text.Json
 @using Allard.Configinator.Blazor.Client.Services
-@inject HttpClient Client;
-@inject IOrganizationService OrgService;
+@using Allard.Configinator.Blazor.Shared.ViewModels.Configuration
+@using Allard.Configinator.Blazor.Shared.ViewModels.Organization
+@inject HttpClient client;
+@inject IOrganizationService orgService;
 <h3>Configuration</h3>
 
 @code {
@@ -33,15 +35,11 @@
         await Load();
     }
 
-    protected override async Task OnInitializedAsync()
-    {
-    }
-
     private async Task Load()
     {
-        var org = OrgService.GetOrganizationAsync(OrganizationId);
+        var org = orgService.GetOrganizationAsync(OrganizationId);
         var url = $"/api/v1/configuration/{OrganizationId}/{RealmId}/{SectionId}/{HabitatId}/value-explained";
-        var config = Client.GetFromJsonAsync<ObjectViewModel>(url);
+        var config = client.GetFromJsonAsync<ObjectViewModel>(url);
 
         await Task.WhenAll(org, config);
         organization = await org;
@@ -57,6 +55,7 @@
 
     private async Task Save()
     {
+        Edit = false;
         var result = new Dictionary<string, object>();
         foreach (var p in explained.Objects)
         {
@@ -65,16 +64,18 @@
 
         Json = JsonSerializer.Serialize(result);
         var url = $"/api/v1/configuration/{OrganizationId}/{RealmId}/{SectionId}/{HabitatId}/value-resolved";
-        var x = await Client.PutAsJsonAsync(url, result);
+        var x = await client.PutAsJsonAsync(url, result);
         saveResponse = await x.Content.ReadFromJsonAsync<SaveResponseViewModel>();
         if (saveResponse is {Success: true })
         {
-            Edit = false;
             await Load();
+            return;
         }
+        
+        Edit = true;
     }
 
-    private Dictionary<string, object> ToDictionary(ObjectViewModel obj)
+    private static Dictionary<string, object> ToDictionary(ObjectViewModel obj)
     {
         var result = new Dictionary<string, object>();
         foreach (var p in obj.Properties)
@@ -101,20 +102,13 @@
 
     private static object GetJsonValue(object value)
     {
-        if (value == null)
+        return value switch
         {
-            return value;
-        }
-
-        if (value is string s)
-        {
-            return string.IsNullOrWhiteSpace(s) ? null : s;
-        }
-
-        return value;
+            null => null,
+            string s => string.IsNullOrWhiteSpace(s) ? null : s,
+            _ => value
+            };
     }
-
-
 }
 
 <h1>@OrganizationId/@RealmId/@SectionId/@HabitatId</h1>
@@ -154,7 +148,7 @@
             Child Habitats:&nbsp;
             @foreach (var b in children)
             {
-                <span><a href="/configuration/@OrganizationId/@RealmId/@SectionId/@b">@b</a> &nbsp;&nbsp;</span>
+                <span><a  href="/configuration/@OrganizationId/@RealmId/@SectionId/@b">@b</a> &nbsp;&nbsp;</span>
             }
         </div>
     }

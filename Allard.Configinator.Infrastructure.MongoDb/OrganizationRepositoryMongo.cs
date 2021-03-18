@@ -88,8 +88,8 @@ namespace Allard.Configinator.Infrastructure.MongoDb
 
         public async Task DevelopmentSetup()
         {
-            await GetDataase().DropCollectionAsync(StateCollectionName);
-            await GetDataase().DropCollectionAsync(EventsCollectionName);
+            await GetDatabase().DropCollectionAsync(StateCollectionName);
+            await GetDatabase().DropCollectionAsync(EventsCollectionName);
 
             var kafkaType = SchemaTypeBuilder
                 .Create("kafka/unsecured")
@@ -127,7 +127,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb
             await SaveAsync(org);
         }
 
-        private IMongoDatabase GetDataase()
+        private IMongoDatabase GetDatabase()
         {
             return client.GetDatabase(Database);
         }
@@ -138,7 +138,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb
             // fresh until that's worked out.
             // todo: cache db? cache collection?
             return
-                GetDataase()
+                GetDatabase()
                     .GetCollection<EventDto>(EventsCollectionName);
         }
 

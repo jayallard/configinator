@@ -65,7 +65,7 @@ namespace Allard.Configinator.Core.DocumentMerger
             var mergedObjects = objects
                 .Select(o =>
                 {
-                    var layers = GetLayers(o.Name, toMerge.Select(m => m.Document.RootElement));
+                    var layers = GetProperties(o.Name, toMerge.Select(m => m.Document.RootElement));
                     return Merge("", o, layers);
                 })
                 .ToList()
@@ -96,7 +96,6 @@ namespace Allard.Configinator.Core.DocumentMerger
         private static JsonElement GetProperty(string propertyName, JsonElement parentElement)
         {
             if (parentElement.ValueKind == JsonValueKind.Undefined) return parentElement;
-
             return parentElement.TryGetProperty(propertyName, out var existing) ? existing : default;
         }
 
@@ -108,7 +107,7 @@ namespace Allard.Configinator.Core.DocumentMerger
         /// <param name="propertyName"></param>
         /// <param name="layerParents"></param>
         /// <returns></returns>
-        private static List<JsonElement> GetLayers(string propertyName, IEnumerable<JsonElement> layerParents)
+        private static List<JsonElement> GetProperties(string propertyName, IEnumerable<JsonElement> layerParents)
         {
             return layerParents
                 .Select(p => GetProperty(propertyName, p))
@@ -136,7 +135,7 @@ namespace Allard.Configinator.Core.DocumentMerger
             var mergedObjects = objects
                 .Select(o =>
                 {
-                    var nextLayers = GetLayers(o.Name, layers);
+                    var nextLayers = GetProperties(o.Name, layers);
                     return Merge(path, o, nextLayers);
                 })
                 .ToList()
@@ -151,7 +150,7 @@ namespace Allard.Configinator.Core.DocumentMerger
             var mergedProperties = properties
                 .Select(p =>
                 {
-                    var nextLayers = GetLayers(p.Name, layers);
+                    var nextLayers = GetProperties(p.Name, layers);
                     return GetValue(newPath, p, nextLayers);
                 })
                 .ToList()
@@ -208,12 +207,10 @@ namespace Allard.Configinator.Core.DocumentMerger
                         continue;
                     }
 
-                    // a simple == didn't work here in a previous iteration.
-                    // i don't know why... utf8 vs non-utf8?
+                    l.Value = lv;
                     l.Transition = Equals(lv, previousLayer.Value)
                         ? Transition.SetToSameValue
                         : Transition.Set;
-                    l.Value = lv;
                     continue;
                 }
 

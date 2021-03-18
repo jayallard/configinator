@@ -1,0 +1,14 @@
+@using Allard.Configinator.Blazor.Shared.ViewModels.Configuration
+@using System.Security.Principal
+<h3>ValueTransition</h3>
+
+@code {
+
+    [Parameter]
+    public PropertyValueViewModel Property { get; set; } 
+}
+
+@if (string.IsNullOrWhiteSpace(Property.Value)  && Property.Layers.Last().Transition == "Inherit")
+{
+    <span style="margin-left:15px" class="badge-pill badge-primary">Inherited</span>
+} 

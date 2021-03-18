@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Allard.Configinator.Blazor.Shared.ViewModels
+namespace Allard.Configinator.Blazor.Shared.ViewModels.Configuration
 {
     public record ObjectViewModel(string Path, string Name, List<PropertyValueViewModel> Properties,
         List<ObjectViewModel> Objects);

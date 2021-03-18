@@ -64,13 +64,12 @@ namespace Allard.Configinator.Core
             // if there's only one doc, then nothing to reduce, do
             // skip it
             var toSave = request.Value;
-            if (request.Format == ValueFormat.Resolved) // && merged.First().Property.Layers.Count > 1)
+            if (request.Format == ValueFormat.Resolved)
                 toSave = ReduceToRawJson(merged);
 
             // save the value that was passed in. 
             var value = new SetConfigStoreValueRequest(path, toSave);
             await configStore.SetValueAsync(value);
-
             return new SetConfigurationResponse(request.ConfigurationId, errors);
         }
 
@@ -80,7 +79,7 @@ namespace Allard.Configinator.Core
             {
                 ValueFormat.Raw => await GetValueRawAsync(request),
                 ValueFormat.Resolved => await GetValueResolvedAsync(request),
-                _ => throw new ArgumentOutOfRangeException(nameof(request.Format))
+                _ => throw new ArgumentOutOfRangeException(nameof(request))
             };
         }
 

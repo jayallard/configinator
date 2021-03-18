@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Allard.Configinator.Api;
-using Allard.Configinator.Api.Commands.ViewModels;
 
-namespace Allard.Configinator.Blazor.Shared.ViewModels
+namespace Allard.Configinator.Blazor.Shared.ViewModels.Organization
 {
     public class RealmViewModel
     {

@@ -4,7 +4,7 @@ using System.Net;
 using System.Net.Http;
 using Allard.Configinator.Core.Model;
 
-namespace Allard.Configinator.Api
+namespace Allard.Configinator.Blazor.Shared
 {
     public record Link(string Href, string Rel, string Method);
 
@@ -17,7 +17,7 @@ namespace Allard.Configinator.Api
         private const string Realms = "realms";
         private const string ConfigurationSection = "configurationSection";
         private const string Root = "root";
-        private const string BaseAddress = "/api/v1/";
+        private readonly string BaseAddress = "/api/v1/";
 
         public LinkBuilder CreateBuilder()
         {
@@ -80,7 +80,7 @@ namespace Allard.Configinator.Api
             {
                 links.Add(new Link(
                     // trim the / from the end of the base address.
-                    baseAddress.Substring(0, baseAddress.Length - 1),
+                    baseAddress[..^1],
                     HttpMethod.Get.ToString(),
                     Rel(self, Root)
                 ));

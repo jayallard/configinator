@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Allard.Configinator.Blazor.Shared.ViewModels;
+using Allard.Configinator.Blazor.Shared.ViewModels.Configuration;
 using Allard.Configinator.Core.DocumentMerger;
 using Allard.Configinator.Core.Infrastructure;
 using MediatR;

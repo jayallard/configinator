@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Allard.Configinator.Core.Model
 {
@@ -12,6 +13,11 @@ namespace Allard.Configinator.Core.Model
 
     public abstract record ModelMemberId
     {
+        public static string Dummy()
+        {
+            return "";
+        }
+
         protected ModelMemberId(string id)
         {
             Id = id.ToNormalizedMemberName(nameof(id));

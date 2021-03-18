@@ -6,6 +6,15 @@ using Allard.Configinator.Core.Model;
 
 namespace Allard.Configinator.Core
 {
+    /// <summary>
+    /// Converts a schema type to a Json document model.
+    /// The model is the structure of the json document
+    /// that represents the schema. The structure is defined.
+    /// Properties are defined per object.
+    /// The value of each property is set to a dummy value of the proper
+    /// type. IE: if its a string property, the value is set to "" so
+    /// that things that consume it know that its a string.
+    /// </summary>
     public class JsonStructureModelBuilder
     {
         private readonly Dictionary<SchemaTypeId, SchemaType> schemaTypes;

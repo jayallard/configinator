@@ -23,20 +23,21 @@ namespace Allard.Configinator.Api
         {
             if (context.Result is not ObjectResult obj) return;
 
-            if (obj.Value is RealmViewModel realm)
+            switch (obj.Value)
             {
-                AddToRealm(realm, true);
-                return;
-            }
-
-            if (obj.Value is RealmsViewModel realms)
-            {
-                realms
-                    .Links = linkHelper
-                    .CreateBuilder()
-                    .AddRealms(true)
-                    .Build();
-                foreach (var r in realms.Realms) AddToRealm(r, false);
+                case RealmViewModel realm:
+                    AddToRealm(realm, true);
+                    return;
+                case RealmsViewModel realms:
+                {
+                    realms
+                        .Links = linkHelper
+                        .CreateBuilder()
+                        .AddRealms(true)
+                        .Build();
+                    foreach (var r in realms.Realms) AddToRealm(r, false);
+                    break;
+                }
             }
         }
 

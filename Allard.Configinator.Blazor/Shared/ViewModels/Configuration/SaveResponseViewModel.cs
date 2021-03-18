@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Allard.Configinator.Core.Infrastructure;
 
-namespace Allard.Configinator.Blazor.Shared.ViewModels
+namespace Allard.Configinator.Blazor.Shared.ViewModels.Configuration
 {
     public class SaveResponseViewModel
     {

@@ -1,4 +1,4 @@
-using Allard.Configinator.Api;
+using Allard.Configinator.Blazor.Shared;
 using Allard.Configinator.Core;
 using Allard.Configinator.Core.Infrastructure;
 using Allard.Configinator.Infrastructure.MongoDb;

@@ -8,11 +8,11 @@ namespace Allard.Configinator.Core.Model
     public class Habitat
     {
         private readonly List<Habitat> bases;
-        private readonly Realm realm;
+        public Realm Realm { get; }
 
         internal Habitat(HabitatId habitatId, Realm realm, IEnumerable<Habitat> bases)
         {
-            this.realm = realm;
+            Realm = realm;
             this.bases = bases.ToList();
             HabitatId = habitatId;
         }

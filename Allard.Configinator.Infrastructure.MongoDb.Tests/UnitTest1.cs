@@ -7,19 +7,11 @@ using Allard.Configinator.Core.Model;
 using FluentAssertions;
 using MongoDB.Driver;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Allard.Configinator.Infrastructure.MongoDb.Tests
 {
     public class UnitTest1
     {
-        private readonly ITestOutputHelper testOutputHelper;
-
-        public UnitTest1(ITestOutputHelper testOutputHelper)
-        {
-            this.testOutputHelper = testOutputHelper;
-        }
-
         [Fact]
         public void Test1()
         {
