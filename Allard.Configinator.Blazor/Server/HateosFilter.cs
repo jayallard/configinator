@@ -31,7 +31,7 @@ namespace Allard.Configinator.Blazor.Server
                 return;
             }
 
-            if (obj.Value is RealmsViewModel realms)
+            if (obj.Value is OrganizationViewModel realms)
             {
                 realms
                     .Links = linkHelper

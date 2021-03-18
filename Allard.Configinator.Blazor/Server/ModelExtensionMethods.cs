@@ -23,12 +23,19 @@ namespace Allard.Configinator.Api
                 });
         }
 
-        public static RealmsViewModel ToViewModel(this IEnumerable<Realm> realms)
+
+        public static OrganizationViewModel ToViewModel(this OrganizationAggregate organization)
         {
             return new()
             {
-                Realms = realms.Select(r => r.ToViewModel()).ToList()
+                OrganizationId = organization.OrganizationId.Id,
+                Realms = organization.Realms.ToViewModel().ToList()
             };
+        }
+
+        public static IEnumerable<RealmViewModel> ToViewModel(this IEnumerable<Realm> realms)
+        {
+            return realms.Select(r => r.ToViewModel()).ToList();
         }
 
         public static RealmViewModel ToViewModel(this Realm realm)

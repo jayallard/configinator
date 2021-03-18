@@ -1,7 +1,9 @@
 @page "/configuration/{organizationId}/{realmId}/{sectionId}/{habitatId}"
 @using Allard.Configinator.Blazor.Shared.ViewModels
 @using System.Text.Json
-@inject HttpClient client;
+@using Allard.Configinator.Blazor.Client.Services
+@inject HttpClient Client;
+@inject IOrganizationService OrgService;
 <h3>Configuration</h3>
 
 @code {
@@ -22,29 +24,38 @@
 
 
     private ObjectViewModel explained;
-    private SaveResponseViewModel SaveResponse;
+    private SaveResponseViewModel saveResponse;
     private string Json { get; set; }
+    private OrganizationViewModel organization;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await Load();
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        await Load();
     }
 
     private async Task Load()
     {
-        var url = $"/api/v1/config/{OrganizationId}/{RealmId}/{SectionId}/{HabitatId}/value-explained";
-        explained = await client.GetFromJsonAsync<ObjectViewModel>(url);
+        var org = OrgService.GetOrganizationAsync(OrganizationId);
+        var url = $"/api/v1/configuration/{OrganizationId}/{RealmId}/{SectionId}/{HabitatId}/value-explained";
+        var config = Client.GetFromJsonAsync<ObjectViewModel>(url);
+
+        await Task.WhenAll(org, config);
+        organization = await org;
+        explained = await config;
     }
 
     private async Task CancelEdit()
     {
-        Edit = false;
     // todo: this should be a FORM RESET or something. brute force for now.
+        Edit = false;
         await Load();
     }
 
-
-    public async Task Save()
+    private async Task Save()
     {
         var result = new Dictionary<string, object>();
         foreach (var p in explained.Objects)
@@ -53,10 +64,10 @@
         }
 
         Json = JsonSerializer.Serialize(result);
-        var url = $"/api/v1/config/{OrganizationId}/{RealmId}/{SectionId}/{HabitatId}/value-resolved";
-        var x = await client.PutAsJsonAsync(url, result);
-        SaveResponse = await x.Content.ReadFromJsonAsync<SaveResponseViewModel>();
-        if (SaveResponse is {Success: true })
+        var url = $"/api/v1/configuration/{OrganizationId}/{RealmId}/{SectionId}/{HabitatId}/value-resolved";
+        var x = await Client.PutAsJsonAsync(url, result);
+        saveResponse = await x.Content.ReadFromJsonAsync<SaveResponseViewModel>();
+        if (saveResponse is {Success: true })
         {
             Edit = false;
             await Load();
@@ -107,11 +118,52 @@
 }
 
 <h1>@OrganizationId/@RealmId/@SectionId/@HabitatId</h1>
+@if (organization != null)
+{
+    var realm = organization.GetRealm(RealmId);
+    var habitat = realm.GetHabitat(HabitatId);
+    if (habitat.BaseHabitatIds.Count == 0)
+    {
+        <div>
+            Base Habitats:&nbsp;<i>None</i>
+        </div>
+    }
+    else
+    {
+        <div>
+            Base Habitats:&nbsp;
+            @foreach (var b in habitat.BaseHabitatIds)
+            {
+                <span>
+                    <a href="/configuration/@OrganizationId/@RealmId/@SectionId/@b">@b</a> &nbsp;&nbsp;
+                </span>
+            }
+        </div>
+    }
 
-@if (SaveResponse != null)
+    var children = realm.Habitats.Where(h => h.BaseHabitatIds.Contains(HabitatId)).Select(b => b.HabitatId).ToList();
+    if (children.Count == 0)
+    {
+        <div>
+            Child Habitats:&nbsp;<i>None</i>
+        </div>
+    }
+    else
+    {
+        <div>
+            Child Habitats:&nbsp;
+            @foreach (var b in children)
+            {
+                <span><a href="/configuration/@OrganizationId/@RealmId/@SectionId/@b">@b</a> &nbsp;&nbsp;</span>
+            }
+        </div>
+    }
+}
+
+@if (saveResponse != null)
 {
     <ul>
-        @foreach (var error in SaveResponse.Failures)
+        @foreach (var error in saveResponse.Failures)
         {
             <li>@(error.Code == "RequiredPropertyValueMissing" ? "Required" : error.Code) : @error.Path</li>
         }
