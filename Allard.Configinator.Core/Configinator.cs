@@ -105,6 +105,7 @@ namespace Allard.Configinator.Core
                     var changed = lastLayer.Transition == Transition.Set || lastLayer.Transition == Transition.Delete;
                     return changed ? p : null;
                 })
+                .Where(p => p != null)
                 .ToList();
             return new ObjectValue(o.Path, o.Name, childProperties.AsReadOnly(), childObjects.AsReadOnly());
         }
