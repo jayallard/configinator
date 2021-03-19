@@ -44,12 +44,13 @@ namespace Allard.Configinator.Core
             // TODO: change to single object.
             var mergedJson = merged.ToJsonString();
 
-            // todo: get rid of ??
-            var mergedDoc = JsonDocument.Parse(mergedJson ?? "{}");
+            var mergedDoc = JsonDocument.Parse(mergedJson);
 
             // validate
-            var errors = new DocValidator(Organization.SchemaTypes)
-                .Validate(cs.SchemaType.SchemaTypeId, mergedDoc)
+            var validator = new DocValidator(Organization.SchemaTypes);
+            var errors = cs
+                .Properties
+                .SelectMany(p => validator.Validate(p.SchemaTypeId, mergedDoc.RootElement.GetProperty(p.Name)))
                 .ToList();
 
             // if no errors, save

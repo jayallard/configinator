@@ -43,7 +43,13 @@ namespace Allard.Configinator.Core
                 using var output = new MemoryStream();
                 using var writer = new Utf8JsonWriter(output, new JsonWriterOptions {Indented = true});
                 writer.WriteStartObject();
-                WriteSchemaType(writer, section.SchemaType);
+                foreach (var p in section.Properties)
+                {
+                    writer.WriteStartObject(p.Name);
+                    WriteSchemaType(writer, schemaTypes[p.SchemaTypeId]);
+                    writer.WriteEndObject();
+                }
+
                 writer.WriteEndObject();
                 writer.Flush();
                 output.Position = 0;

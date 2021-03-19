@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Allard.Configinator.Core.Infrastructure;
@@ -44,23 +45,30 @@ namespace Allard.Configinator.Core.Tests.Unit
                 .AddStringProperty("initial-catalog", isOptional: true)
                 .Build();
 
-            var shovelServiceType = SchemaTypeBuilder
-                .Create("something-domain/shovel-service")
-                .AddProperty("sql-source", "mssql/sql-user")
-                .AddProperty("kafka-target", "kafka/unsecured")
-                .Build();
+            // var shovelServiceType = SchemaTypeBuilder
+            //     .Create("something-domain/shovel-service")
+            //     .AddProperty("sql-source", "mssql/sql-user")
+            //     .AddProperty("kafka-target", "kafka/unsecured")
+            //     .Build();
 
             var org = new OrganizationAggregate(new OrganizationId("allard"));
             org.AddSchemaType(kafkaType);
             org.AddSchemaType(sqlType);
-            org.AddSchemaType(shovelServiceType);
+            //org.AddSchemaType(shovelServiceType);
 
             var realm = org.AddRealm(TestRealm1);
             realm.AddHabitat("production");
             realm.AddHabitat("staging");
             realm.AddHabitat("dev");
             realm.AddHabitat("dev-allard", "dev");
-            realm.AddConfigurationSection(TestConfigurationSection1, "something-domain/shovel-service",
+            
+            var properties = new List<SchemaTypeProperty>
+            {
+                new("sql-source", SchemaTypeId.Parse("mssql/sql-user"), false, true),
+                new("kafka-target", SchemaTypeId.Parse("kafka/unsecured"), false, true),
+            };
+            
+            realm.AddConfigurationSection(TestConfigurationSection1, properties,
                 "/{{habitat}}/something-domain/shovel-service", "description");
             return org;
         }

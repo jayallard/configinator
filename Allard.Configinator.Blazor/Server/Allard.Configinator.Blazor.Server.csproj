@@ -22,10 +22,16 @@
     <Compile Remove="Commands\GetSchemaTypeCommand.cs" />
     <Compile Remove="Commands\GetSchemaTypesCommand.cs" />
     <Compile Remove="Controllers\ViewModels\RootViewModel.cs" />
+    <Compile Remove="Pages\Error.cshtml.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Controllers\ViewModels" />
+    <Folder Include="Pages" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="Pages\Error.cshtml" />
   </ItemGroup>
 
 

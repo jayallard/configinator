@@ -9,7 +9,7 @@ namespace Allard.Configinator.Blazor.Shared.ViewModels.Organization
         public RealmId RealmId { get; set; }
         public SectionId SectionId { get; set; }
         public string Path { get; set; }
-        public string SchemaTypeId { get; set; }
+        public List<PropertyViewModel> Properties { get; set; }
         public List<Link> Links { get; set; }
     }
 }

@@ -105,23 +105,28 @@ namespace Allard.Configinator.Infrastructure.MongoDb
                 .AddStringProperty("initial-catalog", isOptional: true)
                 .Build();
 
-            var shovelServiceType = SchemaTypeBuilder
-                .Create("something-domain/shovel-service")
-                .AddProperty("sql-source", "mssql/sql-user")
-                .AddProperty("kafka-target", "kafka/unsecured")
-                .Build();
+            // var shovelServiceType = SchemaTypeBuilder
+            //     .Create("something-domain/shovel-service")
+            //     .AddProperty("sql-source", "mssql/sql-user")
+            //     .AddProperty("kafka-target", "kafka/unsecured")
+            //     .Build();
 
             var org = new OrganizationAggregate(new OrganizationId("allard"));
             org.AddSchemaType(kafkaType);
             org.AddSchemaType(sqlType);
-            org.AddSchemaType(shovelServiceType);
+            //org.AddSchemaType(shovelServiceType);
 
             var realm = org.AddRealm("domain-a");
             realm.AddHabitat("production");
             realm.AddHabitat("staging");
             realm.AddHabitat("dev");
             realm.AddHabitat("dev-allard", "dev");
-            realm.AddConfigurationSection("shovel-service", "something-domain/shovel-service",
+            var properties = new List<SchemaTypeProperty>
+            {
+                new("sql-source", SchemaTypeId.Parse("mssql/sql-user"), false, true),
+                new("kafka-target", SchemaTypeId.Parse("kafka/unsecured"), false, true),
+            };
+            realm.AddConfigurationSection("shovel-service", properties,
                 "/{{habitat}}/something-domain/shovel-service", "description");
 
             await SaveAsync(org);

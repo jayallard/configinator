@@ -8,20 +8,22 @@ namespace Allard.Configinator.Blazor.Server
 {
     public static class ModelExtensionMethods
     {
-        public static IEnumerable<ConfigurationSectionViewModel> ToViewModel(
-            IEnumerable<ConfigurationSection> configurationSections)
+        public static ConfigurationSectionViewModel ToViewModel(this ConfigurationSection configurationSection)
         {
-            return configurationSections
-                .Select(cs => new ConfigurationSectionViewModel
-                {
-                    OrganizationId = cs.Realm.Organization.OrganizationId,
-                    SectionId = cs.SectionId,
-                    RealmId = cs.Realm.RealmId,
-                    Path = cs.Path,
-                    SchemaTypeId = cs.SchemaType.SchemaTypeId.FullId
-                });
+            return new ConfigurationSectionViewModel
+            {
+                SectionId = configurationSection.SectionId,
+                Path = configurationSection.Path,
+                RealmId = configurationSection.Realm.RealmId,
+                Properties = configurationSection.Properties.Select(p => p.ToViewModel()).ToList(),
+                OrganizationId = configurationSection.Realm.Organization.OrganizationId
+            };
         }
 
+        public static IEnumerable<ConfigurationSectionViewModel> ToViewModel(this IEnumerable<ConfigurationSection> configurationSections)
+        {
+            return configurationSections.Select(cs => cs.ToViewModel());
+        }
 
         public static OrganizationViewModel ToViewModel(this OrganizationAggregate organization)
         {
@@ -48,14 +50,7 @@ namespace Allard.Configinator.Blazor.Server
                         h.Bases.Select(b => b.HabitatId.Id).ToList().AsReadOnly())).ToList(),
                 ConfigurationSections = realm
                     .ConfigurationSections
-                    .Select(cs => new ConfigurationSectionViewModel
-                    {
-                        OrganizationId = cs.Realm.Organization.OrganizationId,
-                        SectionId = cs.SectionId,
-                        RealmId = realm.RealmId,
-                        Path = cs.Path,
-                        SchemaTypeId = cs.SchemaType.SchemaTypeId.FullId
-                    })
+                    .ToViewModel()
                     .ToList()
             };
         }
@@ -79,6 +74,7 @@ namespace Allard.Configinator.Blazor.Server
             return new()
             {
                 IsRequired = schemaTypeProperty.IsRequired,
+                IsSecret = schemaTypeProperty.IsSecret,
                 Name = schemaTypeProperty.Name,
                 SchemaTypeId = schemaTypeProperty.SchemaTypeId.FullId
             };

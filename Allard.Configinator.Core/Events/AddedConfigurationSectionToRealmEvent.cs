@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Allard.Configinator.Core.Ddd;
 using Allard.Configinator.Core.Model;
 
@@ -7,7 +8,7 @@ namespace Allard.Configinator.Core.Events
         OrganizationId OrganizationId,
         RealmId RealmId,
         SectionId SectionId,
-        SchemaTypeId SchemaTypeId,
+        IReadOnlyCollection<SchemaTypeProperty> Properties,
         string Path,
         string Description) : DomainEvent;
 }

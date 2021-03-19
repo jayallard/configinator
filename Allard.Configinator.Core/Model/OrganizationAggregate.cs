@@ -50,7 +50,7 @@ namespace Allard.Configinator.Core.Model
                         realm,
                         e.SectionId,
                         e.Path,
-                        schemaTypes[e.SchemaTypeId],
+                        e.Properties,
                         e.Description);
                     realm.AddConfigurationSection(configurationSection);
                     return configurationSection;

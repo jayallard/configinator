@@ -17,9 +17,9 @@ namespace Allard.Configinator.Core.DocumentValidator
                 .ToDictionary(s => s.SchemaTypeId);
         }
 
-        public IEnumerable<ValidationFailure> Validate(SchemaTypeId schemaTypeId, JsonDocument doc)
+        public IEnumerable<ValidationFailure> Validate(SchemaTypeId schemaTypeId, JsonElement doc)
         {
-            return new Instance(schemaTypes).Validate(schemaTypeId, doc.RootElement, string.Empty);
+            return new Instance(schemaTypes).Validate(schemaTypeId, doc, string.Empty);
         }
 
         private class Instance

@@ -58,17 +58,17 @@ namespace Allard.Configinator.Core.Model
 
         public ConfigurationSection AddConfigurationSection(
             string sectionId,
-            string schemaTypeId,
+            IReadOnlyCollection<SchemaTypeProperty> properties,
             string path,
             string description)
         {
-            return AddConfigurationSection(new SectionId(sectionId), SchemaTypeId.Parse(schemaTypeId), path,
+            return AddConfigurationSection(new SectionId(sectionId), properties, path,
                 description);
         }
 
         public ConfigurationSection AddConfigurationSection(
             SectionId sectionId,
-            SchemaTypeId schemaTypeId,
+            IReadOnlyCollection<SchemaTypeProperty> properties,
             string path,
             string description)
         {
@@ -78,14 +78,14 @@ namespace Allard.Configinator.Core.Model
             habitats.Keys.EnsureIdDoesntExist(sectionId);
 
             // lazy - throws an exception if type doesn't exist.
-            Organization.GetSchemaType(schemaTypeId);
+            var _ = properties.Select(p => Organization.GetSchemaType(p.SchemaTypeId)).ToList();
 
             // create and raise the event
             var evt = new AddedConfigurationSectionToRealmEvent(
                 Organization.OrganizationId,
                 RealmId,
                 sectionId,
-                schemaTypeId,
+                properties,
                 path,
                 description);
             return Organization

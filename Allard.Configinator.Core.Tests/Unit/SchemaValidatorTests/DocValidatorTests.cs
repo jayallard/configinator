@@ -23,7 +23,7 @@ namespace Allard.Configinator.Core.Tests.Unit.SchemaValidatorTests
                 .Build();
 
             // the property "AtoB" is required but missing.
-            var doc = JsonDocument.Parse("{}");
+            var doc = JsonDocument.Parse("{}").RootElement;
             var results = new DocValidator(new[] {a, b})
                 .Validate(SchemaTypeId.Parse("a/a"), doc)
                 .ToList();
@@ -43,7 +43,7 @@ namespace Allard.Configinator.Core.Tests.Unit.SchemaValidatorTests
                 .Build();
 
             // the property "AtoB" is required but missing.
-            var doc = JsonDocument.Parse("{}");
+            var doc = JsonDocument.Parse("{}").RootElement;
             new DocValidator(new[] {a, b})
                 .Validate(SchemaTypeId.Parse("a/a"), doc)
                 .Should()
@@ -63,7 +63,7 @@ namespace Allard.Configinator.Core.Tests.Unit.SchemaValidatorTests
                 .Build();
 
             // the property "AtoB" is required but missing.
-            var doc = JsonDocument.Parse("{ \"AtoB\": { } }");
+            var doc = JsonDocument.Parse("{ \"AtoB\": { } }").RootElement;
             var results = new DocValidator(new[] {a, b})
                 .Validate(SchemaTypeId.Parse("a/a"), doc)
                 .ToList();
@@ -83,7 +83,7 @@ namespace Allard.Configinator.Core.Tests.Unit.SchemaValidatorTests
                 .Build();
 
             // the property "AtoB" is required but missing.
-            var doc = JsonDocument.Parse("{ \"AtoB\": { } }");
+            var doc = JsonDocument.Parse("{ \"AtoB\": { } }").RootElement;
             new DocValidator(new[] {a, b})
                 .Validate(SchemaTypeId.Parse("a/a"), doc)
                 .Should()
@@ -103,7 +103,7 @@ namespace Allard.Configinator.Core.Tests.Unit.SchemaValidatorTests
                 .Build();
 
             // the property "AtoB" is required but missing.
-            var doc = JsonDocument.Parse("{ \"AtoB\": { \"test\": null } }");
+            var doc = JsonDocument.Parse("{ \"AtoB\": { \"test\": null } }").RootElement;
             var results = new DocValidator(new[] {a, b})
                 .Validate(SchemaTypeId.Parse("a/a"), doc)
                 .ToList();
@@ -123,7 +123,7 @@ namespace Allard.Configinator.Core.Tests.Unit.SchemaValidatorTests
                 .Build();
 
             // the property "AtoB" is required but missing.
-            var doc = JsonDocument.Parse("{ \"AtoB\": { \"test\": null } }");
+            var doc = JsonDocument.Parse("{ \"AtoB\": { \"test\": null } }").RootElement;
             new DocValidator(new[] {a, b})
                 .Validate(SchemaTypeId.Parse("a/a"), doc)
                 .Should()

@@ -1,5 +1,4 @@
 @page "/configuration/{organizationId}/{realmId}/{sectionId}/{habitatId}"
-@using Allard.Configinator.Blazor.Shared.ViewModels
 @using System.Text.Json
 @using Allard.Configinator.Blazor.Client.Services
 @using Allard.Configinator.Blazor.Shared.ViewModels.Configuration
@@ -24,7 +23,6 @@
 
     public bool Edit { get; set; }
 
-
     private ObjectViewModel explained;
     private SaveResponseViewModel saveResponse;
     private string Json { get; set; }
@@ -44,6 +42,7 @@
         await Task.WhenAll(org, config);
         organization = await org;
         explained = await config;
+        Json = JsonSerializer.Serialize(explained);
     }
 
     private async Task CancelEdit()
@@ -62,7 +61,6 @@
             result[p.Name] = ToDictionary(p);
         }
 
-        Json = JsonSerializer.Serialize(result);
         var url = $"/api/v1/configuration/{OrganizationId}/{RealmId}/{SectionId}/{HabitatId}/value-resolved";
         var x = await client.PutAsJsonAsync(url, result);
         saveResponse = await x.Content.ReadFromJsonAsync<SaveResponseViewModel>();
@@ -71,7 +69,7 @@
             await Load();
             return;
         }
-        
+
         Edit = true;
     }
 
@@ -109,6 +107,7 @@
             _ => value
             };
     }
+
 }
 
 <h1>@OrganizationId/@RealmId/@SectionId/@HabitatId</h1>
@@ -148,7 +147,7 @@
             Child Habitats:&nbsp;
             @foreach (var b in children)
             {
-                <span><a  href="/configuration/@OrganizationId/@RealmId/@SectionId/@b">@b</a> &nbsp;&nbsp;</span>
+                <span><a href="/configuration/@OrganizationId/@RealmId/@SectionId/@b">@b</a> &nbsp;&nbsp;</span>
             }
         </div>
     }
@@ -168,7 +167,7 @@
 {
     foreach (var obj in explained.Objects)
     {
-        <ConfigurationSection Edit=@Edit ObjectViewModel=@obj/>
+        <ConfigurationSectionControl Edit=@Edit ObjectViewModel=@obj />
     }
 
     <button hidden="@(!Edit)" @onclick="Save">Save</button>
@@ -176,3 +175,6 @@
     <button hidden="@Edit" @onclick="@(() => Edit = true)">Edit</button>
     <button hidden="@(!Edit)" @onclick="CancelEdit">Cancel</button>
 }
+<p>
+    @Json
+</p>

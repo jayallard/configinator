@@ -1,7 +1,9 @@
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Allard.Configinator.Blazor.Shared.ViewModels.Organization;
 using Allard.Configinator.Core;
+using Allard.Configinator.Core.Model;
 using MediatR;
 
 namespace Allard.Configinator.Blazor.Server.Commands
@@ -27,13 +29,7 @@ namespace Allard.Configinator.Blazor.Server.Commands
             var configinator = await configinatorService.GetConfiginatorByIdAsync(request.OrganizationId);
             var realm = configinator.Organization.GetRealmByName(request.RealmId);
             var cs = realm.GetConfigurationSection(request.SectionId);
-            return new ConfigurationSectionViewModel
-            {
-                SectionId = cs.SectionId,
-                Path = cs.Path,
-                RealmId = realm.RealmId,
-                SchemaTypeId = cs.SchemaType.SchemaTypeId.FullId
-            };
+            return cs.ToViewModel();
         }
     }
 }

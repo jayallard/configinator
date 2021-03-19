@@ -1,15 +1,10 @@
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
-
 namespace Allard.Configinator.Blazor.Shared.ViewModels.Organization
 {
     public class PropertyViewModel
     {
         public string Name { get; init; }
         public bool IsRequired { get; init; }
+        public bool IsSecret { get; set; }
         public string SchemaTypeId { get; init; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public IEnumerable<PropertyViewModel> Properties { get; set; }
     }
 }

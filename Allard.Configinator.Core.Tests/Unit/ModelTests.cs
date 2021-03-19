@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using Allard.Configinator.Core.Events;
@@ -25,7 +26,11 @@ namespace Allard.Configinator.Core.Tests.Unit
             var orgId = new OrganizationId("allard");
             var org = new OrganizationAggregate(orgId);
             var realm = org.AddRealm("blah");
-            Action test = () => realm.AddConfigurationSection("cs", "a/b", "path", "description");
+            var properties = new List<SchemaTypeProperty>
+            {
+                new("name", SchemaTypeId.Parse("a/b"))
+            };
+            Action test = () => realm.AddConfigurationSection("cs", properties, "path", "description");
             test.Should().Throw<InvalidOperationException>()
                 .WithMessage("The type doesn't exist in the organization: a/b");
         }
@@ -69,7 +74,11 @@ namespace Allard.Configinator.Core.Tests.Unit
             org.SchemaTypes.Count.Should().Be(1);
 
             realm.ConfigurationSections.Should().BeEmpty();
-            var cs = realm.AddConfigurationSection("Test1", "a/b", "/a/b/c",
+            var properties = new List<SchemaTypeProperty>
+            {
+                new("boo", SchemaTypeId.Parse("a/b"))
+            };
+            var cs = realm.AddConfigurationSection("Test1", properties, "/a/b/c",
                 "description");
             realm.ConfigurationSections.Single().Should().Be(cs);
             cs.SectionId.Id.Should().Be("test1");
