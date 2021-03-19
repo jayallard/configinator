@@ -65,6 +65,21 @@ namespace Allard.Configinator.Core.Model
                 .Build();
         }
 
+        internal void EnsureValidSchemaTypes(IEnumerable<SchemaTypeId> toValidate)
+        {
+            var invalid = toValidate
+                .Where(s => !schemaTypes.ContainsKey(s))
+                .Select(id => id.FullId)
+                .ToList();
+            if (!invalid.Any())
+            {
+                return;
+            }
+
+            var errors = string.Join(',', invalid);
+            throw new InvalidOperationException("The SchemaTypeIds don't exist in the organization: " + errors);
+        }
+
         internal EventHandlerRegistry EventHandlerRegistry { get; }
 
         public OrganizationId OrganizationId { get; private set; }
@@ -94,7 +109,6 @@ namespace Allard.Configinator.Core.Model
         public SchemaType GetSchemaType(SchemaTypeId schemaTypeId)
         {
             if (schemaTypes.TryGetValue(schemaTypeId, out var schemaType)) return schemaType;
-
             throw new InvalidOperationException("The type doesn't exist in the organization: " + schemaTypeId.FullId);
         }
 

@@ -77,9 +77,14 @@ namespace Allard.Configinator.Core.Model
             // make sure the configuration section doesn't already exist
             habitats.Keys.EnsureIdDoesntExist(sectionId);
 
-            // lazy - throws an exception if type doesn't exist.
-            var _ = properties.Select(p => Organization.GetSchemaType(p.SchemaTypeId)).ToList();
-
+            if (!properties.Any())
+            {
+                throw new InvalidOperationException("At least one property is required.");
+            }
+            
+            Organization.EnsureValidSchemaTypes(properties.Select(p => p.SchemaTypeId));
+            // todo: duplicate names
+            
             // create and raise the event
             var evt = new AddedConfigurationSectionToRealmEvent(
                 Organization.OrganizationId,

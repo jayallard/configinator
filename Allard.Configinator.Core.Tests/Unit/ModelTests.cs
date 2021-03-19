@@ -32,7 +32,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             };
             Action test = () => realm.AddConfigurationSection("cs", properties, "path", "description");
             test.Should().Throw<InvalidOperationException>()
-                .WithMessage("The type doesn't exist in the organization: a/b");
+                .WithMessage("The SchemaTypeIds don't exist in the organization: a/b");
         }
 
         [Fact]
