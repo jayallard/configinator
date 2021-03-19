@@ -1,44 +1,42 @@
 @page "/Organization/{organizationid}"
-@using Allard.Configinator.Blazor.Shared.ViewModels
 @using Allard.Configinator.Blazor.Client.Services
 @using Allard.Configinator.Blazor.Shared.ViewModels.Organization
-@inject IOrganizationService OrgService;
-<h3>Organization</h3>
-
+@inject IOrganizationService organizationService;
 @code {
 
     [Parameter]
     public string OrganizationId { get; set; }
 
-    // should be org, but don't have a view model
-    // for that yet...experimenting. 
-    public OrganizationViewModel Org { get; set; }
+    private OrganizationViewModel organization;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        Org = await OrgService.GetOrganizationAsync(OrganizationId);
+        organization = await organizationService.GetOrganizationAsync(OrganizationId);
         await base.OnInitializedAsync();
     }
 }
 
-<h1>Organization: @OrganizationId</h1>
-@if (Org != null)
+<h3>Organization: @OrganizationId</h3>
+@if (organization != null)
 {
-    @foreach (var realm in Org.Realms)
+    <h4 style="padding:15px;background-color: black; color: white">Realms <a href="/organization/@OrganizationId/createrealm"><span class="oi oi-plus"></span></a></h4>
+    @if (organization.Realms.Count == 0)
     {
-        <h2>Realm: @realm.RealmId</h2>
+        <p>This organization doesn't have any realms.</p>
+    }
+    @foreach (var realm in organization.Realms)
+    {
+        <h4>Realm: @realm.RealmId</h4>
         @foreach (var cs in realm.ConfigurationSections)
         {
-            <h3>Section: @cs.SectionId.Id</h3>
-            <table class="table">
+            <h4>Configuration Section: @cs.SectionId.Id</h4>
+            <table style="margin-left:50px" class="table">
                 <tbody>
-                <tr>
-                    <td>Type</td>
-                    <td></td>
-                </tr>
                 <tr>
                     <td>Path</td>
                     <td>@cs.Path</td>
+                    <td></td>
+                    <td></td>
                 </tr>
                 <tr>
                     <td colspan="2">
@@ -52,9 +50,20 @@
                             }
                         </ul>
                     </td>
+                    <td colspan="2">
+                        <b>Properties</b>
+                        <ul>
+                            @foreach (var property in cs.Properties)
+                            {
+                                <li>@property.Name : @property.SchemaTypeId</li>
+                            }
+                        </ul>
+                    </td>
                 </tr>
                 </tbody>
             </table>
         }
     }
+    <h4 style="padding:15px;background-color: black; color: white">Types</h4>
+    <p>This organization doesn't have any types.</p>
 }

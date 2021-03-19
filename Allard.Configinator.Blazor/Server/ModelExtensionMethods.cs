@@ -10,7 +10,7 @@ namespace Allard.Configinator.Blazor.Server
     {
         public static ConfigurationSectionViewModel ToViewModel(this ConfigurationSection configurationSection)
         {
-            return new ConfigurationSectionViewModel
+            return new()
             {
                 SectionId = configurationSection.SectionId,
                 Path = configurationSection.Path,

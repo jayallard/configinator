@@ -1,7 +1,6 @@
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
-using Allard.Configinator.Blazor.Shared.ViewModels;
 using Allard.Configinator.Blazor.Shared.ViewModels.Organization;
 
 namespace Allard.Configinator.Blazor.Client.Services
@@ -19,6 +18,14 @@ namespace Allard.Configinator.Blazor.Client.Services
         {
             var url = "/api/v1/organizations/" + organizationId;
             return await client.GetFromJsonAsync<OrganizationViewModel>(url);
+        }
+
+        public async Task<CreateOrganizationResponse> CreateOrganizationAsync(CreateOrganizationRequest request)
+        {
+            const string url = "/api/v1/organizations";
+            var response = await client.PostAsJsonAsync(url, request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<CreateOrganizationResponse>();
         }
     }
 }

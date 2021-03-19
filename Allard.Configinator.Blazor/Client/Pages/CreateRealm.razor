@@ -1,0 +1,82 @@
+@page "/organization/{organizationId}/CreateRealm"
+@using Allard.Configinator.Blazor.Client.Services
+@using Allard.Configinator.Blazor.Shared.ViewModels.Organization
+@inject IOrganizationService organizationService;
+
+<h3>CreateRealm</h3>
+
+@code {
+    [Parameter]
+    public string OrganizationId { get; set; }
+
+    private readonly RealmBuilder realm = new();
+
+    private OrganizationViewModel organization;
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        organization = await organizationService.GetOrganizationAsync(OrganizationId);
+    }
+
+    private List<string> types = new () {"a", "b", "c"};
+}
+
+@if (organization != null)
+{
+    <h3>@organization.OrganizationId</h3>   
+    <h4 style="padding:15px;background-color: black; color: white">Configuration Sections&nbsp;<button class="btn" @onclick="() => realm.ConfigurationSections.Add(new ConfigurationSection())"><span class="oi oi-plus"></span></button></h4>
+@foreach (var cs in realm.ConfigurationSections)
+    {
+        <table>
+            <thead>
+            <tr><th>Section Name</th><th>Properties</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td style="vertical-align: top">
+                    <input type="text" @bindValue="@cs.Name">
+                </td>
+                <td>
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Secret</th>
+                            <th>Required</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var p in cs.Properties)
+                        {
+                            <tr>
+                                <td><input type="text" @bindValue=@p.Name></td>
+                                <td><select @bind="@p.SchemaTypeId">
+                                        @foreach (var type in types)
+                                        {
+                                            <option value="@type">@type</option>
+                                        }
+                                    </select>
+                                </td>
+                                <td><input type="checkbox" @bindChecked="@p.IsRequired"></td>
+                                <td><input type="checkbox" @bindChecked="@p.IsSecret"></td>
+                            </tr>
+                        }
+                        </tbody>
+                        <button class="btn btn-primary" @onclick="() => cs.Properties.Add(new PropertyViewModel())">Add Property</button>
+                    </table>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <hr>
+    }
+    <h4 style="padding:15px;background-color: black; color: white">Habitats&nbsp;<button class="btn" @onclick="() => realm.Habitats.Add(new Habitat())"><span class="oi oi-plus"></span></button></h4>
+    @foreach (var h in realm.Habitats)
+    {
+        <ul>
+            <li><input type="text" @bindValue="@h.Name"/></li>
+        </ul>
+    }
+}
