@@ -29,7 +29,7 @@
         <h4>Realm: @realm.RealmId</h4>
         @foreach (var cs in realm.ConfigurationSections)
         {
-            <h4>Configuration Section: @cs.SectionId.Id</h4>
+            <h4>Configuration Section: @cs.SectionId</h4>
             <table style="margin-left:50px" class="table">
                 <tbody>
                 <tr>
@@ -45,7 +45,7 @@
                             @foreach (var h in realm.Habitats)
                             {
                                 <li>
-                                    @h.HabitatId: <a href="/configuration/@OrganizationId/@realm.RealmId/@cs.SectionId.Id/@h.HabitatId">Configuration Values</a>
+                                    @h.HabitatId: <a href="/configuration/@OrganizationId/@realm.RealmId/@cs.SectionId/@h.HabitatId">Configuration Values</a>
                                 </li>
                             }
                         </ul>

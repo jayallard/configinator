@@ -1,5 +1,7 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Allard.Configinator.Blazor.Shared.ViewModels.Organization;
+using Allard.Configinator.Core;
 using Allard.Configinator.Core.Infrastructure;
 using Allard.Configinator.Core.Model;
 using Microsoft.AspNetCore.Mvc;
@@ -16,13 +18,41 @@ namespace Allard.Configinator.Blazor.Server.Controllers
         {
             this.repo = repo;
         }
-        
+
         [HttpPost]
         public async Task<CreateOrganizationResponse> CreateOrganization(CreateOrganizationRequest request)
         {
             var organization = new OrganizationAggregate(new OrganizationId(request.OrganizationId));
             await repo.SaveAsync(organization);
             return new CreateOrganizationResponse(request.OrganizationId);
+        }
+
+        [HttpPost]
+        [Route("{organizationId}/realms")]
+        public async Task AddRealmToOrganization([FromQuery] string organizationId, [FromBody] RealmViewModel realm)
+        {
+            var org = await repo.GetOrganizationByIdAsync(organizationId);
+            var r = org.AddRealm(realm.RealmId);
+            
+            // habitats
+            foreach (var h in realm.Habitats)
+            {
+                r.AddHabitat(h.HabitatId, h.BaseHabitatIds.ToArray());
+            }
+
+            // config sections
+            foreach (var c in realm.ConfigurationSections)
+            {
+                var props = c
+                    .Properties
+                    .Select(p =>
+                        new SchemaTypeProperty(p.Name, SchemaTypeId.Parse(p.SchemaTypeId), p.IsSecret, !p.IsRequired))
+                    .ToList()
+                    .AsReadOnly();
+                r.AddConfigurationSection(c.SectionId, props, c.Path, "");
+            }
+
+            await repo.SaveAsync(org);
         }
     }
 }

@@ -12,15 +12,16 @@ namespace Allard.Configinator.Blazor.Server
         {
             return new()
             {
-                SectionId = configurationSection.SectionId,
+                SectionId = configurationSection.SectionId.Id,
                 Path = configurationSection.Path,
-                RealmId = configurationSection.Realm.RealmId,
+                RealmId = configurationSection.Realm.RealmId.Id,
                 Properties = configurationSection.Properties.Select(p => p.ToViewModel()).ToList(),
-                OrganizationId = configurationSection.Realm.Organization.OrganizationId
+                OrganizationId = configurationSection.Realm.Organization.OrganizationId.Id
             };
         }
 
-        public static IEnumerable<ConfigurationSectionViewModel> ToViewModel(this IEnumerable<ConfigurationSection> configurationSections)
+        public static IEnumerable<ConfigurationSectionViewModel> ToViewModel(
+            this IEnumerable<ConfigurationSection> configurationSections)
         {
             return configurationSections.Select(cs => cs.ToViewModel());
         }
@@ -44,10 +45,14 @@ namespace Allard.Configinator.Blazor.Server
             return new()
             {
                 RealmId = realm.RealmId.Id,
-                Habitats = realm.Habitats
-                    .Select(h => new HabitatViewModel(
-                        h.HabitatId.Id,
-                        h.Bases.Select(b => b.HabitatId.Id).ToList().AsReadOnly())).ToList(),
+                Habitats = realm
+                    .Habitats
+                    .Select(h => new HabitatViewModel
+                    {
+                        HabitatId = h.HabitatId.Id,
+                        BaseHabitatIds = h.Bases.Select(b => b.HabitatId.Id).ToList()
+                    })
+                    .ToList(),
                 ConfigurationSections = realm
                     .ConfigurationSections
                     .ToViewModel()
@@ -80,9 +85,12 @@ namespace Allard.Configinator.Blazor.Server
             };
         }
 
-        public static SchemaTypesViewModel ToViewModel(this IEnumerable<SchemaType> schemaTypes)
+        /*public static SchemaTypesViewModel ToViewModel(this IEnumerable<SchemaType> schemaTypes)
         {
-            return new(schemaTypes.Select(schemaType => schemaType.ToViewModel()), new List<Link>());
-        }
+            return new()
+            {
+                SchemaTypes = schemaTypes.Select(schemaType => schemaType.ToViewModel()).ToList()
+            };
+        }*/
     }
 }

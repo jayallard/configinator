@@ -5,11 +5,11 @@ namespace Allard.Configinator.Blazor.Shared.ViewModels.Organization
 {
     public class ConfigurationSectionViewModel
     {
-        public OrganizationId OrganizationId { get; set; }
-        public RealmId RealmId { get; set; }
-        public SectionId SectionId { get; set; }
+        public string OrganizationId { get; set; }
+        public string RealmId { get; set; }
+        public string SectionId { get; set; }
         public string Path { get; set; }
-        public List<PropertyViewModel> Properties { get; set; }
+        public List<PropertyViewModel> Properties { get; set; } = new();
         public List<Link> Links { get; set; }
     }
 }

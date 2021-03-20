@@ -3,11 +3,12 @@ using System.Linq;
 
 namespace Allard.Configinator.Blazor.Shared.ViewModels.Organization
 {
-    public record OrganizationViewModel
+    public class OrganizationViewModel
     {
         public string OrganizationId { get; set; }
-        public List<RealmViewModel> Realms { get; init; }
+        public List<RealmViewModel> Realms { get; set; }
         public List<Link> Links { get; set; }
+        public List<SchemaTypeViewModel> SchemaTypes { get; set; }
         public RealmViewModel GetRealm(string realmId)
         {
             return Realms.Single(r => r.RealmId == realmId);

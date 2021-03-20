@@ -3,6 +3,7 @@ using Allard.Configinator.Blazor.Shared.ViewModels.Organization;
 
 namespace Allard.Configinator.Blazor.Client
 {
+    /*
     public class RealmBuilder
     {
         public List<Habitat> Habitats { get; } = new();
@@ -15,7 +16,7 @@ namespace Allard.Configinator.Blazor.Client
     {
         public string Name { get; set; }
         public string Path { get; set; }
-        public List<PropertyViewModel> Properties { get; } = new();
+        public List<Property> Properties { get; } = new();
     }
     
     public class Habitat
@@ -23,4 +24,12 @@ namespace Allard.Configinator.Blazor.Client
         public string Name { get; set; }
         public List<string> Bases { get; } = new();
     }
+    
+    public class Property
+    {
+        public string Name { get; set; }
+        public bool IsRequired { get; set; }
+        public bool IsSecret { get; set; }
+        public string SchemaTypeId { get; set; }
+    }*/
 }

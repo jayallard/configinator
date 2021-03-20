@@ -1,6 +1,7 @@
 using System;
 using Allard.Configinator.Blazor.Shared;
 using Allard.Configinator.Blazor.Shared.ViewModels.Organization;
+using Allard.Configinator.Core.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
@@ -56,7 +57,7 @@ namespace Allard.Configinator.Blazor.Server
         {
             cs.Links = linkHelper
                 .CreateBuilder()
-                .AddConfigurationSection(cs.RealmId, cs.SectionId, self)
+                .AddConfigurationSection(new RealmId(cs.RealmId), new SectionId(cs.SectionId), self)
                 .Build();
         }
     }

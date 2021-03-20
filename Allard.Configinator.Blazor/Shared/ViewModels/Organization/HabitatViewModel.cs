@@ -2,5 +2,9 @@ using System.Collections.Generic;
 
 namespace Allard.Configinator.Blazor.Shared.ViewModels.Organization
 {
-    public record HabitatViewModel(string HabitatId, IReadOnlyCollection<string> BaseHabitatIds);
+    public class HabitatViewModel
+    {
+        public string HabitatId { get; set; }
+        public List<string> BaseHabitatIds { get; set; }
+    }
 }
