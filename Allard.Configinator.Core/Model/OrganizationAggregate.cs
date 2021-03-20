@@ -22,7 +22,10 @@ namespace Allard.Configinator.Core.Model
         {
             EventHandlerRegistry = new EventHandlerRegistryBuilder()
                 // create org
-                .Register<OrganizationCreatedEvent>(e => OrganizationId = e.OrganizationId)
+                .Register<OrganizationCreatedEvent>(e =>
+                {
+                    OrganizationId = e.OrganizationId;
+                })
 
                 // add realm to organization
                 .Register<AddedRealmToOrganizationEvent, Realm>(e =>
@@ -68,7 +71,7 @@ namespace Allard.Configinator.Core.Model
         internal void EnsureValidSchemaTypes(IEnumerable<SchemaTypeId> toValidate)
         {
             var invalid = toValidate
-                .Where(s => !schemaTypes.ContainsKey(s))
+                .Where(s => !s.IsPrimitive && !schemaTypes.ContainsKey(s))
                 .Select(id => id.FullId)
                 .ToList();
             if (!invalid.Any())

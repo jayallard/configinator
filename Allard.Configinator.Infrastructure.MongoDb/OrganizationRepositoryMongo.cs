@@ -38,7 +38,6 @@ namespace Allard.Configinator.Infrastructure.MongoDb
             client = new MongoClient("mongodb://localhost:27017");
         }
 
-
         public IEnumerable<OrganizationId> GetOrganizationIds()
         {
             // todo: hack

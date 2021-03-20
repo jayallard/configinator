@@ -31,6 +31,7 @@ namespace Allard.Configinator.Blazor.Server.Controllers
         [Route("{organizationId}/realms")]
         public async Task AddRealmToOrganization([FromQuery] string organizationId, [FromBody] RealmViewModel realm)
         {
+            organizationId.EnsureValue(organizationId);
             var org = await repo.GetOrganizationByIdAsync(organizationId);
             var r = org.AddRealm(realm.RealmId);
             

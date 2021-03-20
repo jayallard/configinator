@@ -49,7 +49,6 @@ namespace Allard.Configinator.Blazor.Server.Controllers
             var id = new ConfigurationId(organizationId, realmId, sectionId, habitatId);
             var response = await mediator.Send(new SetValueCommand(id, ValueFormat.Resolved, value));
             if (!response.Success) Response.StatusCode = (int) HttpStatusCode.BadRequest;
-
             return response;
         }
     }
