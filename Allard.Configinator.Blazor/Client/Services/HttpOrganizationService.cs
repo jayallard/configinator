@@ -1,10 +1,13 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 using Allard.Configinator.Blazor.Shared.ViewModels.Organization;
+using Allard.Configinator.Core.Model;
 
 namespace Allard.Configinator.Blazor.Client.Services
 {
@@ -16,6 +19,11 @@ namespace Allard.Configinator.Blazor.Client.Services
         public HttpOrganizationService(HttpClient client)
         {
             this.client = client;
+        }
+
+        public async Task<IEnumerable<OrganizationId>> GetOrganizationsAsync()
+        {
+            return await client.GetFromJsonAsync<IEnumerable<OrganizationId>>(BaseUrl);
         }
 
         public async Task<OrganizationViewModel> GetOrganizationAsync(string organizationId)

@@ -36,12 +36,17 @@ namespace Allard.Configinator.Infrastructure.MongoDb
         public OrganizationRepositoryMongo()
         {
             client = new MongoClient("mongodb://localhost:27017");
+
+            // unique index on state.OrganizationId
+            var builder = Builders<OrganizationId>.IndexKeys;
+            var indexModel = new CreateIndexModel<OrganizationId>(builder.Ascending(o => o.Id));
+            GetStateCollection().Indexes.CreateOne(indexModel);
         }
 
-        public IEnumerable<OrganizationId> GetOrganizationIds()
+        public async Task<IEnumerable<OrganizationId>> GetOrganizationIds()
         {
             // todo: hack
-            return GetStateCollection().Find(o => true).ToList();
+            return (await GetStateCollection().FindAsync(o => true)).ToList();
         }
 
         public async Task<OrganizationAggregate> GetOrganizationByIdAsync(string id)
@@ -56,33 +61,44 @@ namespace Allard.Configinator.Infrastructure.MongoDb
             return organization;
         }
 
-        public async Task SaveAsync(OrganizationAggregate organization)
+        public async Task UpdateAsync(OrganizationAggregate organization)
+        {
+            var events = GetEvents(organization);
+            if (events.Count == 0) return;
+
+            // todo: make sure it exists, but do that prior to calling...
+            // this doesn't care
+
+            // insert events
+            await GetEventSourceCollection().InsertManyAsync(events);
+            new EventAccessor(organization).ClearEvents();
+        }
+
+        private static List<EventDto> GetEvents(OrganizationAggregate organization)
         {
             var txId = Guid.NewGuid().ToString();
             var eventAccessor = new EventAccessor(organization);
-            var events = eventAccessor
+            return eventAccessor
                 .GetEvents()
                 .Select(e =>
                     new EventDto(null, txId, e.EventId, organization.OrganizationId, e.EventDate, e.EventName, e))
                 .ToList();
+        }
+        
+        public async Task CreateAsync(OrganizationAggregate organization)
+        {
+            var events = GetEvents(organization);
             if (events.Count == 0) return;
 
             // note: transactions not supported with single instance...
             // this needs to be transaction.. .fix or switch to sql
 
+            // create the state
+            await GetStateCollection().InsertOneAsync(organization.OrganizationId);
+
             // insert events
             await GetEventSourceCollection().InsertManyAsync(events);
-
-            // update state
-            var filter = Builders<OrganizationId>
-                .Filter
-                .Eq(o => o.Id, organization.OrganizationId.Id);
-            await GetStateCollection().ReplaceOneAsync(filter, organization.OrganizationId, new ReplaceOptions
-            {
-                IsUpsert = true
-            });
-
-            eventAccessor.ClearEvents();
+            new EventAccessor(organization).ClearEvents();
         }
 
         public async Task DevelopmentSetup()
@@ -127,7 +143,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb
             };
             realm.AddConfigurationSection("shovel-service", properties, "description");
 
-            await SaveAsync(org);
+            await CreateAsync(org);
         }
 
         private IMongoDatabase GetDatabase()

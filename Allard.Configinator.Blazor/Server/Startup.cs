@@ -25,10 +25,12 @@ namespace Allard.Configinator.Blazor.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            var repo = new OrganizationRepositoryMongo();
             services
                 .AddSingleton<IConfigStore, MemoryConfigStore>()
                 .AddSingleton<IConfiginatorService, ConfiginatorService>()
-                .AddSingleton<IOrganizationRepository, OrganizationRepositoryMongo>()
+                .AddSingleton<IOrganizationRepository>(repo)
+                .AddSingleton<IOrganizationQueries>(repo)
                 .AddTransient<IActionFilter, HateosFilter>();
 
             // MediatR

@@ -56,7 +56,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
                 for (var i2 = 0; i2 < habitCountPerRealm; i2++) realm.AddHabitat("h " + i2);
             }
 
-            await repo.SaveAsync(org);
+            await repo.CreateAsync(org);
 
             var read = await repo.GetOrganizationByIdAsync(orgId.Id);
             read.Realms.Count.Should().Be(realmCount);
@@ -78,7 +78,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
             r2.AddHabitat("y");
             r2.AddHabitat("z");
 
-            await repo.SaveAsync(org);
+            await repo.CreateAsync(org);
             // read
             var read = await repo.GetOrganizationByIdAsync(orgId.Id);
             read.Realms.Count.Should().Be(2);
@@ -89,7 +89,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
 
             // update
             read.AddRealm("yay!");
-            await repo.SaveAsync(read);
+            await repo.CreateAsync(read);
 
             var readAfterUpdate = await repo.GetOrganizationByIdAsync(orgId.Id);
             readAfterUpdate.Realms.Count.Should().Be(3);

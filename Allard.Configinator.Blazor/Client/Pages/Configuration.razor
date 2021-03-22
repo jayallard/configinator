@@ -165,9 +165,29 @@
 
 @if (explained != null)
 {
+    @foreach (var p in explained.Properties)
+    {
+        <tr>
+            <td>@p.Name</td>
+            <td>
+                @if (Edit)
+                {
+                    <input @bind="p.Value" @bind:event="oninput"/>
+                }
+                else
+                {
+                    @p.Value
+                }
+                @if (p.Layers.Last().Transition == "Inherit")
+                {
+                    <span style="margin-left:15px" class="badge-pill badge-primary">Inherited</span>
+                }
+            </td>
+        </tr>
+    }    
     foreach (var obj in explained.Objects)
     {
-        <ConfigurationSectionControl Edit=@Edit ObjectViewModel=@obj />
+          <ConfigurationSectionControl Edit=@Edit ObjectViewModel=@obj />
     }
 
     <button hidden="@(!Edit)" @onclick="Save">Save</button>

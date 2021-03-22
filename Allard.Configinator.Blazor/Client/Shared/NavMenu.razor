@@ -1,4 +1,9 @@
-﻿<div class="top-row pl-4 navbar navbar-dark">
+﻿@using Allard.Configinator.Core.Infrastructure
+@using Allard.Configinator.Core.Model
+@using Allard.Configinator.Blazor.Client.Services
+@inject IOrganizationService service;
+
+<div class="top-row pl-4 navbar navbar-dark">
     <a class="navbar-brand" href="">Allard.Configinator.Blazor</a>
     <button class="navbar-toggler" @onclick="ToggleNavMenu">
         <span class="navbar-toggler-icon"></span>
@@ -30,11 +35,19 @@
 </div>
 <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
     <ul class="nav flex-column">
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="organization/allard">
-                <span class="oi oi-globe" aria-hidden="true"></span> Allard
-            </NavLink>
-        </li>
+        @if (organizationIds != null)
+        {
+            foreach (var o in organizationIds.OrderBy(o => o.Id))
+            {
+                var href = "organization/" + o.Id;
+
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="@href">
+                        <span class="oi oi-globe" aria-hidden="true"></span>&nbsp;@o.Id
+                    </NavLink>
+                </li>
+            }
+        }
     </ul>
 </div>
 
@@ -43,9 +56,19 @@
 
     private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
+    private List<OrganizationId> organizationIds;
+
+    protected override Task OnInitializedAsync()
+    {
+        return Load();
+    }
+
+    private async Task Load(){
+        organizationIds = (await service.GetOrganizationsAsync()).ToList();
+    }
+    
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
     }
-
 }

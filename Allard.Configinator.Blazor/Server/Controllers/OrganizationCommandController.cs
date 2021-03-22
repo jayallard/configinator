@@ -23,7 +23,7 @@ namespace Allard.Configinator.Blazor.Server.Controllers
         public async Task<CreateOrganizationResponse> CreateOrganization(CreateOrganizationRequest request)
         {
             var organization = new OrganizationAggregate(new OrganizationId(request.OrganizationId));
-            await repo.SaveAsync(organization);
+            await repo.CreateAsync(organization);
             return new CreateOrganizationResponse(request.OrganizationId);
         }
 
@@ -53,7 +53,7 @@ namespace Allard.Configinator.Blazor.Server.Controllers
                 r.AddConfigurationSection(c.SectionId, props,  "");
             }
 
-            await repo.SaveAsync(org);
+            await repo.UpdateAsync(org);
         }
     }
 }
