@@ -28,7 +28,7 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
             var only = await DocMerger3.Merge(model, a, b, c);
             only.Objects.Count.Should().Be(0);
             only.Properties.Count.Should().Be(1);
-            only.Properties.Single().Path.Should().Be("/a");
+            only.Properties.Single().ObjectPath.Should().Be("/a");
             only.Properties.Single().Value.Should().Be("d");
             only.Properties.Single().Layers.Select(l => l.Transition)
                 .Should().AllBeEquivalentTo(Transition.Set);

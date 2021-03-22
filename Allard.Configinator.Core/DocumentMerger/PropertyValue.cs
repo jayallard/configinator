@@ -4,12 +4,12 @@ using System.Linq;
 
 namespace Allard.Configinator.Core.DocumentMerger
 {
-    [DebuggerDisplay("Path={Path}, PropertyName={Name}, Value={Value}")]
-    public record PropertyValue(string Path, string Name, List<PropertyLayer> Layers)
+    [DebuggerDisplay("ObjectPath={ObjectPath}, PropertyName={Name}, Value={Value}")]
+    public record PropertyValue(string ObjectPath, string Name, List<PropertyLayer> Layers)
     {
         public string Value => Layers.LastOrDefault()?.Value;
     }
 
-    public record ObjectValue(string Path, string Name, IReadOnlyCollection<PropertyValue> Properties,
+    public record ObjectValue(string ObjectPath, string Name, IReadOnlyCollection<PropertyValue> Properties,
         IReadOnlyCollection<ObjectValue> Objects);
 }

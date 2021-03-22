@@ -30,7 +30,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             {
                 new("name", SchemaTypeId.Parse("a/b"))
             };
-            Action test = () => realm.AddConfigurationSection("cs", properties, "path", "description");
+            Action test = () => realm.AddConfigurationSection("cs", properties, "description");
             test.Should().Throw<InvalidOperationException>()
                 .WithMessage("The SchemaTypeIds don't exist in the organization: a/b");
         }
@@ -78,8 +78,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             {
                 new("boo", SchemaTypeId.Parse("a/b"))
             };
-            var cs = realm.AddConfigurationSection("Test1", properties, "/a/b/c",
-                "description");
+            var cs = realm.AddConfigurationSection("Test1", properties, "description");
             realm.ConfigurationSections.Single().Should().Be(cs);
             cs.SectionId.Id.Should().Be("test1");
         }

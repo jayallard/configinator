@@ -125,8 +125,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb
                 new("sql-source", SchemaTypeId.Parse("mssql/sql-user"), false, true),
                 new("kafka-target", SchemaTypeId.Parse("kafka/unsecured"), false, true),
             };
-            realm.AddConfigurationSection("shovel-service", properties,
-                "/{{habitat}}/something-domain/shovel-service", "description");
+            realm.AddConfigurationSection("shovel-service", properties, "description");
 
             await SaveAsync(org);
         }

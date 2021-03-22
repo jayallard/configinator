@@ -13,7 +13,6 @@ namespace Allard.Configinator.Blazor.Server
             return new()
             {
                 SectionId = configurationSection.SectionId.Id,
-                Path = configurationSection.Path,
                 RealmId = configurationSection.Realm.RealmId.Id,
                 Properties = configurationSection.Properties.Select(p => p.ToViewModel()).ToList(),
                 OrganizationId = configurationSection.Realm.Organization.OrganizationId.Id

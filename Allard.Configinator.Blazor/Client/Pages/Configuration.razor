@@ -158,7 +158,7 @@
     <ul>
         @foreach (var error in saveResponse.Failures)
         {
-            <li>@(error.Code == "RequiredPropertyValueMissing" ? "Required" : error.Code) : @error.Path</li>
+            <li>@(error.Code == "RequiredPropertyValueMissing" ? "Required" : error.Code) : @error.ObjectPath</li>
         }
     </ul>
 }

@@ -31,7 +31,7 @@ namespace Allard.Configinator.Core
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
 
             // get all of the docs for the base habitats, if there are any.
-            var configDocs = (await GetDocsFromConfigStore(cs.Path, habitat.Bases.ToList())).ToList();
+            var configDocs = (await GetDocsFromConfigStore(cs, habitat.Bases.ToList())).ToList();
             var toMerge = configDocs.Select(d => d.Item1).ToList();
 
             // add the current request to the doc list.
@@ -58,7 +58,7 @@ namespace Allard.Configinator.Core
 
             // save
             // todo: normalize this
-            var path = cs.Path.Replace("{{habitat}}", habitat.HabitatId.Id);
+            var path = Organization.GetConfigurationPath(cs, habitat);
 
             // if it's resolved format, then reduce the input value down to just the values
             // that changed in the last query.
@@ -107,14 +107,14 @@ namespace Allard.Configinator.Core
                 })
                 .Where(p => p != null)
                 .ToList();
-            return new ObjectValue(o.Path, o.Name, childProperties.AsReadOnly(), childObjects.AsReadOnly());
+            return new ObjectValue(o.ObjectPath, o.Name, childProperties.AsReadOnly(), childObjects.AsReadOnly());
         }
 
         private async Task<GetConfigurationResponse> GetValueRawAsync(GetValueRequest request)
         {
             var cs = GetConfigurationSection(request.ConfigurationId);
             var habitat = cs.Realm.GetHabitat(request.ConfigurationId.HabitatId);
-            var path = cs.Path.Replace("{{habitat}}", habitat.HabitatId.Id);
+            var path = Organization.GetConfigurationPath(cs, habitat);
             var value = await configStore.GetValueAsync(path);
             return new GetConfigurationResponse(request.ConfigurationId, value.Exists, value.Value, null);
         }
@@ -126,7 +126,7 @@ namespace Allard.Configinator.Core
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
 
             // get the bases and the specific value, then merge.
-            var toMerge = (await GetDocsFromConfigStore(cs.Path, habitat.Bases.ToList().AddIfNotNull(habitat)))
+            var toMerge = (await GetDocsFromConfigStore(cs, habitat.Bases.ToList().AddIfNotNull(habitat)))
                 .ToList();
             var model = structureModelBuilder.ToStructureModel(cs);
             var merged = await DocMerger3.Merge(model, toMerge.Select(m => m.Item1));
@@ -144,13 +144,13 @@ namespace Allard.Configinator.Core
                 .GetConfigurationSection(id.SectionId);
         }
 
-        private async Task<IEnumerable<(DocumentToMerge, ConfigStoreValue)>> GetDocsFromConfigStore(string path,
-            IEnumerable<Habitat> habitats)
+        private async Task<IEnumerable<(DocumentToMerge, ConfigStoreValue)>> GetDocsFromConfigStore(ConfigurationSection cs, IEnumerable<Habitat> habitats)
         {
             // get all values.
             var results = habitats
                 .Select(async h =>
                 {
+                    var path = Organization.GetConfigurationPath(cs, h);
                     var resolvedPath = path.Replace("{{habitat}}", h.HabitatId.Id);
                     var value = await configStore.GetValueAsync(resolvedPath);
                     var v = value.Exists

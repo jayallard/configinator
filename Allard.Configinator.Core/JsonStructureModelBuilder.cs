@@ -45,6 +45,12 @@ namespace Allard.Configinator.Core
                 writer.WriteStartObject();
                 foreach (var p in section.Properties)
                 {
+                    if (p.SchemaTypeId.IsPrimitive)
+                    {
+                        writer.WriteString(p.Name, string.Empty);
+                        continue;
+                    }
+
                     writer.WriteStartObject(p.Name);
                     WriteSchemaType(writer, schemaTypes[p.SchemaTypeId]);
                     writer.WriteEndObject();

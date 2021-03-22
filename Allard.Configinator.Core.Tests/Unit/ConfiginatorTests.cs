@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -68,8 +69,7 @@ namespace Allard.Configinator.Core.Tests.Unit
                 new("kafka-target", SchemaTypeId.Parse("kafka/unsecured"), false, true),
             };
             
-            realm.AddConfigurationSection(TestConfigurationSection1, properties,
-                "/{{habitat}}/something-domain/shovel-service", "description");
+            realm.AddConfigurationSection(TestConfigurationSection1, properties,"description");
             return org;
         }
 
@@ -137,11 +137,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             var setRequest2 =
                 new SetConfigurationRequest(configId2, ValueFormat.Raw, JsonDocument.Parse(sqlPassword));
             await Configinator.SetValueAsync(setRequest2);
-            var path = Organization
-                .GetRealmByName(TestRealm1)
-                .GetConfigurationSection(TestConfigurationSection1)
-                .Path
-                .Replace("{{habitat}}", "dev-allard");
+            var path = $"/{Organization.OrganizationId.Id}/{TestRealm1}/{TestConfigurationSection1}/dev-allard";
             var value = (await ConfigStore.GetValueAsync(path)).Value.ConvertToString();
             value.Should().Be(JsonDocument.Parse(sqlPassword).ConvertToString());
         }

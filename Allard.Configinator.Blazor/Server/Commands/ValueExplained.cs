@@ -42,13 +42,13 @@ namespace Allard.Configinator.Blazor.Server.Commands
                         .Select(l => new PropertyValueLayerViewModel(l.LayerName, l.Transition.ToString(), l.Value))
                         .ToList(),
                     Name = p.Name,
-                    Path = p.Path,
+                    ObjectPath = p.ObjectPath,
                     Value = p.Value
                 })
                 .ToList();
 
             var objects = value.Objects.Select(ToViewModel).ToList();
-            return new ObjectViewModel(value.Path, value.Name, properties, objects);
+            return new ObjectViewModel(value.ObjectPath, value.Name, properties, objects);
         }
     }
 }

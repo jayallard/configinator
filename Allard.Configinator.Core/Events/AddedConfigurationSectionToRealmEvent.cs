@@ -9,6 +9,5 @@ namespace Allard.Configinator.Core.Events
         RealmId RealmId,
         SectionId SectionId,
         IReadOnlyCollection<SchemaTypeProperty> Properties,
-        string Path,
         string Description) : DomainEvent;
 }

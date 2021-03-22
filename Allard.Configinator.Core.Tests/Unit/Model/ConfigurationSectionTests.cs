@@ -65,7 +65,7 @@ namespace Allard.Configinator.Core.Tests.Unit.Model
                 new("kafka-target", SchemaTypeId.Parse("kafka/unsecured"), false, true),
             };
             var cs = realm.AddConfigurationSection("shovel-service", properties,
-                "/{{habitat}}/something-domain/shovel-service", "description");
+                "description");
 
             var x = new JsonStructureModelBuilder(org.SchemaTypes).ToStructureModel(cs);
             testOutputHelper.WriteLine("");

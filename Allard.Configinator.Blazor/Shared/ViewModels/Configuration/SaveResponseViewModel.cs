@@ -14,7 +14,7 @@ namespace Allard.Configinator.Blazor.Shared.ViewModels.Configuration
     public class FailureMessage
     {
         public string Code { get; set; }
-        public string Path { get; set; }
+        public string ObjectPath { get; set; }
         public string Message { get; set; }
     }
 }

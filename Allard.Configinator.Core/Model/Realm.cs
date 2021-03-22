@@ -29,7 +29,7 @@ namespace Allard.Configinator.Core.Model
 
             throw new InvalidOperationException("Habitat doesn't exist. HabitatId= " + habitatId);
         }
-
+        
         public ConfigurationSection GetConfigurationSection(string sectionId)
         {
             var id = new SectionId(sectionId);
@@ -59,21 +59,17 @@ namespace Allard.Configinator.Core.Model
         public ConfigurationSection AddConfigurationSection(
             string sectionId,
             IReadOnlyCollection<SchemaTypeProperty> properties,
-            string path,
             string description)
         {
-            return AddConfigurationSection(new SectionId(sectionId), properties, path,
+            return AddConfigurationSection(new SectionId(sectionId), properties,
                 description);
         }
 
         public ConfigurationSection AddConfigurationSection(
             SectionId sectionId,
             IReadOnlyCollection<SchemaTypeProperty> properties,
-            string path,
             string description)
         {
-            path.EnsureValue(nameof(path));
-
             // make sure the configuration section doesn't already exist
             habitats.Keys.EnsureIdDoesntExist(sectionId);
 
@@ -91,7 +87,6 @@ namespace Allard.Configinator.Core.Model
                 RealmId,
                 sectionId,
                 properties,
-                path,
                 description);
             return Organization
                 .EventHandlerRegistry
