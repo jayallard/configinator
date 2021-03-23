@@ -17,9 +17,9 @@ namespace Allard.Configinator.Core.DocumentValidator
                 .ToDictionary(s => s.SchemaTypeId);
         }
 
-        public IEnumerable<ValidationFailure> Validate(SchemaTypeId schemaTypeId, JsonElement doc)
+        public IEnumerable<ValidationFailure> Validate(IList<SchemaTypeProperty> properties, JsonElement doc)
         {
-            return new Instance(schemaTypes).Validate(schemaTypeId, doc, string.Empty);
+            return new Instance(schemaTypes).Validate(properties, doc, string.Empty);
         }
 
         private class Instance
@@ -30,24 +30,25 @@ namespace Allard.Configinator.Core.DocumentValidator
             {
                 this.schemaTypes = schemaTypes;
             }
-            
-            
-            public IEnumerable<ValidationFailure> Validate(SchemaTypeId schemaTypeId, JsonElement doc, string path)
+
+
+            public IEnumerable<ValidationFailure> Validate(IList<SchemaTypeProperty> properties, JsonElement doc,
+                string path)
             {
-                var valueProps = doc
+                var jsonProperties = doc
                     .GetPropertyValues()
                     .ToDictionary(p => p.Key);
-                var valueObjects = doc
+                var jsonObjects = doc
                     .GetObjectNodes()
                     .ToDictionary(o => o.Key);
 
-                var schemaType = schemaTypes[schemaTypeId];
-                foreach (var schemaProperty in schemaType.Properties)
+                // iterate the schema properties
+                foreach (var schemaProperty in properties)
                 {
                     // handle primitives.
                     if (schemaProperty.SchemaTypeId.IsPrimitive)
                     {
-                        if (valueProps.TryGetValue(schemaProperty.Name, out var p))
+                        if (jsonProperties.TryGetValue(schemaProperty.Name, out var p))
                         {
                             // property exists. validate the value.
                             if (p.Value == null)
@@ -67,15 +68,18 @@ namespace Allard.Configinator.Core.DocumentValidator
                         continue;
                     }
 
-                    // todo: null object is handled. but the object may exist and have no properties.
-                    // useless distinction, but add it to keep it in sync with the property validations.
-                    // handle objects.
-                    if (valueObjects.TryGetValue(schemaProperty.Name, out var o))
+                    // it's an object. see if it exists in json.
+                    if (jsonObjects.TryGetValue(schemaProperty.Name, out var o))
                     {
                         // object exists
-                        foreach (var value in Validate(schemaProperty.SchemaTypeId, o.Value,
-                            path + "/" + schemaProperty.Name)
-                        ) yield return value;
+                        var schemaType = schemaTypes[schemaProperty.SchemaTypeId];
+                        var validationFailures = Validate(schemaType.Properties.ToList(), o.Value,
+                            path + "/" + schemaProperty.Name);
+                        foreach (var fail in validationFailures)
+                        {
+                            yield return fail;
+                        }
+
                         continue;
                     }
 

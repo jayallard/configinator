@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -48,10 +49,7 @@ namespace Allard.Configinator.Core
 
             // validate
             var validator = new DocValidator(Organization.SchemaTypes);
-            var errors = cs
-                .Properties
-                .SelectMany(p => validator.Validate(p.SchemaTypeId, mergedDoc.RootElement.GetProperty(p.Name)))
-                .ToList();
+            var errors = validator.Validate(cs.Properties.ToList(), mergedDoc.RootElement).ToList();
 
             // if no errors, save
             if (errors.Count > 0) return new SetConfigurationResponse(request.ConfigurationId, errors);
