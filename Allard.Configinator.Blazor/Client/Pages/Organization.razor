@@ -59,5 +59,16 @@
         }
     }
     <h4 style="padding:15px;background-color: black; color: white">Types</h4>
-    <p>This organization doesn't have any types.</p>
+    if (organization.SchemaTypes.Count == 0)
+    {
+        <p>This organization doesn't have any types.</p>
+    }
+    else
+    {
+        foreach (var t in organization.SchemaTypes)
+        {
+            <h2>@t.SchemaTypeId</h2>
+                               
+        }
+    }
 }

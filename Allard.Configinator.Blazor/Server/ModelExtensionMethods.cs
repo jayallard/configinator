@@ -30,7 +30,8 @@ namespace Allard.Configinator.Blazor.Server
             return new()
             {
                 OrganizationId = organization.OrganizationId.Id,
-                Realms = organization.Realms.ToViewModel().ToList()
+                Realms = organization.Realms.ToViewModel().ToList(),
+                SchemaTypes = organization.SchemaTypes.Select(t => t.ToViewModel()).ToList()
             };
         }
 

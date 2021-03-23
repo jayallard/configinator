@@ -13,5 +13,10 @@ namespace Allard.Configinator.Blazor.Shared.ViewModels.Organization
         {
             return Realms.Single(r => r.RealmId == realmId);
         }
+
+        public SchemaTypeViewModel GetSchemaType(string schemaTypeId)
+        {
+            return SchemaTypes.Single(t => t.SchemaTypeId == schemaTypeId);
+        }
     }
 }
