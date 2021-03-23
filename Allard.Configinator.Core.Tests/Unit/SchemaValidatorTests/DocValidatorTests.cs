@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using Allard.Configinator.Core.DocumentValidator;
@@ -28,6 +29,15 @@ namespace Allard.Configinator.Core.Tests.Unit.SchemaValidatorTests
                 .Validate(SchemaTypeId.Parse("a/a"), doc)
                 .ToList();
             results.Single().Code.Should().Be("RequiredObjectMissing");
+        }
+
+        [Fact]
+        public void Primitive()
+        {
+            var doc = JsonDocument.Parse("{ \"a\":\"b\" }").RootElement;
+            var results = new DocValidator(new List<SchemaType>())
+                .Validate(SchemaTypeId.String, doc.GetProperty("a"));
+            results.Should().BeEmpty();
         }
 
         [Fact]

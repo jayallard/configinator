@@ -56,6 +56,12 @@
     {
         Edit = false;
         var result = new Dictionary<string, object>();
+
+        foreach (var property in explained.Properties)
+        {
+            result[property.Name] = GetJsonValue(property.Value);
+        }
+        
         foreach (var p in explained.Objects)
         {
             result[p.Name] = ToDictionary(p);

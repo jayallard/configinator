@@ -57,7 +57,6 @@ namespace Allard.Configinator.Core
             if (errors.Count > 0) return new SetConfigurationResponse(request.ConfigurationId, errors);
 
             // save
-            // todo: normalize this
             var path = Organization.GetConfigurationPath(cs, habitat);
 
             // if it's resolved format, then reduce the input value down to just the values

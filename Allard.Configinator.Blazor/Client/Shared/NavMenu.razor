@@ -2,6 +2,7 @@
 @using Allard.Configinator.Core.Model
 @using Allard.Configinator.Blazor.Client.Services
 @inject IOrganizationService service;
+@inject IEventBus bus;
 
 <div class="top-row pl-4 navbar navbar-dark">
     <a class="navbar-brand" href="">Allard.Configinator.Blazor</a>
@@ -31,7 +32,10 @@
 </div>
 
 <div class="top-row pl-4 navbar navbar-dark">
-    <span class="navbar-brand" href="">Organizations</span><a href="/createorganization"><span class="oi oi-plus"></span></a> 
+    <span class="navbar-brand" href="">Organizations</span>
+    <a href="/createorganization">
+        <span class="oi oi-plus"></span>
+    </a>
 </div>
 <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
     <ul class="nav flex-column">
@@ -60,15 +64,18 @@
 
     protected override Task OnInitializedAsync()
     {
+        bus.Subscribe(e => e is OrganizationCreatedClientEvent, async _ => await InvokeAsync(Load));
         return Load();
     }
 
-    private async Task Load(){
+    private async Task Load()
+    {
         organizationIds = (await service.GetOrganizationsAsync()).ToList();
     }
-    
+
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
     }
+
 }

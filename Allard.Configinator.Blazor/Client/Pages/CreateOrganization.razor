@@ -1,17 +1,20 @@
 @page "/CreateOrganization"
 @using Allard.Configinator.Blazor.Shared.ViewModels.Organization
 @using Allard.Configinator.Blazor.Client.Services
+@using Allard.Configinator.Core.Events
 @inject IOrganizationService service;
 @inject NavigationManager navigationManager;
-
+@inject IEventBus bus;
 <h3>CreateOrganization</h3>
 
 @code {
 
-    private readonly CreateOrganizationRequest request = new ();
+    private readonly CreateOrganizationRequest request = new();
+
     private async Task Create()
     {
         await service.CreateOrganizationAsync(request);
+        bus.Publish(new OrganizationCreatedClientEvent(request.OrganizationId));
         navigationManager.NavigateTo("/organization/" + request.OrganizationId);
     }
 }
@@ -19,7 +22,7 @@
 <EditForm Model="@request" OnValidSubmit="Create">
     <DataAnnotationsValidator/>
     <ValidationSummary/>
-    
+
     <div class="container container-sm">
         <div class="row">
             <div class="col-sm">
@@ -32,4 +35,3 @@
     </div>
     <button type="submit">Create</button>
 </EditForm>
-

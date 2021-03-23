@@ -30,12 +30,10 @@ namespace Allard.Configinator.Core.DocumentValidator
             {
                 this.schemaTypes = schemaTypes;
             }
-
+            
+            
             public IEnumerable<ValidationFailure> Validate(SchemaTypeId schemaTypeId, JsonElement doc, string path)
             {
-                var schemaType = schemaTypes[schemaTypeId];
-
-                // todo: extra properties
                 var valueProps = doc
                     .GetPropertyValues()
                     .ToDictionary(p => p.Key);
@@ -43,6 +41,7 @@ namespace Allard.Configinator.Core.DocumentValidator
                     .GetObjectNodes()
                     .ToDictionary(o => o.Key);
 
+                var schemaType = schemaTypes[schemaTypeId];
                 foreach (var schemaProperty in schemaType.Properties)
                 {
                     // handle primitives.
