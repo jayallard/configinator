@@ -18,9 +18,9 @@ namespace Allard.Configinator.Core.Model
             EventHandlerRegistry.Raise(new OrganizationCreatedEvent(organizationId));
         }
 
-        internal string GetConfigurationPath(ConfigurationSection section, Habitat habitat)
+        internal static string GetConfigurationPath(ConfigurationSection section, Habitat habitat)
         {
-            return $"/{OrganizationId.Id}/{section.Realm.RealmId.Id}/{section.SectionId.Id}/{habitat.HabitatId.Id}";
+            return $"/{section.Realm.Organization.OrganizationId.Id}/{section.Realm.RealmId.Id}/{section.SectionId.Id}/{habitat.HabitatId.Id}";
         }
 
         private OrganizationAggregate()

@@ -5,7 +5,7 @@ using Allard.Configinator.Core.DocumentValidator;
 
 namespace Allard.Configinator.Core.Infrastructure
 {
-    public record GetValueRequest(ConfigurationId ConfigurationId, ValueFormat Format);
+    public record GetValueRequest(ConfigurationId ConfigurationId, ValueFormat Format, string ValuePath = null);
 
     /// <summary>
     ///     The ways of getting and saving values.

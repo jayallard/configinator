@@ -1,7 +1,9 @@
+using System;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Allard.Configinator.Blazor.Server.Commands;
+using Allard.Configinator.Core;
 using Allard.Configinator.Core.Infrastructure;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -9,14 +11,16 @@ using Microsoft.AspNetCore.Mvc;
 namespace Allard.Configinator.Blazor.Server.Controllers
 {
     [ApiController]
-    [Route("/api/v1/configuration")]
+    [Route("/api/v1/configuration/{organizationId}/{realmId}/{sectionId}/{habitatId}")]
     public class ConfiginatorCommandController : Controller
     {
         private readonly IMediator mediator;
+        private readonly IConfiginatorService configinatorService;
 
-        public ConfiginatorCommandController(IMediator mediator)
+        public ConfiginatorCommandController(IMediator mediator, IConfiginatorService configinatorService)
         {
             this.mediator = mediator;
+            this.configinatorService = configinatorService;
         }
 
         /// <summary>
@@ -36,8 +40,7 @@ namespace Allard.Configinator.Blazor.Server.Controllers
         /// <param name="habitatId"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        [HttpPut]
-        [Route("{organizationId}/{realmId}/{sectionId}/{habitatId}/value-resolved")]
+        [HttpPost]
         public async Task<SetConfigurationResponse> SetConfigurationValueResolved(
             string organizationId,
             string realmId,
@@ -50,6 +53,33 @@ namespace Allard.Configinator.Blazor.Server.Controllers
             var response = await mediator.Send(new SetValueCommand(id, ValueFormat.Resolved, value));
             if (!response.Success) Response.StatusCode = (int) HttpStatusCode.BadRequest;
             return response;
+        }
+
+        [HttpPut]
+        [Route("{**settingPath}")]
+        public void SetSingleValue(string organizationId,
+            string realmId,
+            string sectionId,
+            string habitatId,
+            string settingPath,
+            [FromBody] JsonDocument value)
+        {
+            var x = 10;
+        }
+
+        [HttpGet]
+        [Route("{**settingPath}")]
+        public async Task<JsonDocument> GetSingleValue(string organizationId,
+            string realmId,
+            string sectionId,
+            string habitatId,
+            string settingPath)
+        {
+            var configinator = await configinatorService.GetConfiginatorByIdAsync(organizationId);
+            var configurationId = new ConfigurationId(organizationId, realmId, sectionId, habitatId);
+            var request = new GetValueRequest(configurationId, ValueFormat.Resolved, settingPath);
+            var response = await configinator.GetValueAsync(request);
+            return response.Value;
         }
     }
 }

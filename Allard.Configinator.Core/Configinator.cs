@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Xml.Xsl;
 using Allard.Configinator.Core.DocumentMerger;
 using Allard.Configinator.Core.DocumentValidator;
 using Allard.Configinator.Core.Infrastructure;
@@ -55,7 +56,7 @@ namespace Allard.Configinator.Core
             if (errors.Count > 0) return new SetConfigurationResponse(request.ConfigurationId, errors);
 
             // save
-            var path = Organization.GetConfigurationPath(cs, habitat);
+            var path = OrganizationAggregate.GetConfigurationPath(cs, habitat);
 
             // if it's resolved format, then reduce the input value down to just the values
             // that changed in the last query.
@@ -109,9 +110,14 @@ namespace Allard.Configinator.Core
 
         private async Task<GetConfigurationResponse> GetValueRawAsync(GetValueRequest request)
         {
+            if (request.ValuePath != null)
+            {
+                throw new NotImplementedException("TODO: setting path not supported yet");
+            }
+
             var cs = GetConfigurationSection(request.ConfigurationId);
             var habitat = cs.Realm.GetHabitat(request.ConfigurationId.HabitatId);
-            var path = Organization.GetConfigurationPath(cs, habitat);
+            var path = OrganizationAggregate.GetConfigurationPath(cs, habitat);
             var value = await configStore.GetValueAsync(path);
             return new GetConfigurationResponse(request.ConfigurationId, value.Exists, value.Value, null);
         }
@@ -127,11 +133,56 @@ namespace Allard.Configinator.Core
                 .ToList();
             var model = structureModelBuilder.ToStructureModel(cs);
             var merged = await DocMerger3.Merge(model, toMerge.Select(m => m.Item1));
-
-            // todo: too much conversion
-            var mergedJsonDoc = JsonDocument.Parse(merged.ToJsonString());
+            var value = GetValue(merged, request.ValuePath);
+            //var mergedJsonDoc = JsonDocument.Parse(merged.ToJsonString());
             var anyExists = toMerge.Any(m => m.Item2.Exists);
-            return new GetConfigurationResponse(request.ConfigurationId, anyExists, mergedJsonDoc, merged);
+            return new GetConfigurationResponse(request.ConfigurationId, anyExists, value, merged);
+        }
+
+        /// <summary>
+        /// Drill into a config object to pull out a specific object or value.
+        /// </summary>
+        /// <param name="values"></param>
+        /// <param name="settingPath"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        private static JsonDocument GetValue(ObjectValue values, string settingPath)
+        {
+            if (string.IsNullOrWhiteSpace(settingPath))
+            {
+                return JsonDocument.Parse(values.ToJsonString());
+            }
+
+            // all parts, except the last, are object references.
+            var parts = settingPath.Split("/");
+            var currentObject = values;
+            for (var i = 0; i < parts.Length - 1; i++)
+            {
+                var next = currentObject.Objects.SingleOrDefault(o => o.Name == parts[i]);
+                if (next == null)
+                {
+                    var failedPath = string.Join("/", parts[..i]);
+                    throw new InvalidOperationException("Invalid setting name. Failed Path=" + failedPath);
+                }
+
+                currentObject = next;
+            }
+
+            // if the path resolves to a property, then return the property value.
+            var property = currentObject.Properties.SingleOrDefault(p => p.Name == parts[^1]);
+            if (property != null)
+            {
+                return property.Value == null ? null : JsonDocument.Parse(property.Value);
+            }
+            
+            // if the path resolves to a node, then return the node as json.
+            var node = currentObject.Objects.SingleOrDefault(p => p.Name == parts[^1]);
+            if (node == null)
+            {
+                throw new InvalidOperationException("Invalid setting name. Failed Path=" + settingPath);
+            }
+
+            return JsonDocument.Parse(node.ToJsonString());
         }
 
         private ConfigurationSection GetConfigurationSection(ConfigurationId id)
@@ -141,13 +192,14 @@ namespace Allard.Configinator.Core
                 .GetConfigurationSection(id.SectionId);
         }
 
-        private async Task<IEnumerable<(DocumentToMerge, ConfigStoreValue)>> GetDocsFromConfigStore(ConfigurationSection cs, IEnumerable<Habitat> habitats)
+        private async Task<IEnumerable<(DocumentToMerge, ConfigStoreValue)>> GetDocsFromConfigStore(
+            ConfigurationSection cs, IEnumerable<Habitat> habitats)
         {
             // get all values.
             var results = habitats
                 .Select(async h =>
                 {
-                    var path = Organization.GetConfigurationPath(cs, h);
+                    var path = OrganizationAggregate.GetConfigurationPath(cs, h);
                     var resolvedPath = path.Replace("{{habitat}}", h.HabitatId.Id);
                     var value = await configStore.GetValueAsync(resolvedPath);
                     var v = value.Exists
