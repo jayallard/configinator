@@ -66,20 +66,5 @@ namespace Allard.Configinator.Blazor.Server.Controllers
         {
             var x = 10;
         }
-
-        [HttpGet]
-        [Route("{**settingPath}")]
-        public async Task<JsonDocument> GetSingleValue(string organizationId,
-            string realmId,
-            string sectionId,
-            string habitatId,
-            string settingPath)
-        {
-            var configinator = await configinatorService.GetConfiginatorByIdAsync(organizationId);
-            var configurationId = new ConfigurationId(organizationId, realmId, sectionId, habitatId);
-            var request = new GetValueRequest(configurationId, ValueFormat.Resolved, settingPath);
-            var response = await configinator.GetValueAsync(request);
-            return response.Value;
-        }
     }
 }
