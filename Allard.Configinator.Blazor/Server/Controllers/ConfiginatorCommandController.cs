@@ -41,7 +41,7 @@ namespace Allard.Configinator.Blazor.Server.Controllers
         /// <param name="value"></param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<SetConfigurationResponse> SetConfigurationValueResolved(
+        public async Task<SetValueResponse> SetConfigurationValueResolved(
             string organizationId,
             string realmId,
             string sectionId,
@@ -57,14 +57,17 @@ namespace Allard.Configinator.Blazor.Server.Controllers
 
         [HttpPut]
         [Route("{**settingPath}")]
-        public void SetSingleValue(string organizationId,
+        public async Task SetSingleValue(string organizationId,
             string realmId,
             string sectionId,
             string habitatId,
             string settingPath,
             [FromBody] JsonDocument value)
         {
-            var x = 10;
+            var id = new ConfigurationId(organizationId, realmId, sectionId, habitatId);
+            var configinator = await configinatorService.GetConfiginatorByIdAsync(organizationId);
+            var request = new SetValueRequest(id, ValueFormat.Resolved, settingPath, value);
+            await configinator.SetValueAsync(request);
         }
     }
 }

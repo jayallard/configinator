@@ -8,6 +8,7 @@
     <ItemGroup>
       <Compile Remove="DocumentMerger\DocMerger.cs" />
       <Compile Remove="DocumentMerger\DocMerger2.cs" />
+      <Compile Remove="DocumentMerger\DocMerger4.cs" />
     </ItemGroup>
 
 </Project>

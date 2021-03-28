@@ -2,10 +2,10 @@
 @using Allard.Configinator.Blazor.Client.Services
 @using Allard.Configinator.Blazor.Shared.ViewModels.Organization
 @using System.Text.Json
-@inject IOrganizationService organizationService;
-@inject NavigationManager navigationManager;
+@inject IOrganizationService OrganizationService;
+@inject NavigationManager NavigationManager;
 
-<h3>CreateRealm</h3>
+<h3>Create Realm</h3>
 
 @code {
 
@@ -18,7 +18,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        organization = await organizationService.GetOrganizationAsync(OrganizationId);
+        organization = await OrganizationService.GetOrganizationAsync(OrganizationId);
         realm = new RealmViewModel();
     }
 
@@ -30,8 +30,8 @@
     {
     //Console.WriteLine("service");
     //Console.WriteLine(JsonSerializer.Serialize(realm));
-        await organizationService.AddRealmToOrganizationAsync(OrganizationId, realm);
-        navigationManager.NavigateTo("/organization/" + OrganizationId);
+        await OrganizationService.AddRealmToOrganizationAsync(OrganizationId, realm);
+        NavigationManager.NavigateTo("/organization/" + OrganizationId);
         Json = JsonSerializer.Serialize(realm);
     }
 
@@ -39,99 +39,103 @@
 
 @if (organization != null)
 {
-    <p>
-        Realm Id: @realm.RealmId
-    </p>
-    <p>
-        Habitats: @realm.Habitats.Count
-    </p>
-    <p>
-        Sections: @realm.ConfigurationSections.Count
-    </p>
-    <h3>@organization.OrganizationId</h3>
-    <p>
-        Realm Name <input type="text" @bind="@realm.RealmId"/>
-    </p>
-    <h4 style="padding:15px;background-color: black; color: white">
-        Configuration Sections&nbsp;
-        <button class="btn" @onclick="() => realm.ConfigurationSections.Add(new ConfigurationSectionViewModel())">
-            <span class="oi oi-plus"></span>
-        </button>
-    </h4>
-@foreach (var cs in realm.ConfigurationSections)
-{
-    <table>
-        <thead>
-        <tr>
-            <th>Section Name</th><th>Properties</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-            <td style="vertical-align: top">
-                <input type="text" @bind="@cs.SectionId">
-            </td>
-            <td>
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Secret</th>
-                        <th>Required</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @foreach (var p in cs.Properties)
-                    {
-                        <tr>
-                            <td>
-                                <input type="text" @bind=@p.Name>
-                            </td>
-                            <td>
-                                <select @bind=p.SchemaTypeId>
-                                    <option></option>
-                                    @foreach (var type in types)
-                                    {
-                                        <option value="@type">@type</option>
-                                    }
-                                </select>
-                            </td>
-                            <td>
-                                <input type="checkbox" @bind="@p.IsRequired">
-                            </td>
-                            <td>
-                                <input type="checkbox" @bind="@p.IsSecret">
-                            </td>
-                        </tr>
-                    }
-                    </tbody>
-                    <button class="btn btn-primary" @onclick="() => cs.Properties.Add(new PropertyViewModel())">Add Property</button>
-                </table>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-    <hr>
-}
-    <h4 style="padding:15px;background-color: black; color: white">
-        Habitats&nbsp;
-        <button class="btn" @onclick="() => realm.Habitats.Add(new HabitatViewModel())">
-            <span class="oi oi-plus"></span>
-        </button>
-    </h4>
-    @foreach (var h in realm.Habitats)
-    {
-        <ul>
-            <li>
-                <input type="text" @bind="@h.HabitatId"/>
-            </li>
-        </ul>
-    }
-    <hr/>
-    <p>
-        <button class="btn btn-primary" @onclick="Create">Create Realm</button>
-    </p>
-    <h1>json</h1>
-    <p>@Json</p>
+    <EditForm Model="organization" OnValidSubmit="Create">
+        <DataAnnotationsValidator/>
+        <ValidationSummary/>
+        <p>
+            Realm Id: @realm.RealmId
+        </p>
+        <p>
+            Habitats: @realm.Habitats.Count
+        </p>
+        <p>
+            Sections: @realm.ConfigurationSections.Count
+        </p>
+        <h3>@organization.OrganizationId</h3>
+        <p>
+            Realm Id
+            <InputText @bind-Value="@realm.RealmId"></InputText>
+        </p>
+        <h4 style="padding:15px;background-color: black; color: white">
+            Configuration Sections&nbsp;
+            <button  type="button" class="btn" @onclick="() => realm.ConfigurationSections.Add(new ConfigurationSectionViewModel())">
+                <span class="oi oi-plus"></span>
+            </button>
+        </h4>
+        @foreach (var cs in realm.ConfigurationSections)
+        {
+            <table>
+                <thead>
+                <tr>
+                    <th>Section Name</th><th>Properties</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td style="vertical-align: top">
+                        <InputText @bind-Value="@cs.SectionId"></InputText>
+                    </td>
+                    <td>
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Secret</th>
+                                <th>Required</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var p in cs.Properties)
+                            {
+                                <tr>
+                                    <td>
+                                        <InputText @bind-Value="@p.Name"></InputText>
+                                    </td>
+                                    <td>
+                                        <InputSelect @bind-Value="@p.SchemaTypeId">
+                                            @foreach (var type in types)
+                                            {
+                                                <option value="@type">@type</option>
+                                            }
+                                        </InputSelect>
+                                    </td>
+                                    <td>
+                                        <InputCheckbox @bind-Value="@p.IsRequired"></InputCheckbox>
+                                    </td>
+                                    <td>
+                                        <InputCheckbox @bind-Value="@p.IsSecret"></InputCheckbox>
+                                    </td>
+                                </tr>
+                            }
+                            </tbody>
+                            <button class="btn btn-primary" @onclick="() => cs.Properties.Add(new PropertyViewModel())" type="button">Add Property</button>
+                        </table>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <hr>
+        }
+        <h4 style="padding:15px;background-color: black; color: white">
+            Habitats&nbsp;
+            <button class="btn" @onclick="() => realm.Habitats.Add(new HabitatViewModel())" type="button">
+                <span class="oi oi-plus"></span>
+            </button>
+        </h4>
+        @foreach (var h in realm.Habitats)
+        {
+            <ul>
+                <li>
+                    <InputText @bind-Value="@h.HabitatId"></InputText>
+                </li>
+            </ul>
+        }
+        <hr/>
+        <p>
+            <button type="submit">Create Realm</button>
+        </p>
+        <h1>json</h1>
+        <p>@Json</p>
+    </EditForm>
 }

@@ -5,38 +5,20 @@ using Allard.Configinator.Core.DocumentValidator;
 
 namespace Allard.Configinator.Core.Infrastructure
 {
-    public record GetValueRequest(ConfigurationId ConfigurationId, ValueFormat Format, string ValuePath = null);
+    public record GetValueRequest(ConfigurationId ConfigurationId, string ValuePath = null);
 
-    /// <summary>
-    ///     The ways of getting and saving values.
-    /// </summary>
-    public enum ValueFormat
-    {
-        /// <summary>
-        ///     The exact string, as stored.
-        ///     NOTE: not sure the implication of VARIABLES on this.
-        ///     If variables are resolved, that wouldn't be RAW.
-        /// </summary>
-        Raw,
-
-        /// <summary>
-        ///     Work with the resolved value.
-        /// </summary>
-        Resolved
-    }
-
-    public record GetConfigurationResponse(
+    public record GetValueResponse(
         ConfigurationId ConfigurationId,
         bool Exists,
         JsonDocument Value,
         ObjectValue ObjectValue);
 
-    public record SetConfigurationRequest(
+    public record SetValueRequest(
         ConfigurationId ConfigurationId,
-        ValueFormat Format,
+        string SettingsPath,
         JsonDocument Value);
 
-    public record SetConfigurationResponse(
+    public record SetValueResponse(
         ConfigurationId ConfigurationId,
         IList<ValidationFailure> Failures)
     {

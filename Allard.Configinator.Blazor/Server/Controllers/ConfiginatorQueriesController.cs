@@ -31,7 +31,7 @@ namespace Allard.Configinator.Blazor.Server.Controllers
         {
             // TODO: add {**settingPath}
             var id = new ConfigurationId(organizationId, realmId, sectionId, habitatId);
-            var result = await mediator.Send(new GetConfigurationExplainedCommand(id));
+            var result = await mediator.Send(new GetValueExplainedCommand(id));
             return result;
         }
         

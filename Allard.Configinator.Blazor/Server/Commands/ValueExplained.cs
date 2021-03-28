@@ -9,11 +9,11 @@ using MediatR;
 
 namespace Allard.Configinator.Blazor.Server.Commands
 {
-    public record GetConfigurationExplainedCommand(
+    public record GetValueExplainedCommand(
         ConfigurationId ConfigurationId) : IRequest<ObjectViewModel>;
 
     public class GetConfigurationValueExplainedHandler
-        : IRequestHandler<GetConfigurationExplainedCommand, ObjectViewModel>
+        : IRequestHandler<GetValueExplainedCommand, ObjectViewModel>
     {
         private readonly IMediator mediator;
 
@@ -24,7 +24,7 @@ namespace Allard.Configinator.Blazor.Server.Commands
         }
 
         public async Task<ObjectViewModel> Handle(
-            GetConfigurationExplainedCommand request,
+            GetValueExplainedCommand request,
             CancellationToken cancellationToken)
         {
             var resolvedRequest = new GetValueCommand(request.ConfigurationId, ValueFormat.Resolved);

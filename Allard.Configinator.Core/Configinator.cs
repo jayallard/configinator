@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Xml.Xsl;
 using Allard.Configinator.Core.DocumentMerger;
 using Allard.Configinator.Core.DocumentValidator;
 using Allard.Configinator.Core.Infrastructure;
@@ -26,26 +24,50 @@ namespace Allard.Configinator.Core
 
         public OrganizationAggregate Organization { get; }
 
-        public async Task<SetConfigurationResponse> SetValueAsync(SetConfigurationRequest request)
+        public async Task<SetValueResponse> SetValueAsync(SetValueRequest request)
         {
+            // if it's a partial update: then get the values for all of the base habitats
+            // and the habitat that is being updated.
+            // then, merge that with the input doc, which is the partial udpate doc.
+
+            // if it's not a partial update, then it's a full doc update.
+            // so, get the values for the base habitats only, then merge
+            // it with the input doc.
+
+            // PARTIAL: merge  BASE 1 >> BASE 2 >> HABITAT >> INPUT   :   WRITE TO HABITAT
+            // FULL:    merge  BASE 1 >> BASE 2 >> INPUT              :   WRITE TO HABITAT
+
             var realm = Organization.GetRealmByName(request.ConfigurationId.RealmId);
             var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
 
+            var partialUpdate = !string.IsNullOrWhiteSpace(request.SettingsPath);
+
             // get all of the docs for the base habitats, if there are any.
-            var configDocs = (await GetDocsFromConfigStore(cs, habitat.Bases.ToList())).ToList();
+            var habitatsToGet = habitat.Bases.ToList();
+            var configDocs = (await GetDocsFromConfigStore(cs, habitatsToGet)).ToList();
             var toMerge = configDocs.Select(d => d.Item1).ToList();
 
-            // add the current request to the doc list.
-            var requestMerge = new DocumentToMerge(request.ConfigurationId.HabitatId, request.Value);
+            var model = structureModelBuilder.ToStructureModel(cs);
+            var habitatDoc = request.Value;
+            if (partialUpdate)
+            {
+                // partial - expand the input doc to match the doc structure,
+                // and add it to the merge list.
+                var habitatJson = (await GetDocsFromConfigStore(cs, new[] {habitat})).Single();
+                var expandedJson = JsonUtility.Expand(request.SettingsPath, request.Value);
+                var merged1 = (await DocMerger3.Merge(model, habitatJson.Item1.Document, expandedJson));
+                var merged1json = merged1.ToJsonString();
+                habitatDoc = JsonDocument.Parse(merged1json);
+            }
+
+            // add the input doc to the merge list.
+            var requestMerge = new DocumentToMerge(request.ConfigurationId.HabitatId, habitatDoc);
             toMerge.Add(requestMerge);
 
             // merge
-            var model = structureModelBuilder.ToStructureModel(cs);
             var merged = await DocMerger3.Merge(model, toMerge);
-            // TODO: change to single object.
             var mergedJson = merged.ToJsonString();
-
             var mergedDoc = JsonDocument.Parse(mergedJson);
 
             // validate
@@ -53,33 +75,21 @@ namespace Allard.Configinator.Core
             var errors = validator.Validate(cs.Properties.ToList(), mergedDoc.RootElement).ToList();
 
             // if no errors, save
-            if (errors.Count > 0) return new SetConfigurationResponse(request.ConfigurationId, errors);
+            if (errors.Count > 0) return new SetValueResponse(request.ConfigurationId, errors);
 
             // save
             var path = OrganizationAggregate.GetConfigurationPath(cs, habitat);
-
-            // if it's resolved format, then reduce the input value down to just the values
-            // that changed in the last query.
-            // if there's only one doc, then nothing to reduce, do
-            // skip it
-            var toSave = request.Value;
-            if (request.Format == ValueFormat.Resolved)
-                toSave = ReduceToRawJson(merged);
+            var toSave = ReduceToRawJson(merged);
 
             // save the value that was passed in. 
             var value = new SetConfigStoreValueRequest(path, toSave);
             await configStore.SetValueAsync(value);
-            return new SetConfigurationResponse(request.ConfigurationId, errors);
+            return new SetValueResponse(request.ConfigurationId, errors);
         }
 
-        public async Task<GetConfigurationResponse> GetValueAsync(GetValueRequest request)
+        public async Task<GetValueResponse> GetValueAsync(GetValueRequest request)
         {
-            return request.Format switch
-            {
-                ValueFormat.Raw => await GetValueRawAsync(request),
-                ValueFormat.Resolved => await GetValueResolvedAsync(request),
-                _ => throw new ArgumentOutOfRangeException(nameof(request))
-            };
+            return await GetValueResolvedAsync(request);
         }
 
         private static JsonDocument ReduceToRawJson(ObjectValue o)
@@ -108,7 +118,7 @@ namespace Allard.Configinator.Core
             return new ObjectValue(o.ObjectPath, o.Name, childProperties.AsReadOnly(), childObjects.AsReadOnly());
         }
 
-        private async Task<GetConfigurationResponse> GetValueRawAsync(GetValueRequest request)
+        private async Task<GetValueResponse> GetValueRawAsync(GetValueRequest request)
         {
             if (request.ValuePath != null)
             {
@@ -119,10 +129,10 @@ namespace Allard.Configinator.Core
             var habitat = cs.Realm.GetHabitat(request.ConfigurationId.HabitatId);
             var path = OrganizationAggregate.GetConfigurationPath(cs, habitat);
             var value = await configStore.GetValueAsync(path);
-            return new GetConfigurationResponse(request.ConfigurationId, value.Exists, value.Value, null);
+            return new GetValueResponse(request.ConfigurationId, value.Exists, value.Value, null);
         }
 
-        private async Task<GetConfigurationResponse> GetValueResolvedAsync(GetValueRequest request)
+        private async Task<GetValueResponse> GetValueResolvedAsync(GetValueRequest request)
         {
             var realm = Organization.GetRealmByName(request.ConfigurationId.RealmId);
             var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
@@ -136,7 +146,7 @@ namespace Allard.Configinator.Core
             var value = GetValue(merged, request.ValuePath);
             //var mergedJsonDoc = JsonDocument.Parse(merged.ToJsonString());
             var anyExists = toMerge.Any(m => m.Item2.Exists);
-            return new GetConfigurationResponse(request.ConfigurationId, anyExists, value, merged);
+            return new GetValueResponse(request.ConfigurationId, anyExists, value, merged);
         }
 
         /// <summary>
@@ -172,9 +182,10 @@ namespace Allard.Configinator.Core
             var property = currentObject.Properties.SingleOrDefault(p => p.Name == parts[^1]);
             if (property != null)
             {
-                return property.Value == null ? null : JsonDocument.Parse(property.Value);
+                // todo: harden
+                return property.Value == null ? null : JsonDocument.Parse("\"" + property.Value + "\"");
             }
-            
+
             // if the path resolves to a node, then return the node as json.
             var node = currentObject.Objects.SingleOrDefault(p => p.Name == parts[^1]);
             if (node == null)
