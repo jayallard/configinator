@@ -24,6 +24,37 @@ namespace Allard.Configinator.Core
 
         public OrganizationAggregate Organization { get; }
 
+        private async Task BuildAndSaveHabitatValue(RealmId realmId, HabitatId habitatId, SectionId sectionId)
+        {
+            var realm = Organization.GetRealmByName(realmId.Id);
+            var habitat = realm.GetHabitat(habitatId.Id);
+            var cs = realm.GetConfigurationSection(sectionId.Id);
+
+            // get all of the docs for the base habitats, if there are any.
+            var habitatsToGet = habitat.Bases.ToList();
+            var configDocs = (await GetDocsFromConfigStore(cs, habitatsToGet)).ToList();
+            var toMerge = configDocs.Select(d => d.Item1).ToList();
+
+            var model = structureModelBuilder.ToStructureModel(cs);
+
+            // merge
+            var merged = await DocMerger3.Merge(model, toMerge);
+            var mergedJson = merged.ToJsonString(habitat.HabitatId.Id);
+            var mergedDoc = JsonDocument.Parse(mergedJson);
+
+            // validate
+            var validator = new DocValidator(Organization.SchemaTypes);
+            var errors = validator.Validate(cs.Properties.ToList(), mergedDoc.RootElement).ToList();
+
+            // if no errors, save
+            if (errors.Count > 0) return;
+
+            // save
+            var path = OrganizationAggregate.GetConfigurationPath(cs, habitat);
+            var value = new SetConfigStoreValueRequest(path, mergedDoc);
+            await configStore.SetValueAsync(value);
+        }
+
         public async Task<SetValueResponse> SetValueAsync(SetValueRequest request)
         {
             // if it's a partial update: then get the values for all of the base habitats
@@ -43,11 +74,6 @@ namespace Allard.Configinator.Core
 
             var partialUpdate = !string.IsNullOrWhiteSpace(request.SettingsPath);
 
-            // get all of the docs for the base habitats, if there are any.
-            var habitatsToGet = habitat.Bases.ToList();
-            var configDocs = (await GetDocsFromConfigStore(cs, habitatsToGet)).ToList();
-            var toMerge = configDocs.Select(d => d.Item1).ToList();
-
             var model = structureModelBuilder.ToStructureModel(cs);
             var habitatDoc = request.Value;
             if (partialUpdate)
@@ -61,30 +87,32 @@ namespace Allard.Configinator.Core
                 habitatDoc = JsonDocument.Parse(merged1Json);
             }
 
-            // add the input doc to the merge list.
-            var requestMerge = new DocumentToMerge(request.ConfigurationId.HabitatId, habitatDoc);
-            toMerge.Add(requestMerge);
-
-            // merge
-            var merged = await DocMerger3.Merge(model, toMerge);
-            var mergedJson = merged.ToJsonString(habitat.HabitatId.Id);
-            var mergedDoc = JsonDocument.Parse(mergedJson);
-
             // validate
             var validator = new DocValidator(Organization.SchemaTypes);
-            var errors = validator.Validate(cs.Properties.ToList(), mergedDoc.RootElement).ToList();
+            var errors = validator.Validate(cs.Properties.ToList(), habitatDoc.RootElement).ToList();
 
             // if no errors, save
             if (errors.Count > 0) return new SetValueResponse(request.ConfigurationId, errors);
 
             // save
             var path = OrganizationAggregate.GetConfigurationPath(cs, habitat);
-            var value = new SetConfigStoreValueRequest(path, mergedDoc);
+            var value = new SetConfigStoreValueRequest(path, habitatDoc);
             await configStore.SetValueAsync(value);
+
+            // descendants need to be updated
+            var toUpdate = realm
+                .Habitats
+                .Where(h => h.Bases.Select(b => b.HabitatId).Contains(h.HabitatId));
+            foreach (var h in toUpdate)
+            {
+                await BuildAndSaveHabitatValue(realm.RealmId, h.HabitatId, cs.SectionId);
+            }
+
+
             return new SetValueResponse(request.ConfigurationId, errors);
         }
 
-        public async Task<GetValueResponse> GetValueAsync(GetValueRequest request) 
+        public async Task<GetValueResponse> GetValueAsync(GetValueRequest request)
         {
             var realm = Organization.GetRealmByName(request.ConfigurationId.RealmId);
             var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);

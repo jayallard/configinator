@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -31,16 +32,24 @@ namespace Allard.Configinator.Core.DocumentValidator
                 this.schemaTypes = schemaTypes;
             }
 
+            private static readonly Dictionary<string, KeyValuePair<string, object>> emptyObjectDictionary = new();
+            private static readonly Dictionary<string, KeyValuePair<string, JsonElement>> emptyJsonElementDictionary = new();
 
             public IEnumerable<ValidationFailure> Validate(IList<SchemaTypeProperty> properties, JsonElement doc,
                 string path)
             {
-                var jsonProperties = doc
-                    .GetPropertyValues()
-                    .ToDictionary(p => p.Key);
-                var jsonObjects = doc
-                    .GetObjectNodes()
-                    .ToDictionary(o => o.Key);
+                var jsonProperties =
+                    doc.ValueKind == JsonValueKind.Undefined
+                        ? emptyObjectDictionary
+                        : doc
+                            .GetPropertyValues()
+                            .ToDictionary(p => p.Key);
+                var jsonObjects =
+                    doc.ValueKind == JsonValueKind.Undefined
+                        ? emptyJsonElementDictionary
+                        : doc
+                            .GetObjectNodes()
+                            .ToDictionary(o => o.Key);
 
                 // iterate the schema properties
                 foreach (var schemaProperty in properties)
@@ -68,24 +77,23 @@ namespace Allard.Configinator.Core.DocumentValidator
                         continue;
                     }
 
-                    // it's an object. see if it exists in json.
-                    if (jsonObjects.TryGetValue(schemaProperty.Name, out var o))
+                    // it's an object. see if it exists in the json.
+                    var objectExists = jsonObjects.TryGetValue(schemaProperty.Name, out var o);
+                    var value = objectExists
+                        ? o.Value
+                        : new JsonElement();
+
+                    var newPath = path = "/" + schemaProperty.Name;
+                    // if (!objectExists && schemaProperty.IsRequired)
+                    //     yield return new ValidationFailure(newPath, "RequiredObjectMissing", schemaProperty.Name);
+
+                    var schemaType = schemaTypes[schemaProperty.SchemaTypeId];
+                    var validationFailures = Validate(schemaType.Properties.ToList(), value,
+                        newPath);
+                    foreach (var fail in validationFailures)
                     {
-                        // object exists
-                        var schemaType = schemaTypes[schemaProperty.SchemaTypeId];
-                        var validationFailures = Validate(schemaType.Properties.ToList(), o.Value,
-                            path + "/" + schemaProperty.Name);
-                        foreach (var fail in validationFailures)
-                        {
-                            yield return fail;
-                        }
-
-                        continue;
+                        yield return fail;
                     }
-
-                    // object doesn't exist
-                    if (schemaProperty.IsRequired)
-                        yield return new ValidationFailure(path, "RequiredObjectMissing", schemaProperty.Name);
                 }
             }
         }

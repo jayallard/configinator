@@ -27,7 +27,9 @@ namespace Allard.Configinator.Core.Tests.Unit.SchemaValidatorTests
             var results = new DocValidator(new[] {a, b})
                 .Validate(a.Properties.ToList(), doc)
                 .ToList();
-            results.Single().Code.Should().Be("RequiredObjectMissing");
+
+            // property missing
+            results.Count.Should().Be(1);
         }
 
 
@@ -45,10 +47,12 @@ namespace Allard.Configinator.Core.Tests.Unit.SchemaValidatorTests
 
             // the property "AtoB" is required but missing.
             var doc = JsonDocument.Parse("{}").RootElement;
-            new DocValidator(new[] {a, b})
-                .Validate(a.Properties.ToList(), doc)
+            var failures = new DocValidator(new[] {a, b})
+                .Validate(a.Properties.ToList(), doc);
+            failures
+                .Count()
                 .Should()
-                .BeEmpty();
+                .Be(1);
         }
 
         [Fact]
