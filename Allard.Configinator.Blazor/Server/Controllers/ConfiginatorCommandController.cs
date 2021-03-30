@@ -50,7 +50,7 @@ namespace Allard.Configinator.Blazor.Server.Controllers
         {
             // todo: location header
             var id = new ConfigurationId(organizationId, realmId, sectionId, habitatId);
-            var response = await mediator.Send(new SetValueCommand(id, ValueFormat.Resolved, value));
+            var response = await mediator.Send(new SetValueCommand(id, value));
             if (!response.Success) Response.StatusCode = (int) HttpStatusCode.BadRequest;
             return response;
         }
@@ -66,7 +66,7 @@ namespace Allard.Configinator.Blazor.Server.Controllers
         {
             var id = new ConfigurationId(organizationId, realmId, sectionId, habitatId);
             var configinator = await configinatorService.GetConfiginatorByIdAsync(organizationId);
-            var request = new SetValueRequest(id, ValueFormat.Resolved, settingPath, value);
+            var request = new SetValueRequest(id, settingPath, value);
             await configinator.SetValueAsync(request);
         }
     }

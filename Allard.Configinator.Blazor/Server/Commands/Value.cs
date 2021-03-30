@@ -9,12 +9,10 @@ namespace Allard.Configinator.Blazor.Server.Commands
 {
     public record SetValueCommand(
         ConfigurationId ConfigurationId,
-        ValueFormat Format,
         JsonDocument Value) : IRequest<SetValueResponse>;
 
     public record GetValueCommand(
-        ConfigurationId ConfigurationId,
-        ValueFormat Format) : IRequest<ConfigurationValue>;
+        ConfigurationId ConfigurationId) : IRequest<ConfigurationValue>;
 
     public class GetValueHandler : IRequestHandler<GetValueCommand, ConfigurationValue>
     {
@@ -29,7 +27,7 @@ namespace Allard.Configinator.Blazor.Server.Commands
             GetValueCommand request,
             CancellationToken cancellationToken)
         {
-            var get = new GetValueRequest(request.ConfigurationId, request.Format);
+            var get = new GetValueRequest(request.ConfigurationId);
             var configinator =
                 await configinatorService.GetConfiginatorByIdAsync(request.ConfigurationId.OrganizationId);
             var result = await configinator.GetValueAsync(get);
@@ -52,7 +50,7 @@ namespace Allard.Configinator.Blazor.Server.Commands
         {
             var configinator =
                 await configinatorService.GetConfiginatorByIdAsync(request.ConfigurationId.OrganizationId);
-            var setRequest = new SetValueRequest(request.ConfigurationId, request.Format, request.Value);
+            var setRequest = new SetValueRequest(request.ConfigurationId, "TODO", request.Value);
             var response = await configinator.SetValueAsync(setRequest);
 
             // todo: map failures to dto

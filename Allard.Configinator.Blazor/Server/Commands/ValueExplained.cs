@@ -27,7 +27,7 @@ namespace Allard.Configinator.Blazor.Server.Commands
             GetValueExplainedCommand request,
             CancellationToken cancellationToken)
         {
-            var resolvedRequest = new GetValueCommand(request.ConfigurationId, ValueFormat.Resolved);
+            var resolvedRequest = new GetValueCommand(request.ConfigurationId);
             var resolved = await mediator.Send(resolvedRequest, cancellationToken);
             return ToViewModel(resolved.Object);
         }

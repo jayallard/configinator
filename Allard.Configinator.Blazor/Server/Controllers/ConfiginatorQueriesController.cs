@@ -45,7 +45,7 @@ namespace Allard.Configinator.Blazor.Server.Controllers
         {
             var configinator = await service.GetConfiginatorByIdAsync(organizationId);
             var configurationId = new ConfigurationId(organizationId, realmId, sectionId, habitatId);
-            var request = new GetValueRequest(configurationId, ValueFormat.Resolved, settingPath);
+            var request = new GetValueRequest(configurationId, settingPath);
             var response = await configinator.GetValueAsync(request);
             return response.Value;
         }

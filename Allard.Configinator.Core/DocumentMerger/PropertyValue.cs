@@ -8,6 +8,11 @@ namespace Allard.Configinator.Core.DocumentMerger
     public record PropertyValue(string ObjectPath, string Name, List<PropertyLayer> Layers)
     {
         public string Value => Layers.LastOrDefault()?.Value;
+
+        public string GetValue(string layerName)
+        {
+            return Layers.Single(l => l.LayerName == layerName).Value;
+        }
     }
 
     public record ObjectValue(string ObjectPath, string Name, IReadOnlyCollection<PropertyValue> Properties,

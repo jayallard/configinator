@@ -104,7 +104,7 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
             var hi = stuff2.Properties.Single(c => c.Name == "hi");
             hi.Value.Should().Be("bye");
 
-            testOutputHelper.WriteLine(merged.ToJsonString());
+            testOutputHelper.WriteLine(merged.ToJsonString("3"));
         }
     }
 }

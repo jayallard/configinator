@@ -19,13 +19,13 @@ namespace Allard.Configinator.Core.DocumentMerger
                    || transition == Transition.SetToSameValue;
         }
 
-        public static string ToJsonString(this ObjectValue obj)
+        public static string ToJsonString(this ObjectValue obj, string layerName)
         {
             using var buffer = new MemoryStream();
             using var writer = new Utf8JsonWriter(buffer);
             writer.WriteStartObject();
-            WriteProperties(writer, obj.Properties);
-            WriteObjects(writer, obj.Objects);
+            WriteProperties(writer, obj.Properties, layerName);
+            WriteObjects(writer, obj.Objects, layerName);
             writer.WriteEndObject();
             writer.Flush();
             buffer.Position = 0;
@@ -33,20 +33,20 @@ namespace Allard.Configinator.Core.DocumentMerger
             return reader.ReadToEnd();
         }
 
-        private static void WriteObjects(Utf8JsonWriter writer, IEnumerable<ObjectValue> objects)
+        private static void WriteObjects(Utf8JsonWriter writer, IEnumerable<ObjectValue> objects, string layerName)
         {
             foreach (var o in objects)
             {
                 writer.WriteStartObject(o.Name);
-                WriteProperties(writer, o.Properties);
-                WriteObjects(writer, o.Objects);
+                WriteProperties(writer, o.Properties, layerName);
+                WriteObjects(writer, o.Objects, layerName);
                 writer.WriteEndObject();
             }
         }
 
-        private static void WriteProperties(Utf8JsonWriter writer, IEnumerable<PropertyValue> properties)
+        private static void WriteProperties(Utf8JsonWriter writer, IEnumerable<PropertyValue> properties, string layerName)
         {
-            foreach (var property in properties) writer.WriteString(property.Name, property.Value);
+            foreach (var property in properties) writer.WriteString(property.Name, property.GetValue(layerName));
         }
 
         public static IEnumerable<JsonProperty> GetObjects(this JsonElement element)
