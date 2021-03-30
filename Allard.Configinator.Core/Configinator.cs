@@ -24,7 +24,10 @@ namespace Allard.Configinator.Core
 
         public OrganizationAggregate Organization { get; }
 
-        private async Task BuildAndSaveHabitatValue(RealmId realmId, HabitatId habitatId, SectionId sectionId)
+        private record HabitatValue(HabitatId HabitatId, List<ValidationFailure> Errors, JsonDocument Value)
+
+        private async Task<HabitatValue> GetValueForHabitat(RealmId realmId, HabitatId habitatId,
+            SectionId sectionId)
         {
             var realm = Organization.GetRealmByName(realmId.Id);
             var habitat = realm.GetHabitat(habitatId.Id);
@@ -46,13 +49,7 @@ namespace Allard.Configinator.Core
             var validator = new DocValidator(Organization.SchemaTypes);
             var errors = validator.Validate(cs.Properties.ToList(), mergedDoc.RootElement).ToList();
 
-            // if no errors, save
-            if (errors.Count > 0) return;
-
-            // save
-            var path = OrganizationAggregate.GetConfigurationPath(cs, habitat);
-            var value = new SetConfigStoreValueRequest(path, mergedDoc);
-            await configStore.SetValueAsync(value);
+            return new HabitatValue(habitatId, errors, mergedDoc);
         }
 
         public async Task<SetValueResponse> SetValueAsync(SetValueRequest request)
@@ -102,10 +99,17 @@ namespace Allard.Configinator.Core
             // descendants need to be updated
             var toUpdate = realm
                 .Habitats
-                .Where(h => h.Bases.Select(b => b.HabitatId).Contains(h.HabitatId));
+                .Where(h => h.Bases.Select(b => b.HabitatId).Contains(h.HabitatId))
+                .Select(h => GetValueForHabitat(realm.RealmId, h.HabitatId, cs.SectionId))
+                .ToList();
+
+            await Task.WhenAll(toUpdate).ConfigureAwait(false);
+            var values = toUpdate.Select(u => u.Result).ToList();
+
+
             foreach (var h in toUpdate)
             {
-                await BuildAndSaveHabitatValue(realm.RealmId, h.HabitatId, cs.SectionId);
+                await GetValueForHabitat(realm.RealmId, h.HabitatId, cs.SectionId);
             }
 
 
