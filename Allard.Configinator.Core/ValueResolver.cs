@@ -21,7 +21,7 @@ namespace Allard.Configinator.Core
         }
 
         private async Task<JsonDocument> GetValueFromConfigstore(
-            ConfigurationSection cs, Habitat habitat)
+            ConfigurationSection cs, IHabitat habitat)
         {
             var path = OrganizationAggregate.GetConfigurationPath(cs, habitat);
             var value = await configStore.GetValueAsync(path);
@@ -31,7 +31,7 @@ namespace Allard.Configinator.Core
         }
 
         public async Task<List<HabitatValue>> ApplyValue(
-            Habitat habitat,
+            IHabitat habitat,
             ConfigurationSection cs,
             JsonDocument model,
             JsonDocument value)

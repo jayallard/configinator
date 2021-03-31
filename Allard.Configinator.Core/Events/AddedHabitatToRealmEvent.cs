@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Allard.Configinator.Core.Ddd;
 using Allard.Configinator.Core.Model;
 

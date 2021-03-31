@@ -2,13 +2,20 @@ namespace Allard.Configinator.Core.Model
 {
     // todo: why isn't this a record?
 
-    public class Habitat
+    public interface IHabitat
     {
-        public Realm Realm { get; }
+        IRealm Realm { get; }
+        HabitatId HabitatId { get; }
+        IHabitat BaseHabitat { get; }
+    }
+    
+    public class Habitat : IHabitat
+    {
+        public IRealm Realm { get; }
         public HabitatId HabitatId { get; }
-        public Habitat BaseHabitat { get; }
+        public IHabitat BaseHabitat { get; }
 
-        internal Habitat(HabitatId habitatId, Realm realm, Habitat baseHabitat = null)
+        internal Habitat(HabitatId habitatId, IRealm realm, IHabitat baseHabitat = null)
         {
             Realm = realm;
             BaseHabitat = baseHabitat;

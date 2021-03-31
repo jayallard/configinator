@@ -6,10 +6,14 @@ using Allard.Configinator.Core.Model.Validators;
 
 namespace Allard.Configinator.Core.Model
 {
-    public class Realm
+    public interface IRealm
+    {
+        IReadOnlyCollection<IHabitat> Habitats { get; }
+    }
+    public class Realm : IRealm
     {
         private readonly Dictionary<SectionId, ConfigurationSection> configurationSections = new();
-        private readonly Dictionary<HabitatId, Habitat> habitats = new();
+        private readonly Dictionary<HabitatId, IHabitat> habitats = new();
 
         public Realm(OrganizationAggregate organization, RealmId realmId)
         {
@@ -19,10 +23,10 @@ namespace Allard.Configinator.Core.Model
 
         public OrganizationAggregate Organization { get; }
         public RealmId RealmId { get; }
-        public IReadOnlyCollection<Habitat> Habitats => habitats.Values;
+        public IReadOnlyCollection<IHabitat> Habitats => habitats.Values;
         public IReadOnlyCollection<ConfigurationSection> ConfigurationSections => configurationSections.Values;
 
-        public Habitat GetHabitat(string habitatId)
+        public IHabitat GetHabitat(string habitatId)
         {
             var id = new HabitatId(habitatId);
             if (habitats.TryGetValue(id, out var habitat)) return habitat;
@@ -42,7 +46,7 @@ namespace Allard.Configinator.Core.Model
         ///     Used by the event handler.
         /// </summary>
         /// <param name="habitat"></param>
-        internal void AddHabitat(Habitat habitat)
+        internal void AddHabitat(IHabitat habitat)
         {
             habitats.Add(habitat.HabitatId, habitat);
         }
@@ -93,7 +97,7 @@ namespace Allard.Configinator.Core.Model
                 .Raise<AddedConfigurationSectionToRealmEvent, ConfigurationSection>(evt);
         }
 
-        public Habitat AddHabitat(string habitatId, string baseHabitatId)
+        public IHabitat AddHabitat(string habitatId, string baseHabitatId)
         {
             return AddHabitat(new HabitatId(habitatId), baseHabitatId);
         }

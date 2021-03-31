@@ -1,10 +1,13 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Allard.Configinator.Core.Infrastructure;
 using Allard.Configinator.Core.Model;
 using Allard.Configinator.Core.Model.Builders;
 using FluentAssertions;
+using NSubstitute;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -139,7 +142,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             var path = $"/{Organization.OrganizationId.Id}/{TestRealm1}/{TestConfigurationSection1}/dev-allard";
             var value = (await ConfigStore.GetValueAsync(path)).Value.ConvertToString();
             value.Should().Be(JsonDocument.Parse(sqlPassword).ConvertToString());
-            
+
             // test is no longer valid because RAW has been eliminated.
             // fix the assert to look at the layers
         }
@@ -190,6 +193,134 @@ namespace Allard.Configinator.Core.Tests.Unit
             var getResponse3 = await Configinator.GetValueAsync(getRequest3);
             getResponse3.Value.RootElement.ValueKind.Should().Be(JsonValueKind.String);
             getResponse3.Value.RootElement.GetString().Should().Be("yay!");
+        }
+
+        [Fact]
+        public void ValidateStraightLine()
+        {
+            // y : z
+            var chains = Configinator.GetHabitatDescendantChains(new HabitatId("y"), CreateTestHabitats());
+            chains.Count.Should().Be(1);
+            var y = chains.Single();
+
+            // 2 items on the list: y and z
+            y.Count.Should().Be(2);
+
+            // first item is y - the base
+            y.First().HabitatId.Id.Should().Be("y");
+
+            // last item is z - the child
+            y.Last().HabitatId.Id.Should().Be("z");
+        }
+
+        [Fact]
+        public void MultipleChainsFromTop()
+        {
+            // a : b : c
+            // a : b : d
+            // a : b : e : f
+            // a : g : h
+            // a : g : i : k 
+            // a : g : u
+            var chains = Configinator.GetHabitatDescendantChains(new HabitatId("a"), CreateTestHabitats());
+            chains.Count.Should().Be(6);
+        }
+        
+        [Fact]
+        public void MultipleChainsFromSecondLevel()
+        {
+            // b : c
+            // b : d
+            // b : e : f
+            var chains = Configinator.GetHabitatDescendantChains(new HabitatId("b"), CreateTestHabitats());
+            chains.Count.Should().Be(3);
+        }
+
+        private static List<IHabitat> CreateTestHabitats()
+        {
+            //   A -------------------- X ------ Q
+            //  a                       x        q
+            //  b           g           y
+            //  c d e      h i u        z     
+            //      f        k
+
+
+            return new TestDataBuilder()
+                // a tree
+                .Add("a", null)
+                .Add("b", "a")
+                .Add("c", "b")
+                .Add("d", "b")
+                .Add("e", "b")
+                .Add("f", "e")
+                .Add("g", "a")
+                .Add("h", "g")
+                .Add("i", "g")
+                .Add("u", "g")
+                .Add("k", "i")
+
+                // x tree
+                .Add("x", null)
+                .Add("y", "x")
+                .Add("z", "y")
+
+                // q, stand alone
+                .Add("q", null)
+                .Values;
+        }
+
+        private class TestDataBuilder
+        {
+            private readonly Dictionary<string, IHabitat> values = new();
+
+            public TestDataBuilder Add(string habitatId, string baseHabitatId)
+            {
+                var baseHabitat = baseHabitatId == null
+                    ? null
+                    : values[baseHabitatId];
+                var h = new DummyHabitat(habitatId, baseHabitat);
+                values.Add(habitatId, h);
+                return this;
+            }
+
+            public List<IHabitat> Values => values.Values.ToList();
+        }
+
+        [Fact]
+        public void Tree()
+        {
+            var id = new HabitatId("i");
+            var tree = Configinator.GetHabitatTree(id, CreateTestHabitats());
+            testOutputHelper.WriteLine("");
+        }
+
+        /// <summary>
+        /// Get the chains of a habitat that doesn't have a parent
+        /// nor children
+        /// </summary>
+        [Fact]
+        public void GetChainSingle()
+        {
+            var chains = Configinator.GetHabitatDescendantChains(new HabitatId("q"), CreateTestHabitats());
+            chains.Count.Should().Be(1);
+            chains[0].Count.Should().Be(1);
+            chains[0][0].HabitatId.Should().Be(new HabitatId("q"));
+            chains[0][0].BaseHabitat.Should().BeNull();
+        }
+
+
+        public record DummyHabitat : IHabitat
+        {
+            public DummyHabitat(string id, IHabitat baseHabitat)
+            {
+                Realm = null;
+                HabitatId = new HabitatId(id);
+                BaseHabitat = baseHabitat;
+            }
+
+            public IRealm Realm { get; }
+            public HabitatId HabitatId { get; }
+            public IHabitat BaseHabitat { get; }
         }
     }
 }

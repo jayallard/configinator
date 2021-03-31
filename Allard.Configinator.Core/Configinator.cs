@@ -30,37 +30,57 @@ namespace Allard.Configinator.Core
             var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
 
+
+            var habitatTree = GetHabitatTree(habitat.HabitatId, realm.Habitats.ToList());
+            // TODO: partial
+            foreach (var h in habitatTree.Root.Children)
+            {
+                
+            }
+            
+            // var chains = GetHabitatDescendantChains(habitat.HabitatId, realm.Habitats.ToList());
+            // var model = structureModelBuilder.ToStructureModel(cs);
+            // foreach (var chain in chains)
+            // {
+            //     var versioned = new JsonVersionedObject(model.RootElement);
+            //     foreach (var h in chain)
+            //     {
+            //         var habitatValue = await GetValueFromConfigstore(cs, h);
+            //         versioned.AddVersion(h.HabitatId.Id, habitatValue.RootElement);
+            //     }
+            // }
+            
             var partialUpdate = !string.IsNullOrWhiteSpace(request.SettingsPath);
 
-            var model = structureModelBuilder.ToStructureModel(cs);
-            var habitatDoc = request.Value;
+            //var model = structureModelBuilder.ToStructureModel(cs);
+            //var habitatDoc = request.Value;
             if (partialUpdate)
             {
                 // partial - expand the input doc to match the doc structure,
                 // and add it to the merge list.
-                var habitatJson = (await GetValueFromConfigstore(cs, habitat));
-                var expandedJson = JsonUtility.Expand(request.SettingsPath, request.Value);
-                var merged1 = (await DocMerger3.Merge(model, habitatJson, expandedJson));
-                var merged1Json = merged1.ToJsonString("1");
-                habitatDoc = JsonDocument.Parse(merged1Json);
+                // var habitatJson = (await GetValueFromConfigstore(cs, habitat));
+                // var expandedJson = JsonUtility.Expand(request.SettingsPath, request.Value);
+                // var merged1 = (await DocMerger3.Merge(model, habitatJson, expandedJson));
+                // var merged1Json = merged1.ToJsonString("1");
+                // habitatDoc = JsonDocument.Parse(merged1Json);
             }
 
-            var resolver = new ValueResolver(Organization, configStore);
-            var validator = new DocValidator(Organization.SchemaTypes, habitat.HabitatId.Id);
-            var errors = validator.Validate(cs.Properties.ToList(), habitatDoc.RootElement).ToList();
-            var descendentHabitats = realm.Habitats.Where(h => h.BaseHabitat == habitat);
-            var results = new List<HabitatValue>
-            {
-                new(habitat.HabitatId, errors, habitatDoc)
-            };
+            // var resolver = new ValueResolver(Organization, configStore);
+            // var validator = new DocValidator(Organization.SchemaTypes, habitat.HabitatId.Id);
+            // var errors = validator.Validate(cs.Properties.ToList(), habitatDoc.RootElement).ToList();
+            // var descendentHabitats = realm.Habitats.Where(h => h.BaseHabitat == habitat);
+            // var results = new List<HabitatValue>
+            // {
+            //     new(habitat.HabitatId, errors, habitatDoc)
+            // };
+            //
+            // foreach (var d in descendentHabitats)
+            // {
+            //     var childResults = await resolver.ApplyValue(d, cs, model, habitatDoc);
+            //     results.AddRange(childResults);
+            // }
 
-            foreach (var d in descendentHabitats)
-            {
-                var childResults = await resolver.ApplyValue(d, cs, model, habitatDoc);
-                results.AddRange(childResults);
-            }
-
-            return new SetValueResponse(request.ConfigurationId, errors);
+            return new SetValueResponse(request.ConfigurationId, null /*errors*/);
         }
 
         public async Task<GetValueResponse> GetValueAsync(GetValueRequest request)
@@ -70,7 +90,9 @@ namespace Allard.Configinator.Core
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
 
             // get the bases and the specific value, then merge.
-            var configsToGet = GetValueFromConfigstore(cs, habitat);
+            //var configsToGet = GetValueFromConfigstore(cs, habitat);
+            var habitats = GetHabitatTree(habitat.HabitatId, realm.Habitats.ToList());
+            
             return null;
             // var toMerge = (await configsToGet).ToList();
             // var model = structureModelBuilder.ToStructureModel(cs);
@@ -130,7 +152,7 @@ namespace Allard.Configinator.Core
 
         // TODO: this is duplicated in value resolver. fix.
         private async Task<JsonDocument> GetValueFromConfigstore(
-            ConfigurationSection cs, Habitat habitat)
+            ConfigurationSection cs, IHabitat habitat)
         {
             var path = OrganizationAggregate.GetConfigurationPath(cs, habitat);
             var value = await configStore.GetValueAsync(path);
@@ -138,7 +160,83 @@ namespace Allard.Configinator.Core
                 ? value.Value
                 : JsonDocument.Parse("{}");
         }
+
+        public static Tree<HabitatId, IHabitat> GetHabitatTree(HabitatId rootHabitatId, List<IHabitat> allHabitats)
+        {
+            var rootHabitat = allHabitats.Single(h => h.HabitatId == rootHabitatId);
+            var tree = new Tree<HabitatId, IHabitat>(rootHabitatId, rootHabitat);
+            AddChildren(tree, allHabitats, rootHabitatId);
+            return tree;
+        }
+
+        private static void AddChildren(Tree<HabitatId, IHabitat> tree, List<IHabitat> allHabitats, HabitatId currentId)
+        {
+            var children = allHabitats.Where(h => h.BaseHabitat?.HabitatId == currentId).ToList();
+            if (children.Count == 0)
+            {
+                // done
+                return;
+            }
+
+            foreach (var child in children)
+            {
+                tree.Add(currentId, child.HabitatId, child);
+                AddChildren(tree, allHabitats, child.HabitatId);
+            }
+        }
+
+        /// <summary>
+        /// Gets all of the descendent dependency chains for a habitat.
+        /// </summary>
+        /// <param name="targetHabitatId"></param>
+        /// <param name="allHabitats"></param>
+        /// <returns></returns>
+        public static List<List<IHabitat>> GetHabitatDescendantChains(HabitatId targetHabitatId,
+            List<IHabitat> allHabitats)
+        {
+            // get all the habitats that are parents.
+            var bases = allHabitats
+                .Where(h => h.BaseHabitat != null)
+                .Select(h => h.BaseHabitat.HabitatId)
+                .ToHashSet();
+
+            // find the habitats that don't have any children
+            // these are the bottom-level habitats.
+            var bottomHabitats = allHabitats
+                .Where(h => !bases.Contains(h.HabitatId))
+                .ToList();
+
+            var chains = new List<List<IHabitat>>();
+            foreach (var bottom in bottomHabitats)
+            {
+                var current = bottom;
+                var chain = new List<IHabitat>();
+                while (current != null)
+                {
+                    chain.Add(current);
+                    if (current.HabitatId == targetHabitatId)
+                    {
+                        break;
+                    }
+
+                    current = current.BaseHabitat;
+                }
+
+                if (current != null)
+                {
+                    chains.Add(chain);
+                }
+
+
+                // put the base class as the top
+                chain.Reverse();
+            }
+
+            return chains;
+        }
     }
+
+    public record HabitatConfigurationValue(IHabitat Habitat, JsonVersionedObject);
 
     public record HabitatValue(HabitatId HabitatId, List<ValidationFailure> Errors, JsonDocument Value);
 }

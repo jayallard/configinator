@@ -93,7 +93,7 @@ namespace Allard.Configinator.Core.DocumentMerger
         /// <param name="propertyName"></param>
         /// <param name="parentElement"></param>
         /// <returns></returns>
-        private static JsonElement GetProperty(string propertyName, JsonElement parentElement)
+        public static JsonElement GetProperty(string propertyName, JsonElement parentElement)
         {
             if (parentElement.ValueKind == JsonValueKind.Undefined) return parentElement;
             return parentElement.TryGetProperty(propertyName, out var existing) ? existing : default;

@@ -18,7 +18,7 @@ namespace Allard.Configinator.Core.Model
             EventHandlerRegistry.Raise(new OrganizationCreatedEvent(organizationId));
         }
 
-        internal static string GetConfigurationPath(ConfigurationSection section, Habitat habitat)
+        internal static string GetConfigurationPath(ConfigurationSection section, IHabitat habitat)
         {
             return $"/{section.Realm.Organization.OrganizationId.Id}/{section.Realm.RealmId.Id}/{section.SectionId.Id}/{habitat.HabitatId.Id}";
         }
@@ -41,7 +41,7 @@ namespace Allard.Configinator.Core.Model
                 })
 
                 // add habitat to realm
-                .Register<AddedHabitatToRealmEvent, Habitat>(e =>
+                .Register<AddedHabitatToRealmEvent, IHabitat>(e =>
                 {
                     var realm = realms[e.RealmId];
                     var baseHabitat =
