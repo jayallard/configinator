@@ -60,7 +60,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             realm.RealmId.Id.Should().Be("allard-realm-1");
 
             realm.Habitats.Should().BeEmpty();
-            var habitat = realm.AddHabitat("Production");
+            var habitat = realm.AddHabitat("Production", null);
             realm.Habitats.Single().Should().Be(habitat);
             habitat.HabitatId.Id.Should().Be("production");
 

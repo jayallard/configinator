@@ -44,8 +44,11 @@ namespace Allard.Configinator.Core.Model
                 .Register<AddedHabitatToRealmEvent, Habitat>(e =>
                 {
                     var realm = realms[e.RealmId];
-                    var bases = realm.Habitats.Where(h => e.Bases.Contains(h.HabitatId));
-                    var habitat = new Habitat(e.HabitatId, realm, bases);
+                    var baseHabitat =
+                        e.BaseHabitatId == null
+                            ? null
+                            : realm.GetHabitat(e.BaseHabitatId.Id);
+                    var habitat = new Habitat(e.HabitatId, realm, baseHabitat);
                     realm.AddHabitat(habitat);
                     return habitat;
                 })

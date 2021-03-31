@@ -24,47 +24,8 @@ namespace Allard.Configinator.Core
 
         public OrganizationAggregate Organization { get; }
 
-        private record HabitatValue(HabitatId HabitatId, List<ValidationFailure> Errors, JsonDocument Value)
-
-        private async Task<HabitatValue> GetValueForHabitat(RealmId realmId, HabitatId habitatId,
-            SectionId sectionId)
-        {
-            var realm = Organization.GetRealmByName(realmId.Id);
-            var habitat = realm.GetHabitat(habitatId.Id);
-            var cs = realm.GetConfigurationSection(sectionId.Id);
-
-            // get all of the docs for the base habitats, if there are any.
-            var habitatsToGet = habitat.Bases.ToList();
-            var configDocs = (await GetDocsFromConfigStore(cs, habitatsToGet)).ToList();
-            var toMerge = configDocs.Select(d => d.Item1).ToList();
-
-            var model = structureModelBuilder.ToStructureModel(cs);
-
-            // merge
-            var merged = await DocMerger3.Merge(model, toMerge);
-            var mergedJson = merged.ToJsonString(habitat.HabitatId.Id);
-            var mergedDoc = JsonDocument.Parse(mergedJson);
-
-            // validate
-            var validator = new DocValidator(Organization.SchemaTypes);
-            var errors = validator.Validate(cs.Properties.ToList(), mergedDoc.RootElement).ToList();
-
-            return new HabitatValue(habitatId, errors, mergedDoc);
-        }
-
         public async Task<SetValueResponse> SetValueAsync(SetValueRequest request)
         {
-            // if it's a partial update: then get the values for all of the base habitats
-            // and the habitat that is being updated.
-            // then, merge that with the input doc, which is the partial udpate doc.
-
-            // if it's not a partial update, then it's a full doc update.
-            // so, get the values for the base habitats only, then merge
-            // it with the input doc.
-
-            // PARTIAL: merge  BASE 1 >> BASE 2 >> HABITAT >> INPUT   :   WRITE TO HABITAT
-            // FULL:    merge  BASE 1 >> BASE 2 >> INPUT              :   WRITE TO HABITAT
-
             var realm = Organization.GetRealmByName(request.ConfigurationId.RealmId);
             var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
@@ -77,41 +38,27 @@ namespace Allard.Configinator.Core
             {
                 // partial - expand the input doc to match the doc structure,
                 // and add it to the merge list.
-                var habitatJson = (await GetDocsFromConfigStore(cs, new[] {habitat})).Single();
+                var habitatJson = (await GetValueFromConfigstore(cs, habitat));
                 var expandedJson = JsonUtility.Expand(request.SettingsPath, request.Value);
-                var merged1 = (await DocMerger3.Merge(model, habitatJson.Item1.Document, expandedJson));
+                var merged1 = (await DocMerger3.Merge(model, habitatJson, expandedJson));
                 var merged1Json = merged1.ToJsonString("1");
                 habitatDoc = JsonDocument.Parse(merged1Json);
             }
 
-            // validate
-            var validator = new DocValidator(Organization.SchemaTypes);
+            var resolver = new ValueResolver(Organization, configStore);
+            var validator = new DocValidator(Organization.SchemaTypes, habitat.HabitatId.Id);
             var errors = validator.Validate(cs.Properties.ToList(), habitatDoc.RootElement).ToList();
-
-            // if no errors, save
-            if (errors.Count > 0) return new SetValueResponse(request.ConfigurationId, errors);
-
-            // save
-            var path = OrganizationAggregate.GetConfigurationPath(cs, habitat);
-            var value = new SetConfigStoreValueRequest(path, habitatDoc);
-            await configStore.SetValueAsync(value);
-
-            // descendants need to be updated
-            var toUpdate = realm
-                .Habitats
-                .Where(h => h.Bases.Select(b => b.HabitatId).Contains(h.HabitatId))
-                .Select(h => GetValueForHabitat(realm.RealmId, h.HabitatId, cs.SectionId))
-                .ToList();
-
-            await Task.WhenAll(toUpdate).ConfigureAwait(false);
-            var values = toUpdate.Select(u => u.Result).ToList();
-
-
-            foreach (var h in toUpdate)
+            var descendentHabitats = realm.Habitats.Where(h => h.BaseHabitat == habitat);
+            var results = new List<HabitatValue>
             {
-                await GetValueForHabitat(realm.RealmId, h.HabitatId, cs.SectionId);
-            }
+                new(habitat.HabitatId, errors, habitatDoc)
+            };
 
+            foreach (var d in descendentHabitats)
+            {
+                var childResults = await resolver.ApplyValue(d, cs, model, habitatDoc);
+                results.AddRange(childResults);
+            }
 
             return new SetValueResponse(request.ConfigurationId, errors);
         }
@@ -123,13 +70,14 @@ namespace Allard.Configinator.Core
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
 
             // get the bases and the specific value, then merge.
-            var configsToGet = GetDocsFromConfigStore(cs, habitat.Bases.ToList().AddIfNotNull(habitat));
-            var toMerge = (await configsToGet).ToList();
-            var model = structureModelBuilder.ToStructureModel(cs);
-            var merged = await DocMerger3.Merge(model, toMerge.Select(m => m.Item1));
-            var value = GetValue(merged, request.ValuePath, habitat.HabitatId);
-            var anyExists = toMerge.Any(m => m.Item2.Exists);
-            return new GetValueResponse(request.ConfigurationId, anyExists, value, merged);
+            var configsToGet = GetValueFromConfigstore(cs, habitat);
+            return null;
+            // var toMerge = (await configsToGet).ToList();
+            // var model = structureModelBuilder.ToStructureModel(cs);
+            // var merged = await DocMerger3.Merge(model, toMerge.Select(m => m.Item1));
+            // var value = GetDeepValue(merged, request.ValuePath, habitat.HabitatId);
+            // var anyExists = toMerge.Any(m => m.Item2.Exists);
+            // return new GetValueResponse(request.ConfigurationId, anyExists, value, merged);
         }
 
         /// <summary>
@@ -140,7 +88,7 @@ namespace Allard.Configinator.Core
         /// <param name="habitatId"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        private static JsonDocument GetValue(ObjectValue values, string settingPath, HabitatId habitatId)
+        private static JsonDocument GetDeepValue(ObjectValue values, string settingPath, HabitatId habitatId)
         {
             if (string.IsNullOrWhiteSpace(settingPath))
             {
@@ -180,22 +128,17 @@ namespace Allard.Configinator.Core
             return JsonDocument.Parse(node.ToJsonString(habitatId.Id));
         }
 
-        private async Task<IEnumerable<(DocumentToMerge, ConfigStoreValue)>> GetDocsFromConfigStore(
-            ConfigurationSection cs, IEnumerable<Habitat> habitats)
+        // TODO: this is duplicated in value resolver. fix.
+        private async Task<JsonDocument> GetValueFromConfigstore(
+            ConfigurationSection cs, Habitat habitat)
         {
-            // get all values.
-            var results = habitats
-                .Select(async h =>
-                {
-                    var path = OrganizationAggregate.GetConfigurationPath(cs, h);
-                    var resolvedPath = path.Replace("{{habitat}}", h.HabitatId.Id);
-                    var value = await configStore.GetValueAsync(resolvedPath);
-                    var v = value.Exists
-                        ? value.Value
-                        : JsonDocument.Parse("{}");
-                    return (new DocumentToMerge(h.HabitatId.Id, v), value);
-                });
-            return await Task.WhenAll(results);
+            var path = OrganizationAggregate.GetConfigurationPath(cs, habitat);
+            var value = await configStore.GetValueAsync(path);
+            return value.Exists
+                ? value.Value
+                : JsonDocument.Parse("{}");
         }
     }
+
+    public record HabitatValue(HabitatId HabitatId, List<ValidationFailure> Errors, JsonDocument Value);
 }

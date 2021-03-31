@@ -38,7 +38,7 @@ namespace Allard.Configinator.Blazor.Server.Controllers
             // habitats
             foreach (var h in realm.Habitats)
             {
-                r.AddHabitat(h.HabitatId, h.BaseHabitatIds.ToArray());
+                r.AddHabitat(h.HabitatId, h.BaseHabitatId);
             }
 
             // config sections

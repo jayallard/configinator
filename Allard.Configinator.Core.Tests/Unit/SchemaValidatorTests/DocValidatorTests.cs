@@ -24,7 +24,7 @@ namespace Allard.Configinator.Core.Tests.Unit.SchemaValidatorTests
 
             // the property "AtoB" is required but missing.
             var doc = JsonDocument.Parse("{}").RootElement;
-            var results = new DocValidator(new[] {a, b})
+            var results = new DocValidator(new[] {a, b}, "id")
                 .Validate(a.Properties.ToList(), doc)
                 .ToList();
 
@@ -47,7 +47,7 @@ namespace Allard.Configinator.Core.Tests.Unit.SchemaValidatorTests
 
             // the property "AtoB" is required but missing.
             var doc = JsonDocument.Parse("{}").RootElement;
-            var failures = new DocValidator(new[] {a, b})
+            var failures = new DocValidator(new[] {a, b}, "id")
                 .Validate(a.Properties.ToList(), doc);
             failures
                 .Count()
@@ -69,7 +69,7 @@ namespace Allard.Configinator.Core.Tests.Unit.SchemaValidatorTests
 
             // the property "AtoB" is required but missing.
             var doc = JsonDocument.Parse("{ \"AtoB\": { } }").RootElement;
-            var results = new DocValidator(new[] {a, b})
+            var results = new DocValidator(new[] {a, b}, "id")
                 .Validate(a.Properties.ToList(), doc)
                 .ToList();
             results.Single().Code.Should().Be("RequiredPropertyMissing");
@@ -89,7 +89,7 @@ namespace Allard.Configinator.Core.Tests.Unit.SchemaValidatorTests
 
             // the property "AtoB" is required but missing.
             var doc = JsonDocument.Parse("{ \"AtoB\": { } }").RootElement;
-            new DocValidator(new[] {a, b})
+            new DocValidator(new[] {a, b}, "id")
                 .Validate(a.Properties.ToList(), doc)
                 .Should()
                 .BeEmpty();
@@ -109,7 +109,7 @@ namespace Allard.Configinator.Core.Tests.Unit.SchemaValidatorTests
 
             // the property "AtoB" is required but missing.
             var doc = JsonDocument.Parse("{ \"AtoB\": { \"test\": null } }").RootElement;
-            var results = new DocValidator(new[] {a, b})
+            var results = new DocValidator(new[] {a, b}, "id")
                 .Validate(a.Properties.ToList(), doc)
                 .ToList();
             results.Single().Code.Should().Be("RequiredPropertyValueMissing");
@@ -129,7 +129,7 @@ namespace Allard.Configinator.Core.Tests.Unit.SchemaValidatorTests
 
             // the property "AtoB" is required but missing.
             var doc = JsonDocument.Parse("{ \"AtoB\": { \"test\": null } }").RootElement;
-            new DocValidator(new[] {a, b})
+            new DocValidator(new[] {a, b}, "id")
                 .Validate(a.Properties.ToList(), doc)
                 .Should()
                 .BeEmpty();

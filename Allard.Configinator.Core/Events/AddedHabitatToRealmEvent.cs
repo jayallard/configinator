@@ -8,5 +8,5 @@ namespace Allard.Configinator.Core.Events
         OrganizationId OrganizationId,
         RealmId RealmId,
         HabitatId HabitatId,
-        ISet<HabitatId> Bases) : DomainEvent;
+        HabitatId BaseHabitatId = null) : DomainEvent;
 }

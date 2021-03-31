@@ -57,9 +57,9 @@ namespace Allard.Configinator.Core.Tests.Unit
             //org.AddSchemaType(shovelServiceType);
 
             var realm = org.AddRealm(TestRealm1);
-            realm.AddHabitat("production");
-            realm.AddHabitat("staging");
-            realm.AddHabitat("dev");
+            realm.AddHabitat("production", null);
+            realm.AddHabitat("staging", null);
+            realm.AddHabitat("dev", null);
             realm.AddHabitat("dev-allard", "dev");
 
             var properties = new List<SchemaTypeProperty>

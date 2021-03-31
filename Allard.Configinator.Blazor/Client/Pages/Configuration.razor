@@ -61,7 +61,7 @@
         {
             result[property.Name] = GetJsonValue(property.Value);
         }
-        
+
         foreach (var p in explained.Objects)
         {
             result[p.Name] = ToDictionary(p);
@@ -121,26 +121,23 @@
 {
     var realm = organization.GetRealm(RealmId);
     var habitat = realm.GetHabitat(HabitatId);
-    if (habitat.BaseHabitatIds.Count == 0)
+    if (habitat.BaseHabitatId != null)
     {
         <div>
-            Base Habitats:&nbsp;<i>None</i>
+            Base Habitat:&nbsp;<i>None</i>
         </div>
     }
     else
     {
         <div>
-            Base Habitats:&nbsp;
-            @foreach (var b in habitat.BaseHabitatIds)
-            {
-                <span>
-                    <a href="/configuration/@OrganizationId/@RealmId/@SectionId/@b">@b</a> &nbsp;&nbsp;
-                </span>
-            }
+            Base Habitat:&nbsp;
+            <span>
+                <a href="/configuration/@OrganizationId/@RealmId/@SectionId/@habitat.BaseHabitatId">@habitat.BaseHabitatId</a> &nbsp;&nbsp;
+            </span>
         </div>
     }
 
-    var children = realm.Habitats.Where(h => h.BaseHabitatIds.Contains(HabitatId)).Select(b => b.HabitatId).ToList();
+    var children = realm.Habitats.Where(h => h.BaseHabitatId == habitat.HabitatId).ToList();
     if (children.Count == 0)
     {
         <div>
@@ -190,10 +187,10 @@
                 }
             </td>
         </tr>
-    }    
+    }
     foreach (var obj in explained.Objects)
     {
-          <ConfigurationSectionControl Edit=@Edit ObjectViewModel=@obj />
+        <ConfigurationSectionControl Edit=@Edit ObjectViewModel=@obj />
     }
 
     <button hidden="@(!Edit)" @onclick="Save">Save</button>

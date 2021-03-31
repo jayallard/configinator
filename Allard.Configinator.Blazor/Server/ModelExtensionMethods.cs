@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Allard.Configinator.Blazor.Shared;
 using Allard.Configinator.Blazor.Shared.ViewModels.Organization;
 using Allard.Configinator.Core.Model;
 
@@ -50,7 +49,7 @@ namespace Allard.Configinator.Blazor.Server
                     .Select(h => new HabitatViewModel
                     {
                         HabitatId = h.HabitatId.Id,
-                        BaseHabitatIds = h.Bases.Select(b => b.HabitatId.Id).ToList()
+                        BaseHabitatId = h.BaseHabitat.HabitatId.Id
                     })
                     .ToList(),
                 ConfigurationSections = realm
