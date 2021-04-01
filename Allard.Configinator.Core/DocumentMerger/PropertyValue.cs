@@ -67,6 +67,8 @@ namespace Allard.Configinator.Core.DocumentMerger
             var v = new JsonVersionedPropertyValue(version, value);
             values[version] = v;
         }
+
+        public bool IsChanged => values.Values.Any(v => v.IsChanged);
     }
 
     public class JsonVersionedObject
@@ -95,6 +97,10 @@ namespace Allard.Configinator.Core.DocumentMerger
             }
         }
 
+        public bool IsChanged =>
+            properties.Values.Any(p => p.IsChanged)
+            || objects.Values.Any(o => o.IsChanged);
+        
         public JsonVersionedObject(JsonElement model) : this(model, string.Empty)
         {
         }

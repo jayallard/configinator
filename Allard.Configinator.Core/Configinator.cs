@@ -29,57 +29,16 @@ namespace Allard.Configinator.Core
             var realm = Organization.GetRealmByName(request.ConfigurationId.RealmId);
             var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
+            var model = structureModelBuilder.ToStructureModel(cs);
 
-
-            var habitatTree = GetHabitatTree(habitat.HabitatId, realm.Habitats.ToList());
-            // TODO: partial
-            foreach (var h in habitatTree.Root.Children)
-            {
-                
-            }
-            
-            // var chains = GetHabitatDescendantChains(habitat.HabitatId, realm.Habitats.ToList());
-            // var model = structureModelBuilder.ToStructureModel(cs);
-            // foreach (var chain in chains)
-            // {
-            //     var versioned = new JsonVersionedObject(model.RootElement);
-            //     foreach (var h in chain)
-            //     {
-            //         var habitatValue = await GetValueFromConfigstore(cs, h);
-            //         versioned.AddVersion(h.HabitatId.Id, habitatValue.RootElement);
-            //     }
-            // }
-            
-            var partialUpdate = !string.IsNullOrWhiteSpace(request.SettingsPath);
-
-            //var model = structureModelBuilder.ToStructureModel(cs);
-            //var habitatDoc = request.Value;
-            if (partialUpdate)
-            {
-                // partial - expand the input doc to match the doc structure,
-                // and add it to the merge list.
-                // var habitatJson = (await GetValueFromConfigstore(cs, habitat));
-                // var expandedJson = JsonUtility.Expand(request.SettingsPath, request.Value);
-                // var merged1 = (await DocMerger3.Merge(model, habitatJson, expandedJson));
-                // var merged1Json = merged1.ToJsonString("1");
-                // habitatDoc = JsonDocument.Parse(merged1Json);
-            }
-
-            // var resolver = new ValueResolver(Organization, configStore);
-            // var validator = new DocValidator(Organization.SchemaTypes, habitat.HabitatId.Id);
-            // var errors = validator.Validate(cs.Properties.ToList(), habitatDoc.RootElement).ToList();
-            // var descendentHabitats = realm.Habitats.Where(h => h.BaseHabitat == habitat);
-            // var results = new List<HabitatValue>
-            // {
-            //     new(habitat.HabitatId, errors, habitatDoc)
-            // };
-            //
-            // foreach (var d in descendentHabitats)
-            // {
-            //     var childResults = await resolver.ApplyValue(d, cs, model, habitatDoc);
-            //     results.AddRange(childResults);
-            // }
-
+            Func<IHabitat, Task<JsonDocument>> configResolver = async h => await GetValueFromConfigstore(cs, h);
+            var resolver = new HabitatValueResolver(
+                model,
+                configResolver,
+                habitat.HabitatId,
+                realm.Habitats.ToList());
+            var results = await resolver.Resolve();
+            var changedHabitats = results.Where(r => r.Object.IsChanged);
             return new SetValueResponse(request.ConfigurationId, null /*errors*/);
         }
 
@@ -92,7 +51,7 @@ namespace Allard.Configinator.Core
             // get the bases and the specific value, then merge.
             //var configsToGet = GetValueFromConfigstore(cs, habitat);
             var habitats = GetHabitatTree(habitat.HabitatId, realm.Habitats.ToList());
-            
+
             return null;
             // var toMerge = (await configsToGet).ToList();
             // var model = structureModelBuilder.ToStructureModel(cs);
@@ -150,7 +109,6 @@ namespace Allard.Configinator.Core
             return JsonDocument.Parse(node.ToJsonString(habitatId.Id));
         }
 
-        // TODO: this is duplicated in value resolver. fix.
         private async Task<JsonDocument> GetValueFromConfigstore(
             ConfigurationSection cs, IHabitat habitat)
         {
@@ -236,7 +194,7 @@ namespace Allard.Configinator.Core
         }
     }
 
-    public record HabitatConfigurationValue(IHabitat Habitat, JsonVersionedObject);
+    public record HabitatConfigurationValue(IHabitat Habitat, JsonVersionedObject Value);
 
     public record HabitatValue(HabitatId HabitatId, List<ValidationFailure> Errors, JsonDocument Value);
 }
