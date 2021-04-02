@@ -15,6 +15,7 @@ namespace Allard.Configinator.Blazor.Shared.ViewModels.Configuration
     {
         public string Code { get; set; }
         public string ObjectPath { get; set; }
+        public ConfigurationId ConfigurationId { get; set; }
         public string Message { get; set; }
     }
 }

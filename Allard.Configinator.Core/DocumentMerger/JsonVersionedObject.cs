@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -6,8 +7,6 @@ namespace Allard.Configinator.Core.DocumentMerger
 {
     public class JsonVersionedObject
     {
-        private readonly string path;
-        private readonly JsonElement model;
         private readonly Dictionary<string, JsonVersionedProperty> properties = new();
         private readonly Dictionary<string, JsonVersionedObject> objects = new();
         private readonly List<JsonProperty> modelProperties;
@@ -15,7 +14,6 @@ namespace Allard.Configinator.Core.DocumentMerger
 
         private JsonVersionedObject(JsonElement model, string path)
         {
-            this.model = model;
             modelProperties = model.GetProperties2().ToList();
             foreach (var property in modelProperties)
             {
@@ -33,27 +31,9 @@ namespace Allard.Configinator.Core.DocumentMerger
         public bool IsChanged =>
             properties.Values.Any(p => p.IsChanged)
             || objects.Values.Any(o => o.IsChanged);
-        
+
         public JsonVersionedObject(JsonElement model) : this(model, string.Empty)
         {
-        }
-
-        public void AddVersion(string versionName, JsonElement versionElement)
-        {
-            // TODO: prevent adding the same version multiple times
-            foreach (var mp in modelProperties)
-            {
-                var property = properties[mp.Name];
-                var value = versionElement.GetStringProperty2(mp.Name);
-                property.AddVersion(versionName, value);
-            }
-
-            foreach (var mo in modelObjects)
-            {
-                var obj = objects[mo.Name];
-                var value = versionElement.GetObjectProperty2(mo.Name);
-                obj.AddVersion(versionName, value);
-            }
         }
 
         public JsonVersionedObject GetObject(string versionName)
@@ -66,21 +46,51 @@ namespace Allard.Configinator.Core.DocumentMerger
             return properties[propertyName];
         }
 
-        public void UpdateVersion(string versionName, JsonElement versionElement)
+        private void Visit(
+            Action<JsonProperty> propertyHandler,
+            Action<JsonProperty> objectHandler)
         {
             foreach (var mp in modelProperties)
             {
-                var property = properties[mp.Name];
-                var value = versionElement.GetStringProperty2(mp.Name);
-                property.UpdateVersion(versionName, value);
+                propertyHandler(mp);
             }
 
             foreach (var mo in modelObjects)
             {
-                var obj = objects[mo.Name];
-                var value = versionElement.GetObjectProperty2(mo.Name);
-                obj.UpdateVersion(versionName, value);
+                objectHandler(mo);
             }
+        }
+
+        public void AddVersion(string versionName, JsonElement versionElement)
+        {
+            Visit(
+                p =>
+                {
+                    var value = versionElement.GetStringProperty2(p.Name);
+                    properties[p.Name].AddVersion(versionName, value);
+                },
+                p =>
+                {
+                    var value = versionElement.GetObjectProperty2(p.Name);
+                    objects[p.Name].AddVersion(versionName, value);
+                });
+        }
+
+        public void UpdateVersion(string versionName, JsonElement versionElement)
+        {
+            Visit(
+                p =>
+                {
+                    var property = properties[p.Name];
+                    var value = versionElement.GetStringProperty2(p.Name);
+                    property.UpdateVersion(versionName, value);
+                },
+                p =>
+                {
+                    var obj = objects[p.Name];
+                    var value = versionElement.GetObjectProperty2(p.Name);
+                    obj.UpdateVersion(versionName, value);
+                });
         }
     }
 }

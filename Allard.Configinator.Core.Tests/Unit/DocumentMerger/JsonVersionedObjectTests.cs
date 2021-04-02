@@ -28,7 +28,6 @@ namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
             versioned.AddVersion("v1", v1);
             versioned.AddVersion("v2", v2);
             versioned.AddVersion("v3", v3);
-            testOutputHelper.WriteLine("");
             
             // change b=1 to b=2. a and b change.
             var aModified = JsonDocument.Parse("{ \"a\": { \"b\": \"2\" } }").RootElement;

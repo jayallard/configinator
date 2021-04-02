@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Allard.Configinator.Core.DocumentMerger;
+using Allard.Configinator.Core.DocumentValidator;
 using Allard.Configinator.Core.Model;
 
 namespace Allard.Configinator.Core
@@ -26,38 +27,43 @@ namespace Allard.Configinator.Core
             this.model = model.RootElement;
         }
 
-        public async Task<List<HabitatConfigurationVersioning>> Resolve()
+        private void Clear()
         {
-            habitats.Root.Visit(async leaf =>
-            {
-                var value = (await configStore(habitats.Root.Value)).RootElement;
-                leaf.Visit(leaf2 =>
-                {
-                    // the leaf id is the habitat id. get the habitat versioned json.
-                    var versioned = GetOrCreateVersionedObject(leaf2.Value);
-                    versioned.Object.AddVersion(leaf2.Id.Id, value);
-                });
-            });
-            try
-            {
-                return results.Values.ToList();
-            }
-            finally
-            {
-                results.Clear();
-            }
+            results.Clear();
         }
 
-        // private void SetValueFromHabitat(JsonElement parentValue, HabitatId parentId, Tree<HabitatId, IHabitat>.Leaf<HabitatId, IHabitat> leaf)
-        // {
-        //     var versioned = GetOrCreateVersionedObject(leaf.Id);
-        //     versioned.Object.AddVersion(parentId.Id, parentValue);
-        //     foreach (var child in leaf.Children)
-        //     {
-        //         SetValueFromHabitat(parentValue, parentId, child);
-        //     }
-        // }
+        public IEnumerable<HabitatConfigurationVersioning> Habitats => results.Values;
 
+        public IEnumerable<HabitatConfigurationVersioning> ChangedHabitats =>
+            results
+                .Values
+                .Where(h => h.Object.IsChanged);
+
+        public async Task LoadExistingValues()
+        {
+            Clear();
+            await Task.Run(() =>
+            {
+                // outer loop - load the config value for each node
+                habitats.Root.Visit(async leaf =>
+                {
+                    // inner loop - apply the config to each child leaf
+                    var value = (await configStore(habitats.Root.Value)).RootElement;
+                    leaf.Visit(leaf2 =>
+                    {
+                        // the leaf id is the habitat id. get the habitat versioned json.
+                        var versioned = GetOrCreateVersionedObject(leaf2.Value);
+                        versioned.Object.AddVersion(leaf2.Id.Id, value);
+                    });
+                });
+            });
+        }
+
+        public void OverwriteValue(HabitatId habitatId, JsonElement value)
+        {
+            results[habitatId].Object.UpdateVersion(habitatId.Id, value);
+        }
+        
         private HabitatConfigurationVersioning GetOrCreateVersionedObject(IHabitat habitat)
         {
             if (results.ContainsKey(habitat.HabitatId))

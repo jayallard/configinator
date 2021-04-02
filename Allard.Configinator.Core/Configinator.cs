@@ -31,14 +31,29 @@ namespace Allard.Configinator.Core
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
             var model = structureModelBuilder.ToStructureModel(cs);
 
-            Func<IHabitat, Task<JsonDocument>> configResolver = async h => await GetValueFromConfigstore(cs, h);
+            async Task<JsonDocument> ConfigResolver(IHabitat h) => await GetValueFromConfigstore(cs, h);
             var resolver = new HabitatValueResolver(
                 model,
-                configResolver,
+                ConfigResolver,
                 habitat.HabitatId,
                 realm.Habitats.ToList());
-            var results = await resolver.Resolve();
-            var changedHabitats = results.Where(r => r.Object.IsChanged);
+            await resolver.LoadExistingValues();
+            // todo: expand if necessary
+            resolver.OverwriteValue(habitat.HabitatId, request.Value.RootElement);
+
+            var changed = resolver.ChangedHabitats.ToList();
+            if (changed.Count == 0)
+            {
+                // nothing to do
+                return new SetValueResponse(request.ConfigurationId, new List<ValidationFailure>());
+            }
+
+            // validate
+            foreach (var change in changed)
+            {
+            }
+
+            // save
             return new SetValueResponse(request.ConfigurationId, null /*errors*/);
         }
 
@@ -196,5 +211,5 @@ namespace Allard.Configinator.Core
 
     public record HabitatConfigurationValue(IHabitat Habitat, JsonVersionedObject Value);
 
-    public record HabitatValue(HabitatId HabitatId, List<ValidationFailure> Errors, JsonDocument Value);
+    //public record HabitatValue(HabitatId HabitatId, List<ValidationFailure> Errors, JsonDocument Value);
 }
