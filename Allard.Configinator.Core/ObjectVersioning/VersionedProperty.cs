@@ -18,7 +18,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
         }
         
         public bool IsSet { get; private set; }
-        public bool ValueChanged => IsSet && !string.Equals(OriginalValue, Value);
+        public bool IsChanged => IsSet && !string.Equals(OriginalValue, Value);
 
         public void SetValue(string value)
         {

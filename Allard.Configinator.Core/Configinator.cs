@@ -7,6 +7,7 @@ using Allard.Configinator.Core.DocumentMerger;
 using Allard.Configinator.Core.DocumentValidator;
 using Allard.Configinator.Core.Infrastructure;
 using Allard.Configinator.Core.Model;
+using Allard.Configinator.Core.ObjectVersioning;
 
 namespace Allard.Configinator.Core
 {
@@ -36,16 +37,13 @@ namespace Allard.Configinator.Core
                 return await GetValueFromConfigstore(cs, h);
             }
 
-            var resolver = new HabitatValueResolver(
-                model,
-                ConfigResolver,
-                habitat.HabitatId,
-                realm.Habitats.ToList());
+            var resolver = new HabitatValueResolver(null, ConfigResolver, habitat);
             await resolver.LoadExistingValues();
             // todo: expand if necessary
-            resolver.OverwriteValue(habitat.HabitatId, request.Value.RootElement);
+            resolver.OverwriteValue(habitat, ToObject(request.Value.RootElement));
 
             var changed = resolver.ChangedHabitats.ToList();
+            
             if (changed.Count == 0)
                 // nothing to do
                 return new SetValueResponse(request.ConfigurationId, new List<ValidationFailure>());
@@ -63,6 +61,11 @@ namespace Allard.Configinator.Core
 
             // save
             return new SetValueResponse(request.ConfigurationId, failures);
+        }
+
+        public static ObjectDto ToObject(JsonElement json)
+        {
+            return new ObjectDto();
         }
 
         public async Task<GetValueResponse> GetValueAsync(GetValueRequest request)

@@ -20,7 +20,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
             this.model = model.EnsureValue(nameof(model));
         }
 
-        public VersionedObject Add(string versionName, ObjectDto version)
+        public VersionedObject AddVersion(string versionName, ObjectDto version)
         {
             var previousVersion = objectVersionsOrdered.LastOrDefault();
             var v = ConvertDtoToObject(null, previousVersion, versionName, model, version);

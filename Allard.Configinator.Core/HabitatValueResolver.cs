@@ -1,77 +1,100 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Allard.Configinator.Core.DocumentMerger;
 using Allard.Configinator.Core.Model;
+using Allard.Configinator.Core.ObjectVersioning;
 
 namespace Allard.Configinator.Core
 {
     public class HabitatValueResolver
     {
+        private readonly ObjectDto objectModel;
         private readonly Func<IHabitat, Task<JsonDocument>> configStore;
-        private readonly Tree<HabitatId, IHabitat> habitats;
-        private readonly JsonElement model;
-        private readonly Dictionary<HabitatId, HabitatConfigurationVersioning> results = new();
+        private readonly IHabitat baseHabitat;
+        private readonly Dictionary<IHabitat, VersionTracker> habitatTrackers = new();
 
         public HabitatValueResolver(
-            JsonDocument model,
+            ObjectDto objectModel,
             Func<IHabitat, Task<JsonDocument>> configStore,
-            HabitatId rootHabitatId,
-            List<IHabitat> allHabitats)
+            IHabitat baseHabitat)
         {
+            this.objectModel = objectModel.EnsureValue(nameof(objectModel));
             this.configStore = configStore.EnsureValue(nameof(configStore));
-            habitats = Configinator.GetHabitatTree(rootHabitatId, allHabitats);
-            this.model = model.RootElement;
+            this.baseHabitat = baseHabitat.EnsureValue(nameof(baseHabitat));
+            Initialize();
         }
 
-        public IEnumerable<HabitatConfigurationVersioning> Habitats => results.Values;
+        public IEnumerable<VersionedObject> ChangedHabitats => habitatTrackers
+            .Values
+            .Where(t => t.Objects.Last().IsChanged)
+            .Select(t => t.Objects.Last());
 
-        public IEnumerable<HabitatConfigurationVersioning> ChangedHabitats =>
-            results
-                .Values
-                .Where(h => h.Object.IsChanged);
 
-        private void Clear()
+        /// <summary>
+        /// Crawls the habitat tree. Creates a tracker for each habitat.
+        /// </summary>
+        private void Initialize()
         {
-            results.Clear();
+            Visit(baseHabitat, h =>
+            {
+                var tracker = new VersionTracker(objectModel);
+                habitatTrackers.Add(baseHabitat, tracker);
+            });
         }
 
         public async Task LoadExistingValues()
         {
-            Clear();
-            await Task.Run(() =>
+            Visit(baseHabitat, async h =>
             {
-                // outer loop - load the config value for each node
-                habitats.Root.Visit(async leaf =>
+                var valueJson = await configStore(h);
+                var value = ToObjectDto(valueJson.RootElement);
+                var tracker = habitatTrackers[h];
+
+                if (h.BaseHabitat != null)
                 {
-                    // inner loop - apply the config to each child leaf
-                    var value = (await configStore(habitats.Root.Value)).RootElement;
-                    leaf.Visit(leaf2 =>
-                    {
-                        // the leaf id is the habitat id. get the habitat versioned json.
-                        var versioned = GetOrCreateVersionedObject(leaf2.Value);
-                        versioned.Object.AddVersion(leaf2.Id.Id, value);
-                    });
-                });
+                    var baseTracker = habitatTrackers[h.BaseHabitat];
+                    tracker.AddVersion(h.BaseHabitat.HabitatId.Id, baseTracker.Objects.Last().ToDto());
+                }
+                
+                tracker.AddVersion(h.HabitatId.Id, value);
             });
         }
 
-        public void OverwriteValue(HabitatId habitatId, JsonElement value)
+        public void OverwriteValue(IHabitat habitat, ObjectDto newValue)
         {
-            results[habitatId].Object.UpdateVersion(habitatId.Id, value);
+            var tracker = habitatTrackers[habitat];
+            tracker.Update(habitat.HabitatId.Id, newValue);
+            Visit(habitat, h =>
+            {
+                var childTracker = habitatTrackers[h];
+                childTracker.Update(habitat.HabitatId.Id, tracker.Objects.Last().ToDto());
+                CopyDown(childTracker);
+            });
         }
 
-        private HabitatConfigurationVersioning GetOrCreateVersionedObject(IHabitat habitat)
+        private void CopyDown(VersionTracker tracker)
         {
-            if (results.ContainsKey(habitat.HabitatId)) return results[habitat.HabitatId];
-
-            var result = new HabitatConfigurationVersioning(habitat.HabitatId, new JsonVersionedObject(model));
-            results[habitat.HabitatId] = result;
-            return result;
+            
         }
+        
+        private static ObjectDto ToObjectDto(JsonElement configValue)
+        {
+            return new();
+        }
+
+        private void Visit(IHabitat habitat, Action<IHabitat> visitor)
+        {
+            visitor(habitat);
+            foreach (var child in habitat.Children)
+            {
+                Visit(child, visitor);
+            }
+        }
+
     }
 
-    public record HabitatConfigurationVersioning(HabitatId HabitatId, JsonVersionedObject Object);
+    public record HabitatConfigurationVersioning(HabitatId HabitatId, VersionedObject Object);
 }

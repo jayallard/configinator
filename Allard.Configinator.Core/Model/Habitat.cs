@@ -9,6 +9,7 @@ namespace Allard.Configinator.Core.Model
         IRealm Realm { get; }
         HabitatId HabitatId { get; }
         IHabitat BaseHabitat { get; }
+        IEnumerable<IHabitat> Children { get; }
     }
 
     public class Habitat : IHabitat

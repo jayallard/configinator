@@ -55,8 +55,8 @@ namespace Allard.Configinator.Core.Tests.Unit.ObjectVersioning
             b.GetObject("hello").GetProperty("Galaxy").SetValue("milky street");
 
             var tracker = new VersionTracker(model);
-            tracker.Add("a", a);
-            tracker.Add("b", b);
+            tracker.AddVersion("a", a);
+            tracker.AddVersion("b", b);
 
             var output = new StringBuilder();
             PrintObject(output, tracker.Objects.First(), 0);

@@ -43,5 +43,10 @@ namespace Allard.Configinator.Core.ObjectVersioning
         {
             return objectsByName[name];
         }
+
+        public bool IsChanged => propertiesByName.Values.Any(p => p.IsChanged)
+                                 || objectsByName.Values.Any(p => p.IsChanged);
+
+
     }
 }
