@@ -36,7 +36,7 @@ namespace Allard.Configinator.Core
             }
 
             public IReadOnlyCollection<Leaf<TLeafId, TLeafValue>> Children => children.Values;
-            private Leaf<TLeafId, TLeafValue> Parent { get; }
+            public Leaf<TLeafId, TLeafValue> Parent { get; }
             public TLeafId Id { get; }
             public TLeafValue Value { get; }
 

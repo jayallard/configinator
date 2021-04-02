@@ -77,6 +77,7 @@ namespace Allard.Configinator.Core.DocumentMerger
                 });
         }
 
+
         public void UpdateVersion(string versionName, JsonElement versionElement)
         {
             Visit(
