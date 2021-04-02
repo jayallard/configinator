@@ -5,24 +5,23 @@ namespace Allard.Configinator.Core.ObjectVersioning
 {
     public class VersionTracker
     {
-        private static readonly IReadOnlyCollection<VersionedObject> EmptyObjects =
-            new List<VersionedObject>().AsReadOnly();
-
-        private static readonly IReadOnlyCollection<VersionedProperty> EmptyProperties =
-            new List<VersionedProperty>().AsReadOnly();
-
         private readonly ObjectDto model;
         private readonly Dictionary<string, VersionedObject> objectVersions = new();
         private readonly List<VersionedObject> objectVersionsOrdered = new();
+        private static readonly IReadOnlyCollection<VersionedObject> EmptyObjects =
+            new List<VersionedObject>().AsReadOnly();
+        private static readonly IReadOnlyCollection<VersionedProperty> EmptyProperties =
+            new List<VersionedProperty>().AsReadOnly();
 
         public VersionTracker(ObjectDto model)
         {
-            this.model = model;
+            this.model = model.EnsureValue(nameof(model));
         }
 
         public VersionedObject Add(string versionName, ObjectDto version)
         {
-            var v = ConvertDtoToObject(null, versionName, model, version);
+            var previousVersion = objectVersionsOrdered.LastOrDefault();
+            var v = ConvertDtoToObject(null, previousVersion, versionName, model, version);
             objectVersions[versionName] = v;
             objectVersionsOrdered.Add(v);
             return v;
@@ -52,8 +51,9 @@ namespace Allard.Configinator.Core.ObjectVersioning
             }
         }
 
-        private VersionedObject ConvertDtoToObject(
+        private static VersionedObject ConvertDtoToObject(
             VersionedObject parentObject,
+            VersionedObject previousVersion,
             string versionName,
             ObjectDto objectModel,
             ObjectDto toConvert)
@@ -79,7 +79,8 @@ namespace Allard.Configinator.Core.ObjectVersioning
                         .ContainsKey(cm.Name)
                         ? childObjects[cm.Name]
                         : null;
-                    return ConvertDtoToObject(parentObject, versionName, childToConvert, cm);
+                    return ConvertDtoToObject(parentObject, previousVersion?.GetObject(cm.Name), versionName,
+                        childToConvert, cm);
                 })
                 .ToList();
 
@@ -91,35 +92,28 @@ namespace Allard.Configinator.Core.ObjectVersioning
                         .ContainsKey(cp.Name)
                         ? childProperties[cp.Name]
                         : null;
-                    return ConvertDtoToProperty(versionName, parentObject, propertyToConvert, cp);
+                    return ConvertDtoToProperty(versionName, parentObject, previousVersion, propertyToConvert, cp);
                 });
 
             var obj = new VersionedObject(toConvert.Name, versionName, properties, objs, parentObject);
-            var lastVersion = objectVersionsOrdered.LastOrDefault();
-            if (lastVersion != null)
-            {
-                lastVersion.NextVersion = obj;
-                obj.PreviousVersion = lastVersion;
-            }
-
+            if (previousVersion == null) return obj;
+            previousVersion.NextVersion = obj;
+            obj.PreviousVersion = previousVersion;
             return obj;
         }
 
-        private VersionedProperty ConvertDtoToProperty(
+        private static VersionedProperty ConvertDtoToProperty(
             string versionName,
             VersionedObject parentObject,
+            VersionedObject previousVersion,
             PropertyDto currentProperty,
             PropertyDto currentDto)
         {
             var p = new VersionedProperty(versionName, currentDto.Name, currentProperty?.Value, parentObject);
-            var lastVersion = objectVersionsOrdered.LastOrDefault();
-            if (lastVersion != null)
-            {
-                var lastProperty = lastVersion.GetProperty(p.Name);
-                lastProperty.NextVersion = p;
-                p.PreviousVersion = lastProperty;
-            }
-
+            if (previousVersion == null) return p;
+            var lastProperty = previousVersion.GetProperty(p.Name);
+            lastProperty.NextVersion = p;
+            p.PreviousVersion = lastProperty;
             return p;
         }
     }

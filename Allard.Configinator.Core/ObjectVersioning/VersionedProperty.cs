@@ -1,5 +1,8 @@
+using System.Diagnostics;
+
 namespace Allard.Configinator.Core.ObjectVersioning
 {
+    [DebuggerDisplay("Name={Name}, VersionName={VersionName}, Value={Value}")]
     public class VersionedProperty
     {
         public VersionedProperty(
@@ -13,7 +16,6 @@ namespace Allard.Configinator.Core.ObjectVersioning
             OriginalValue = Value = value;
             Parent = parent;
         }
-        
         
         public bool IsSet { get; private set; }
         public bool ValueChanged => IsSet && !string.Equals(OriginalValue, Value);

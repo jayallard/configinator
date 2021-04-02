@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Allard.Configinator.Core.ObjectVersioning;
 using Xunit;
@@ -42,14 +41,19 @@ namespace Allard.Configinator.Core.Tests.Unit.ObjectVersioning
             };
 
             var a = model.Clone();
-            a.GetProperty("a").SetValue("aaa");
+            a.GetProperty("a").SetValue("aaa 1");
+            a.GetProperty("b").SetValue("bbb 1");
+            a.GetProperty("c").SetValue("ccc 1");
 
             var b = model.Clone();
-            b.GetProperty("a").SetValue("bbb");
+            b.GetProperty("a").SetValue("aaa 2");
+            b.GetProperty("c").SetValue("ccc 2");
+
             
             var tracker = new VersionTracker(model);
             tracker.Add("a", a);
             tracker.Add("b", b);
+            
             testOutputHelper.WriteLine("");
         }
     }

@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Allard.Configinator.Core.ObjectVersioning
 {
+    [DebuggerDisplay("Name={Name}, VersionName={VersionName}")]
     public class VersionedObject
     {
         public VersionedObject(
