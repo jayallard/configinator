@@ -3,6 +3,7 @@ using Allard.Configinator.Core.DocumentMerger;
 using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace Allard.Configinator.Core.Tests.Unit.DocumentMerger
 {

@@ -13,6 +13,8 @@ namespace Allard.Configinator.Core.ObjectVersioning
         private static readonly IReadOnlyCollection<VersionedProperty> EmptyProperties =
             new List<VersionedProperty>().AsReadOnly();
 
+        public IReadOnlyCollection<VersionedObject> Objects => objectVersionsOrdered.ToList();
+
         public VersionTracker(ObjectDto model)
         {
             this.model = model.EnsureValue(nameof(model));
@@ -80,7 +82,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
                         ? childObjects[cm.Name]
                         : null;
                     return ConvertDtoToObject(parentObject, previousVersion?.GetObject(cm.Name), versionName,
-                        childToConvert, cm);
+                        cm, childToConvert);
                 })
                 .ToList();
 
