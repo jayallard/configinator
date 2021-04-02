@@ -11,5 +11,5 @@ namespace Allard.Configinator.Blazor.Client.Services
         Task<OrganizationViewModel> GetOrganizationAsync(string organizationId);
         Task<CreateOrganizationResponse> CreateOrganizationAsync(CreateOrganizationRequest request);
         Task AddRealmToOrganizationAsync(string organizationId, RealmViewModel realm);
-    } 
+    }
 }

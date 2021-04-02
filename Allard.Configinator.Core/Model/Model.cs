@@ -4,10 +4,13 @@ using System.Diagnostics;
 namespace Allard.Configinator.Core.Model
 {
     public record HabitatId(string Id) : ModelMemberId(Id);
+
     public record RealmId(string Id) : ModelMemberId(Id);
+
     public record SectionId(string Id) : ModelMemberId(Id);
+
     public record OrganizationId(string Id) : ModelMemberId(Id);
-    
+
     public abstract record ModelMemberId
     {
         protected ModelMemberId(string id)
@@ -17,7 +20,7 @@ namespace Allard.Configinator.Core.Model
 
         public string Id { get; }
     }
-    
+
     [DebuggerDisplay("{SchemaTypeId.FullId}")]
     public record SchemaType(
         SchemaTypeId SchemaTypeId,

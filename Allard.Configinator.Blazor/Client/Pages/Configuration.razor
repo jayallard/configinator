@@ -1,8 +1,8 @@
 @page "/configuration/{organizationId}/{realmId}/{sectionId}/{habitatId}"
-@using System.Text.Json
 @using Allard.Configinator.Blazor.Client.Services
 @using Allard.Configinator.Blazor.Shared.ViewModels.Configuration
 @using Allard.Configinator.Blazor.Shared.ViewModels.Organization
+@using System.Text.Json
 @inject HttpClient client;
 @inject IOrganizationService orgService;
 <h3>Configuration</h3>
@@ -190,7 +190,7 @@
     }
     foreach (var obj in explained.Objects)
     {
-        <ConfigurationSectionControl Edit=@Edit ObjectViewModel=@obj />
+        <ConfigurationSectionControl Edit=@Edit ObjectViewModel=@obj/>
     }
 
     <button hidden="@(!Edit)" @onclick="Save">Save</button>

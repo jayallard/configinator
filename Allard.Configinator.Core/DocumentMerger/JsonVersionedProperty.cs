@@ -8,16 +8,17 @@ namespace Allard.Configinator.Core.DocumentMerger
     {
         private readonly Dictionary<string, JsonVersionedPropertyValue> values = new();
         private readonly List<JsonVersionedPropertyValue> valuesOrdered = new();
-        private readonly JsonElement model;
+
+        public JsonVersionedProperty(string objectPath)
+        {
+            ObjectPath = objectPath.EnsureValue(nameof(objectPath));
+        }
+
         public string ObjectPath { get; }
         public JsonVersionedProperty Property { get; }
         public IReadOnlyCollection<JsonVersionedPropertyValue> Versions => valuesOrdered.AsReadOnly();
 
-        public JsonVersionedProperty(string objectPath, JsonElement model)
-        {
-            ObjectPath = objectPath.EnsureValue(nameof(objectPath));
-            this.model = model.EnsureValue(nameof(model));
-        }
+        public bool IsChanged => values.Values.Any(v => v.IsChanged);
 
         public void AddVersion(string version, JsonElement value)
         {
@@ -43,7 +44,5 @@ namespace Allard.Configinator.Core.DocumentMerger
         {
             return values[versionName.EnsureValue(nameof(versionName))];
         }
-
-        public bool IsChanged => values.Values.Any(v => v.IsChanged);
     }
 }

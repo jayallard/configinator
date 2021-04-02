@@ -74,17 +74,6 @@ namespace Allard.Configinator.Infrastructure.MongoDb
             new EventAccessor(organization).ClearEvents();
         }
 
-        private static List<EventDto> GetEvents(OrganizationAggregate organization)
-        {
-            var txId = Guid.NewGuid().ToString();
-            var eventAccessor = new EventAccessor(organization);
-            return eventAccessor
-                .GetEvents()
-                .Select(e =>
-                    new EventDto(null, txId, e.EventId, organization.OrganizationId, e.EventDate, e.EventName, e))
-                .ToList();
-        }
-        
         public async Task CreateAsync(OrganizationAggregate organization)
         {
             var events = GetEvents(organization);
@@ -99,6 +88,17 @@ namespace Allard.Configinator.Infrastructure.MongoDb
             // insert events
             await GetEventSourceCollection().InsertManyAsync(events);
             new EventAccessor(organization).ClearEvents();
+        }
+
+        private static List<EventDto> GetEvents(OrganizationAggregate organization)
+        {
+            var txId = Guid.NewGuid().ToString();
+            var eventAccessor = new EventAccessor(organization);
+            return eventAccessor
+                .GetEvents()
+                .Select(e =>
+                    new EventDto(null, txId, e.EventId, organization.OrganizationId, e.EventDate, e.EventName, e))
+                .ToList();
         }
 
         public async Task DevelopmentSetup()
@@ -139,7 +139,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb
             var properties = new List<SchemaTypeProperty>
             {
                 new("sql-source", SchemaTypeId.Parse("mssql/sql-user"), false, true),
-                new("kafka-target", SchemaTypeId.Parse("kafka/unsecured"), false, true),
+                new("kafka-target", SchemaTypeId.Parse("kafka/unsecured"), false, true)
             };
             realm.AddConfigurationSection("shovel-service", properties, "description");
 

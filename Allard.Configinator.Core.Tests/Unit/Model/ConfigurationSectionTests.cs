@@ -62,7 +62,7 @@ namespace Allard.Configinator.Core.Tests.Unit.Model
             var properties = new List<SchemaTypeProperty>
             {
                 new("sql-source", SchemaTypeId.Parse("mssql/sql-user"), false, true),
-                new("kafka-target", SchemaTypeId.Parse("kafka/unsecured"), false, true),
+                new("kafka-target", SchemaTypeId.Parse("kafka/unsecured"), false, true)
             };
             var cs = realm.AddConfigurationSection("shovel-service", properties,
                 "description");

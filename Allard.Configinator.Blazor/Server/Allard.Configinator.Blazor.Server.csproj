@@ -24,6 +24,10 @@
     <Compile Remove="Commands\GetSchemaTypesCommand.cs" />
     <Compile Remove="Controllers\ViewModels\RootViewModel.cs" />
     <Compile Remove="Pages\Error.cshtml.cs" />
+    <Compile Remove="Commands\**" />
+    <Compile Remove="Controllers\ConfiginatorCommandController.cs" />
+    <Compile Remove="Controllers\ConfiginatorQueriesController.cs" />
+    <Compile Remove="Controllers\OrganizationQueryController.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,6 +37,15 @@
 
   <ItemGroup>
     <Content Remove="Pages\Error.cshtml" />
+    <Content Remove="Commands\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Commands\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Commands\**" />
   </ItemGroup>
 
 

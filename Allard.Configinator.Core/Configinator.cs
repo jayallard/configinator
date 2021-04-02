@@ -31,7 +31,11 @@ namespace Allard.Configinator.Core
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
             var model = structureModelBuilder.ToStructureModel(cs);
 
-            async Task<JsonDocument> ConfigResolver(IHabitat h) => await GetValueFromConfigstore(cs, h);
+            async Task<JsonDocument> ConfigResolver(IHabitat h)
+            {
+                return await GetValueFromConfigstore(cs, h);
+            }
+
             var resolver = new HabitatValueResolver(
                 model,
                 ConfigResolver,
@@ -43,18 +47,22 @@ namespace Allard.Configinator.Core
 
             var changed = resolver.ChangedHabitats.ToList();
             if (changed.Count == 0)
-            {
                 // nothing to do
                 return new SetValueResponse(request.ConfigurationId, new List<ValidationFailure>());
-            }
 
             // validate
-            foreach (var change in changed)
+            var validator = new ConfigurationValidator(cs, Organization.SchemaTypes);
+            var failures = changed
+                .SelectMany(c => validator.Validate(c.HabitatId, c.Object))
+                .ToList();
+
+            if (failures.Count == 0)
             {
+                // save
             }
 
             // save
-            return new SetValueResponse(request.ConfigurationId, null /*errors*/);
+            return new SetValueResponse(request.ConfigurationId, failures);
         }
 
         public async Task<GetValueResponse> GetValueAsync(GetValueRequest request)
@@ -77,13 +85,14 @@ namespace Allard.Configinator.Core
         }
 
         /// <summary>
-        /// Drill into a config object to pull out a specific object or value.
+        ///     Drill into a config object to pull out a specific object or value.
         /// </summary>
         /// <param name="values"></param>
         /// <param name="settingPath"></param>
         /// <param name="habitatId"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
+        /*
         private static JsonDocument GetDeepValue(ObjectValue values, string settingPath, HabitatId habitatId)
         {
             if (string.IsNullOrWhiteSpace(settingPath))
@@ -123,7 +132,7 @@ namespace Allard.Configinator.Core
 
             return JsonDocument.Parse(node.ToJsonString(habitatId.Id));
         }
-
+        */
         private async Task<JsonDocument> GetValueFromConfigstore(
             ConfigurationSection cs, IHabitat habitat)
         {
@@ -146,10 +155,8 @@ namespace Allard.Configinator.Core
         {
             var children = allHabitats.Where(h => h.BaseHabitat?.HabitatId == currentId).ToList();
             if (children.Count == 0)
-            {
                 // done
                 return;
-            }
 
             foreach (var child in children)
             {
@@ -159,7 +166,7 @@ namespace Allard.Configinator.Core
         }
 
         /// <summary>
-        /// Gets all of the descendent dependency chains for a habitat.
+        ///     Gets all of the descendent dependency chains for a habitat.
         /// </summary>
         /// <param name="targetHabitatId"></param>
         /// <param name="allHabitats"></param>
@@ -187,18 +194,12 @@ namespace Allard.Configinator.Core
                 while (current != null)
                 {
                     chain.Add(current);
-                    if (current.HabitatId == targetHabitatId)
-                    {
-                        break;
-                    }
+                    if (current.HabitatId == targetHabitatId) break;
 
                     current = current.BaseHabitat;
                 }
 
-                if (current != null)
-                {
-                    chains.Add(chain);
-                }
+                if (current != null) chains.Add(chain);
 
 
                 // put the base class as the top

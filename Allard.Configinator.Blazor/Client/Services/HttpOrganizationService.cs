@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -13,8 +12,8 @@ namespace Allard.Configinator.Blazor.Client.Services
 {
     public class HttpOrganizationService : IOrganizationService
     {
-        private readonly HttpClient client;
         private const string BaseUrl = "/api/v1/organizations/";
+        private readonly HttpClient client;
 
         public HttpOrganizationService(HttpClient client)
         {
@@ -41,14 +40,11 @@ namespace Allard.Configinator.Blazor.Client.Services
 
         public async Task AddRealmToOrganizationAsync(string organizationId, RealmViewModel realm)
         {
-            if (realm == null)
-            {
-                throw new ArgumentNullException(nameof(realm));
-            }
+            if (realm == null) throw new ArgumentNullException(nameof(realm));
 
             Console.WriteLine("service");
             Console.WriteLine(JsonSerializer.Serialize(realm));
-            
+
             var url = BaseUrl + HttpUtility.UrlEncode(organizationId) + "/realms";
             await client.PostAsJsonAsync(url, realm);
         }

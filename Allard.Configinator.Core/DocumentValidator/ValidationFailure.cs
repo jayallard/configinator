@@ -1,4 +1,6 @@
+using Allard.Configinator.Core.Infrastructure;
+
 namespace Allard.Configinator.Core.DocumentValidator
 {
-    public record ValidationFailure(string HabitatId, string Path, string Code, string Message);
+    public record ValidationFailure(ConfigurationId ConfigurationId, string Path, string Code, string Message);
 }

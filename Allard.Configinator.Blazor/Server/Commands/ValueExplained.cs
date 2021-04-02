@@ -29,10 +29,11 @@ namespace Allard.Configinator.Blazor.Server.Commands
         {
             var resolvedRequest = new GetValueCommand(request.ConfigurationId);
             var resolved = await mediator.Send(resolvedRequest, cancellationToken);
-            return ToViewModel(resolved.Object);
+            return null;
+            //return ToViewModel(resolved.Object);
         }
 
-        private static ObjectViewModel ToViewModel(ObjectValue value)
+        /*private static ObjectViewModel ToViewModel(ObjectValue value)
         {
             var properties = value
                 .Properties
@@ -49,6 +50,6 @@ namespace Allard.Configinator.Blazor.Server.Commands
 
             var objects = value.Objects.Select(ToViewModel).ToList();
             return new ObjectViewModel(value.ObjectPath, value.Name, properties, objects);
-        }
+        }*/
     }
 }

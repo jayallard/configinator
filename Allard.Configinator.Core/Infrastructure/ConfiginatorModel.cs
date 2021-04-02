@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Text.Json;
-using Allard.Configinator.Core.DocumentMerger;
 using Allard.Configinator.Core.DocumentValidator;
 
 namespace Allard.Configinator.Core.Infrastructure
@@ -10,8 +9,7 @@ namespace Allard.Configinator.Core.Infrastructure
     public record GetValueResponse(
         ConfigurationId ConfigurationId,
         bool Exists,
-        JsonDocument Value,
-        ObjectValue ObjectValue);
+        JsonDocument Value);
 
     public record SetValueRequest(
         ConfigurationId ConfigurationId,

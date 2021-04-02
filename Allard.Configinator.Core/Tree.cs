@@ -7,13 +7,13 @@ namespace Allard.Configinator.Core
     {
         private readonly Dictionary<TId, Leaf<TId, TValue>> all = new();
 
-        public Leaf<TId, TValue> Root { get; }
-        
         public Tree(TId rootId, TValue rootValue)
         {
             Root = new Leaf<TId, TValue>(null, rootId, rootValue);
             all[rootId] = Root;
         }
+
+        public Leaf<TId, TValue> Root { get; }
 
         public Tree<TId, TValue> Add(TId parentId, TId id, TValue value)
         {
@@ -24,13 +24,10 @@ namespace Allard.Configinator.Core
             return this;
         }
 
-        public class Leaf<TLeafId, TLeafValue> where TLeafId: class
+        public class Leaf<TLeafId, TLeafValue> where TLeafId : class
         {
             private readonly Dictionary<TLeafId, Leaf<TLeafId, TLeafValue>> children = new();
-            public IReadOnlyCollection<Leaf<TLeafId, TLeafValue>> Children => children.Values;
-            private Leaf<TLeafId, TLeafValue> Parent { get; }
-            public TLeafId Id { get; }
-            public TLeafValue Value { get; }
+
             public Leaf(Leaf<TLeafId, TLeafValue> parent, TLeafId id, TLeafValue value)
             {
                 Parent = parent;
@@ -38,13 +35,15 @@ namespace Allard.Configinator.Core
                 Value = value;
             }
 
+            public IReadOnlyCollection<Leaf<TLeafId, TLeafValue>> Children => children.Values;
+            private Leaf<TLeafId, TLeafValue> Parent { get; }
+            public TLeafId Id { get; }
+            public TLeafValue Value { get; }
+
             public void AddChild(Leaf<TLeafId, TLeafValue> child)
             {
-                if (child.Parent != this)
-                {
-                    throw new InvalidOperationException("Invalid relationship");
-                }
-                
+                if (child.Parent != this) throw new InvalidOperationException("Invalid relationship");
+
                 children.Add(child.Id, child);
             }
         }

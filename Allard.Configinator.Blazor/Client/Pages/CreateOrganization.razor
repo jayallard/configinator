@@ -1,7 +1,6 @@
 @page "/CreateOrganization"
-@using Allard.Configinator.Blazor.Shared.ViewModels.Organization
 @using Allard.Configinator.Blazor.Client.Services
-@using Allard.Configinator.Core.Events
+@using Allard.Configinator.Blazor.Shared.ViewModels.Organization
 @inject IOrganizationService service;
 @inject NavigationManager navigationManager;
 @inject IEventBus bus;
@@ -17,6 +16,7 @@
         bus.Publish(new OrganizationCreatedClientEvent(request.OrganizationId));
         navigationManager.NavigateTo("/organization/" + request.OrganizationId);
     }
+
 }
 
 <EditForm Model="@request" OnValidSubmit="Create">

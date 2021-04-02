@@ -2,6 +2,7 @@
 @using Allard.Configinator.Blazor.Client.Services
 @using Allard.Configinator.Blazor.Shared.ViewModels.Organization
 @inject IOrganizationService organizationService;
+
 @code {
 
     [Parameter]
@@ -14,12 +15,18 @@
         organization = await organizationService.GetOrganizationAsync(OrganizationId);
         await base.OnInitializedAsync();
     }
+
 }
 
 <h3>Organization: @OrganizationId</h3>
 @if (organization != null)
 {
-    <h4 style="padding:15px;background-color: black; color: white">Realms <a href="/organization/@OrganizationId/createrealm"><span class="oi oi-plus"></span></a></h4>
+    <h4 style="padding:15px;background-color: black; color: white">
+        Realms
+        <a href="/organization/@OrganizationId/createrealm">
+            <span class="oi oi-plus"></span>
+        </a>
+    </h4>
     @if (organization.Realms.Count == 0)
     {
         <p>This organization doesn't have any realms.</p>
@@ -68,7 +75,6 @@
         foreach (var t in organization.SchemaTypes)
         {
             <h2>@t.SchemaTypeId</h2>
-                               
         }
     }
 }

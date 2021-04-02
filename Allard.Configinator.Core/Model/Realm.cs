@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Allard.Configinator.Core.Events;
-using Allard.Configinator.Core.Model.Validators;
 
 namespace Allard.Configinator.Core.Model
 {
@@ -10,6 +9,7 @@ namespace Allard.Configinator.Core.Model
     {
         IReadOnlyCollection<IHabitat> Habitats { get; }
     }
+
     public class Realm : IRealm
     {
         private readonly Dictionary<SectionId, ConfigurationSection> configurationSections = new();
@@ -23,8 +23,8 @@ namespace Allard.Configinator.Core.Model
 
         public OrganizationAggregate Organization { get; }
         public RealmId RealmId { get; }
-        public IReadOnlyCollection<IHabitat> Habitats => habitats.Values;
         public IReadOnlyCollection<ConfigurationSection> ConfigurationSections => configurationSections.Values;
+        public IReadOnlyCollection<IHabitat> Habitats => habitats.Values;
 
         public IHabitat GetHabitat(string habitatId)
         {
@@ -77,10 +77,7 @@ namespace Allard.Configinator.Core.Model
             // make sure the configuration section doesn't already exist
             habitats.Keys.EnsureIdDoesntExist(sectionId);
 
-            if (!properties.Any())
-            {
-                throw new InvalidOperationException("At least one property is required.");
-            }
+            if (!properties.Any()) throw new InvalidOperationException("At least one property is required.");
 
             Organization.EnsureValidSchemaTypes(properties.Select(p => p.SchemaTypeId));
             // todo: duplicate names
@@ -119,7 +116,7 @@ namespace Allard.Configinator.Core.Model
             //     .ToHashSet();
 
             // create and raise the event.
-            var evt = new AddedHabitatToRealmEvent(Organization.OrganizationId, RealmId, habitatId, null);
+            var evt = new AddedHabitatToRealmEvent(Organization.OrganizationId, RealmId, habitatId);
             return Organization
                 .EventHandlerRegistry
                 .Raise<AddedHabitatToRealmEvent, Habitat>(evt);

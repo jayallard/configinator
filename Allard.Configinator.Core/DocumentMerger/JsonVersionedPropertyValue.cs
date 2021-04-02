@@ -4,6 +4,15 @@ namespace Allard.Configinator.Core.DocumentMerger
 {
     public class JsonVersionedPropertyValue
     {
+        public JsonVersionedPropertyValue(string versionName, JsonElement valueElement,
+            JsonVersionedProperty parentProperty)
+        {
+            VersionName = versionName.EnsureValue(nameof(versionName));
+            OriginalElement = ValueElement = valueElement;
+            OriginalValue = Value = GetValue(valueElement);
+            ParentProperty = parentProperty.EnsureValue(nameof(parentProperty));
+        }
+
         public bool Exists => ValueElement.ValueKind != JsonValueKind.Undefined;
         public string OriginalValue { get; }
         public JsonElement OriginalElement { get; }
@@ -21,14 +30,6 @@ namespace Allard.Configinator.Core.DocumentMerger
             IsSet = true;
             ValueElement = value;
             Value = GetValue(value);
-        }
-
-        public JsonVersionedPropertyValue(string versionName, JsonElement valueElement, JsonVersionedProperty parentProperty)
-        {
-            VersionName = versionName.EnsureValue(nameof(versionName));
-            OriginalElement = ValueElement = valueElement;
-            OriginalValue = Value = GetValue(valueElement);
-            ParentProperty = parentProperty.EnsureValue(nameof(parentProperty));
         }
 
         private string GetValue(JsonElement element)

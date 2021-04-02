@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Allard.Configinator.Blazor.Shared.ViewModels.Organization

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -7,7 +6,6 @@ using Allard.Configinator.Core.Infrastructure;
 using Allard.Configinator.Core.Model;
 using Allard.Configinator.Core.Model.Builders;
 using FluentAssertions;
-using NSubstitute;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -68,7 +66,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             var properties = new List<SchemaTypeProperty>
             {
                 new("sql-source", SchemaTypeId.Parse("mssql/sql-user"), false, true),
-                new("kafka-target", SchemaTypeId.Parse("kafka/unsecured"), false, true),
+                new("kafka-target", SchemaTypeId.Parse("kafka/unsecured"), false, true)
             };
 
             realm.AddConfigurationSection(TestConfigurationSection1, properties, "description");
@@ -225,7 +223,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             var chains = Configinator.GetHabitatDescendantChains(new HabitatId("a"), CreateTestHabitats());
             chains.Count.Should().Be(6);
         }
-        
+
         [Fact]
         public void MultipleChainsFromSecondLevel()
         {
@@ -269,9 +267,33 @@ namespace Allard.Configinator.Core.Tests.Unit
                 .Values;
         }
 
+        [Fact]
+        public void Tree()
+        {
+            var id = new HabitatId("i");
+            var tree = Configinator.GetHabitatTree(id, CreateTestHabitats());
+            testOutputHelper.WriteLine("");
+        }
+
+        /// <summary>
+        ///     Get the chains of a habitat that doesn't have a parent
+        ///     nor children
+        /// </summary>
+        [Fact]
+        public void GetChainSingle()
+        {
+            var chains = Configinator.GetHabitatDescendantChains(new HabitatId("q"), CreateTestHabitats());
+            chains.Count.Should().Be(1);
+            chains[0].Count.Should().Be(1);
+            chains[0][0].HabitatId.Should().Be(new HabitatId("q"));
+            chains[0][0].BaseHabitat.Should().BeNull();
+        }
+
         private class TestDataBuilder
         {
             private readonly Dictionary<string, IHabitat> values = new();
+
+            public List<IHabitat> Values => values.Values.ToList();
 
             public TestDataBuilder Add(string habitatId, string baseHabitatId)
             {
@@ -282,30 +304,6 @@ namespace Allard.Configinator.Core.Tests.Unit
                 values.Add(habitatId, h);
                 return this;
             }
-
-            public List<IHabitat> Values => values.Values.ToList();
-        }
-
-        [Fact]
-        public void Tree()
-        {
-            var id = new HabitatId("i");
-            var tree = Configinator.GetHabitatTree(id, CreateTestHabitats());
-            testOutputHelper.WriteLine("");
-        }
-
-        /// <summary>
-        /// Get the chains of a habitat that doesn't have a parent
-        /// nor children
-        /// </summary>
-        [Fact]
-        public void GetChainSingle()
-        {
-            var chains = Configinator.GetHabitatDescendantChains(new HabitatId("q"), CreateTestHabitats());
-            chains.Count.Should().Be(1);
-            chains[0].Count.Should().Be(1);
-            chains[0][0].HabitatId.Should().Be(new HabitatId("q"));
-            chains[0][0].BaseHabitat.Should().BeNull();
         }
 
 

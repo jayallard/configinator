@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Allard.Configinator.Core.Model;
 using FluentAssertions;
 using Xunit;

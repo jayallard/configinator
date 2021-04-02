@@ -4,16 +4,15 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Allard.Configinator.Core.DocumentMerger;
-using Allard.Configinator.Core.DocumentValidator;
 using Allard.Configinator.Core.Model;
 
 namespace Allard.Configinator.Core
 {
     public class HabitatValueResolver
     {
-        private readonly JsonElement model;
         private readonly Func<IHabitat, Task<JsonDocument>> configStore;
         private readonly Tree<HabitatId, IHabitat> habitats;
+        private readonly JsonElement model;
         private readonly Dictionary<HabitatId, HabitatConfigurationVersioning> results = new();
 
         public HabitatValueResolver(
@@ -27,17 +26,17 @@ namespace Allard.Configinator.Core
             this.model = model.RootElement;
         }
 
-        private void Clear()
-        {
-            results.Clear();
-        }
-
         public IEnumerable<HabitatConfigurationVersioning> Habitats => results.Values;
 
         public IEnumerable<HabitatConfigurationVersioning> ChangedHabitats =>
             results
                 .Values
                 .Where(h => h.Object.IsChanged);
+
+        private void Clear()
+        {
+            results.Clear();
+        }
 
         public async Task LoadExistingValues()
         {
@@ -63,13 +62,10 @@ namespace Allard.Configinator.Core
         {
             results[habitatId].Object.UpdateVersion(habitatId.Id, value);
         }
-        
+
         private HabitatConfigurationVersioning GetOrCreateVersionedObject(IHabitat habitat)
         {
-            if (results.ContainsKey(habitat.HabitatId))
-            {
-                return results[habitat.HabitatId];
-            }
+            if (results.ContainsKey(habitat.HabitatId)) return results[habitat.HabitatId];
 
             var result = new HabitatConfigurationVersioning(habitat.HabitatId, new JsonVersionedObject(model));
             results[habitat.HabitatId] = result;

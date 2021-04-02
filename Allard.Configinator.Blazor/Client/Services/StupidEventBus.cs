@@ -15,10 +15,7 @@ namespace Allard.Configinator.Blazor.Client.Services
 
         public void Publish(object evt)
         {
-            foreach (var sub in subscribers.Where(s => s.Condition(evt)))
-            {
-                sub.Action(evt);
-            }
+            foreach (var sub in subscribers.Where(s => s.Condition(evt))) sub.Action(evt);
         }
 
         private record Subscriber(Func<object, bool> Condition, Action<object> Action);
