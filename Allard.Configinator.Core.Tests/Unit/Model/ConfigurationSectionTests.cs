@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Allard.Configinator.Core.Infrastructure;
 using Allard.Configinator.Core.Model;
 using Allard.Configinator.Core.Model.Builders;
 using Xunit;
@@ -42,12 +44,6 @@ namespace Allard.Configinator.Core.Tests.Unit.Model
                 .AddProperty("bogus2", "bogus/stuff")
                 .Build();
 
-            // var shovelServiceType = SchemaTypeBuilder
-            //     .Create("something-domain/shovel-service")
-            //     .AddProperty("sql-source", "mssql/sql-user")
-            //     .AddProperty("kafka-target", "kafka/unsecured")
-            //     .Build();
-
             var org = new OrganizationAggregate(new OrganizationId("allard"));
             org.AddSchemaType(bogusType);
             org.AddSchemaType(kafkaType);
@@ -64,11 +60,8 @@ namespace Allard.Configinator.Core.Tests.Unit.Model
                 new("sql-source", SchemaTypeId.Parse("mssql/sql-user"), false, true),
                 new("kafka-target", SchemaTypeId.Parse("kafka/unsecured"), false, true)
             };
-            var cs = realm.AddConfigurationSection("shovel-service", properties,
+            realm.AddConfigurationSection("shovel-service", properties,
                 "description");
-
-            var x = new JsonStructureModelBuilder(org.SchemaTypes).ToStructureModel(cs);
-            testOutputHelper.WriteLine("");
         }
     }
 }

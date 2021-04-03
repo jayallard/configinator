@@ -1,10 +1,13 @@
+using System.Diagnostics;
+
 namespace Allard.Configinator.Core.ObjectVersioning
 {
+    [DebuggerDisplay("Name={Name}, Value={Value}")]
     public class PropertyDto
     {
         public string Name { get; set; }
         public string Value { get; set; }
-
+        
         public PropertyDto SetName(string name)
         {
             Name = name;

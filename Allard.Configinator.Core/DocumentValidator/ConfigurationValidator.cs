@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using Allard.Configinator.Core.DocumentMerger;
 using Allard.Configinator.Core.Infrastructure;
 using Allard.Configinator.Core.Model;
+using Allard.Configinator.Core.ObjectVersioning;
 
 namespace Allard.Configinator.Core.DocumentValidator
 {
@@ -13,14 +13,14 @@ namespace Allard.Configinator.Core.DocumentValidator
 
         public ConfigurationValidator(ConfigurationSection configurationSection, IEnumerable<SchemaType> schemaTypes)
         {
-            configurationSection = this.configurationSection.EnsureValue(nameof(ConfigurationSection));
+            this.configurationSection = configurationSection.EnsureValue(nameof(ConfigurationSection));
             schemas = schemaTypes.EnsureValue(nameof(schemaTypes)).ToDictionary(st => st.SchemaTypeId);
         }
 
-        public IEnumerable<ValidationFailure> Validate(HabitatId habitatId, JsonVersionedObject value)
+        public IEnumerable<ValidationFailure> Validate(HabitatId habitatId, ObjectDto value)
         {
             var results = new List<ValidationFailure>();
-            Validate(results, habitatId, configurationSection.Properties.ToList(), value);
+            Validate(results, habitatId, configurationSection.Properties.ToList(), value, string.Empty);
             return results;
         }
 
@@ -28,23 +28,25 @@ namespace Allard.Configinator.Core.DocumentValidator
             List<ValidationFailure> errors,
             HabitatId habitatId,
             List<SchemaTypeProperty> properties,
-            JsonVersionedObject obj)
+            ObjectDto obj,
+            string path)
         {
+            var configId = new ConfigurationId(
+                configurationSection.Realm.Organization.OrganizationId.Id,
+                configurationSection.Realm.RealmId.Id,
+                configurationSection.SectionId.Id,
+                habitatId.Id);
             foreach (var property in properties)
             {
+                var propertyPath = path + "/" + property.Name;
                 var schemaType = schemas[property.SchemaTypeId];
                 if (schemaType.SchemaTypeId.IsPrimitive)
                 {
                     // property
-                    var valueProperty = obj.GetProperty(property.Name).GetValue(habitatId.Id);
-                    if (string.IsNullOrWhiteSpace(valueProperty.Value) && property.IsRequired)
+                    var value = obj.GetProperty(property.Name).Value;
+                    if (string.IsNullOrWhiteSpace(value) && property.IsRequired)
                     {
-                        var configId = new ConfigurationId(
-                            configurationSection.Realm.Organization.OrganizationId.Id,
-                            configurationSection.Realm.RealmId.Id,
-                            configurationSection.SectionId.Id,
-                            habitatId.Id);
-                        errors.Add(new ValidationFailure(configId, valueProperty.ParentProperty.ObjectPath,
+                        errors.Add(new ValidationFailure(configId, propertyPath,
                             "RequiredValueMissing", "A value is required."));
                     }
 
@@ -52,7 +54,7 @@ namespace Allard.Configinator.Core.DocumentValidator
                 }
 
                 var valueObject = obj.GetObject(property.Name);
-                Validate(errors, habitatId, schemaType.Properties.ToList(), valueObject);
+                Validate(errors, habitatId, schemaType.Properties.ToList(), valueObject, propertyPath);
             }
         }
     }

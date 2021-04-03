@@ -20,28 +20,14 @@ namespace Allard.Configinator.Core.Tests.Unit.ObjectVersioning
         [Fact]
         public void Blah()
         {
-            var model = new ObjectDto
-            {
-                Name = "root",
-                Objects = new List<ObjectDto>
-                {
-                    new()
-                    {
-                        Name = "hello",
-                        Properties = new List<PropertyDto>
-                        {
-                            new() {Name = "World"},
-                            new() {Name = "Galaxy"}
-                        }
-                    }
-                },
-                Properties = new List<PropertyDto>
-                {
-                    new() {Name = "a"},
-                    new() {Name = "b"},
-                    new() {Name = "c"},
-                }
-            };
+            var model = new ObjectDto()
+                .SetName("root")
+                .AddObject(new ObjectDto()
+                    .SetName("root")
+                    .AddProperty("world")
+                    .AddProperty("Galzxy"))
+                .AddProperty("a")
+                .AddProperty("b");
 
             var a = model.Clone();
             a.GetProperty("a").SetValue("aaa 1");
@@ -59,7 +45,7 @@ namespace Allard.Configinator.Core.Tests.Unit.ObjectVersioning
             tracker.AddVersion("b", b);
 
             var output = new StringBuilder();
-            PrintObject(output, tracker.Objects.First(), 0);
+            PrintObject(output, tracker.Versions.First(), 0);
             testOutputHelper.WriteLine(output.ToString());
         }
 

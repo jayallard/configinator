@@ -7,12 +7,10 @@ namespace Allard.Configinator.Core.ObjectVersioning
     {
         public static ObjectDto ToDto(this VersionedObject obj)
         {
-            return new()
-            {
-                Name = obj.Name,
-                Properties = obj.Properties.ToDto().ToList(),
-                Objects = obj.Objects.ToDto().ToList()
-            };
+            return new ObjectDto()
+                .SetName(obj.Name)
+                .AddProperties(obj.Properties.ToDto())
+                .AddObjects(obj.Objects.ToDto());
         }
 
         private static PropertyDto ToDto(this VersionedProperty property)

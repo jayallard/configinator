@@ -8,12 +8,14 @@ namespace Allard.Configinator.Core.ObjectVersioning
         private readonly ObjectDto model;
         private readonly Dictionary<string, VersionedObject> objectVersions = new();
         private readonly List<VersionedObject> objectVersionsOrdered = new();
+
         private static readonly IReadOnlyCollection<VersionedObject> EmptyObjects =
             new List<VersionedObject>().AsReadOnly();
+
         private static readonly IReadOnlyCollection<VersionedProperty> EmptyProperties =
             new List<VersionedProperty>().AsReadOnly();
 
-        public IReadOnlyCollection<VersionedObject> Objects => objectVersionsOrdered.ToList();
+        public IReadOnlyCollection<VersionedObject> Versions => objectVersionsOrdered.ToList();
 
         public VersionTracker(ObjectDto model)
         {
@@ -29,7 +31,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
             return v;
         }
 
-        public VersionedObject Update(string versionName, ObjectDto version)
+        public VersionedObject UpdateVersion(string versionName, ObjectDto version)
         {
             var existing = objectVersions[versionName];
             UpdateObjectValues(model, existing, version);
@@ -49,7 +51,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
             var propertiesToUpdate = objectDto.Properties.Where(p => childProperties.ContainsKey(p.Name));
             foreach (var p in propertiesToUpdate)
             {
-                toUpdate.GetProperty(p.Name).SetValue(p.Value);
+                toUpdate.GetProperty(p.Name).SetValue(childProperties[p.Name].Value);
             }
         }
 
@@ -60,17 +62,8 @@ namespace Allard.Configinator.Core.ObjectVersioning
             ObjectDto objectModel,
             ObjectDto toConvert)
         {
-            if (toConvert == null)
-            {
-                // object doesn't exist in the input doc.
-                return new VersionedObject(objectModel.Name, versionName, EmptyProperties, EmptyObjects, parentObject);
-            }
-
             // hack
-            objectModel.Objects ??= new List<ObjectDto>();
-            objectModel.Properties ??= new List<PropertyDto>();
-            toConvert.Objects ??= new List<ObjectDto>();
-            toConvert.Properties ??= new List<PropertyDto>();
+            toConvert ??= new ObjectDto().SetName(objectModel.Name);
             var childObjects = toConvert.Objects.ToDictionary(o => o.Name);
             var childProperties = toConvert.Properties.ToDictionary(o => o.Name);
             var objs = objectModel
@@ -112,10 +105,13 @@ namespace Allard.Configinator.Core.ObjectVersioning
             PropertyDto currentDto)
         {
             var p = new VersionedProperty(versionName, currentDto.Name, currentProperty?.Value, parentObject);
-            if (previousVersion == null) return p;
-            var lastProperty = previousVersion.GetProperty(p.Name);
-            lastProperty.NextVersion = p;
-            p.PreviousVersion = lastProperty;
+            if (previousVersion != null)
+            {
+                var lastProperty = previousVersion.GetProperty(p.Name);
+                lastProperty.NextVersion = p;
+                p.PreviousVersion = lastProperty;
+            }
+
             return p;
         }
     }

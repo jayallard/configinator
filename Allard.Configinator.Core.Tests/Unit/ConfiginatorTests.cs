@@ -46,12 +46,6 @@ namespace Allard.Configinator.Core.Tests.Unit
                 .AddStringProperty("initial-catalog", isOptional: true)
                 .Build();
 
-            // var shovelServiceType = SchemaTypeBuilder
-            //     .Create("something-domain/shovel-service")
-            //     .AddProperty("sql-source", "mssql/sql-user")
-            //     .AddProperty("kafka-target", "kafka/unsecured")
-            //     .Build();
-
             var org = new OrganizationAggregate(new OrganizationId("allard"));
             org.AddSchemaType(kafkaType);
             org.AddSchemaType(sqlType);
@@ -105,8 +99,8 @@ namespace Allard.Configinator.Core.Tests.Unit
             var getRequest = new GetValueRequest(configId);
             var get = await Configinator.GetValueAsync(getRequest);
 
-            var expectedString = input.ToStupidComparisonString();
-            var actualString = get.Value.ToStupidComparisonString();
+            var expectedString = input.RootElement.ToString();
+            var actualString = get.Value.RootElement.ToString();
             actualString.Should().Be(expectedString);
         }
 
@@ -138,8 +132,8 @@ namespace Allard.Configinator.Core.Tests.Unit
                 new SetValueRequest(configId2, null, JsonDocument.Parse(sqlPassword));
             await Configinator.SetValueAsync(setRequest2);
             var path = $"/{Organization.OrganizationId.Id}/{TestRealm1}/{TestConfigurationSection1}/dev-allard";
-            var value = (await ConfigStore.GetValueAsync(path)).Value.ConvertToString();
-            value.Should().Be(JsonDocument.Parse(sqlPassword).ConvertToString());
+            var value = (await ConfigStore.GetValueAsync(path)).Value.RootElement.ToString();
+            value.Should().Be(JsonDocument.Parse(sqlPassword).RootElement.ToString());
 
             // test is no longer valid because RAW has been eliminated.
             // fix the assert to look at the layers
@@ -193,102 +187,6 @@ namespace Allard.Configinator.Core.Tests.Unit
             getResponse3.Value.RootElement.GetString().Should().Be("yay!");
         }
 
-        [Fact]
-        public void ValidateStraightLine()
-        {
-            // y : z
-            var chains = Configinator.GetHabitatDescendantChains(new HabitatId("y"), CreateTestHabitats());
-            chains.Count.Should().Be(1);
-            var y = chains.Single();
-
-            // 2 items on the list: y and z
-            y.Count.Should().Be(2);
-
-            // first item is y - the base
-            y.First().HabitatId.Id.Should().Be("y");
-
-            // last item is z - the child
-            y.Last().HabitatId.Id.Should().Be("z");
-        }
-
-        [Fact]
-        public void MultipleChainsFromTop()
-        {
-            // a : b : c
-            // a : b : d
-            // a : b : e : f
-            // a : g : h
-            // a : g : i : k 
-            // a : g : u
-            var chains = Configinator.GetHabitatDescendantChains(new HabitatId("a"), CreateTestHabitats());
-            chains.Count.Should().Be(6);
-        }
-
-        [Fact]
-        public void MultipleChainsFromSecondLevel()
-        {
-            // b : c
-            // b : d
-            // b : e : f
-            var chains = Configinator.GetHabitatDescendantChains(new HabitatId("b"), CreateTestHabitats());
-            chains.Count.Should().Be(3);
-        }
-
-        private static List<IHabitat> CreateTestHabitats()
-        {
-            //   A -------------------- X ------ Q
-            //  a                       x        q
-            //  b           g           y
-            //  c d e      h i u        z     
-            //      f        k
-
-
-            return new TestDataBuilder()
-                // a tree
-                .Add("a", null)
-                .Add("b", "a")
-                .Add("c", "b")
-                .Add("d", "b")
-                .Add("e", "b")
-                .Add("f", "e")
-                .Add("g", "a")
-                .Add("h", "g")
-                .Add("i", "g")
-                .Add("u", "g")
-                .Add("k", "i")
-
-                // x tree
-                .Add("x", null)
-                .Add("y", "x")
-                .Add("z", "y")
-
-                // q, stand alone
-                .Add("q", null)
-                .Values;
-        }
-
-        [Fact]
-        public void Tree()
-        {
-            var id = new HabitatId("i");
-            var tree = Configinator.GetHabitatTree(id, CreateTestHabitats());
-            testOutputHelper.WriteLine("");
-        }
-
-        /// <summary>
-        ///     Get the chains of a habitat that doesn't have a parent
-        ///     nor children
-        /// </summary>
-        [Fact]
-        public void GetChainSingle()
-        {
-            var chains = Configinator.GetHabitatDescendantChains(new HabitatId("q"), CreateTestHabitats());
-            chains.Count.Should().Be(1);
-            chains[0].Count.Should().Be(1);
-            chains[0][0].HabitatId.Should().Be(new HabitatId("q"));
-            chains[0][0].BaseHabitat.Should().BeNull();
-        }
-
         private class TestDataBuilder
         {
             private readonly Dictionary<string, IHabitat> values = new();
@@ -306,7 +204,6 @@ namespace Allard.Configinator.Core.Tests.Unit
             }
         }
 
-
         public record DummyHabitat : IHabitat
         {
             public DummyHabitat(string id, IHabitat baseHabitat)
@@ -319,6 +216,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             public IRealm Realm { get; }
             public HabitatId HabitatId { get; }
             public IHabitat BaseHabitat { get; }
+            public IEnumerable<IHabitat> Children { get; }
         }
     }
 }
