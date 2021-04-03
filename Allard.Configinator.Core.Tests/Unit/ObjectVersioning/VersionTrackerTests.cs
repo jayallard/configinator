@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Allard.Configinator.Core.ObjectVersioning;
@@ -34,7 +32,7 @@ namespace Allard.Configinator.Core.Tests.Unit.ObjectVersioning
             a.GetProperty("b").SetValue("bbb 1");
             a.GetProperty("c").SetValue("ccc 1");
             a.GetObject("hello").GetProperty("Galaxy").SetValue("milky way");
-            
+
             var b = model.Clone();
             b.GetProperty("a").SetValue("aaa 2");
             b.GetProperty("c").SetValue("ccc 2");
@@ -76,10 +74,7 @@ namespace Allard.Configinator.Core.Tests.Unit.ObjectVersioning
                 }
             }
 
-            foreach (var o in obj.Objects)
-            {
-                PrintObject(output, o, level+1);
-            }
+            foreach (var o in obj.Objects) PrintObject(output, o, level + 1);
         }
     }
 }

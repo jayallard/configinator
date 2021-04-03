@@ -41,13 +41,10 @@ namespace Allard.Configinator.Core.Model
                             ? null
                             : realm.GetHabitat(e.BaseHabitatId.Id);
                     var habitat = new Habitat(e.HabitatId, realm, baseHabitat);
-                    
+
                     // ick - hack?
-                    if (baseHabitat is Habitat h)
-                    {
-                        h.AddChild(habitat);
-                    }
-                    
+                    if (baseHabitat is Habitat h) h.AddChild(habitat);
+
                     realm.AddHabitat(habitat);
                     return habitat;
                 })

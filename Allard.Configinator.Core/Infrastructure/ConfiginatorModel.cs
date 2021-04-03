@@ -16,10 +16,8 @@ namespace Allard.Configinator.Core.Infrastructure
         string SettingsPath,
         JsonDocument Value);
 
-    public record SetValueResponse(
-        ConfigurationId ConfigurationId,
-        IList<ValidationFailure> Failures)
-    {
-        public bool Success => Failures.Count == 0;
-    }
+    public record SetValueResponse(List<SetValueResponseHabitat> Habitats);
+
+    public record SetValueResponseHabitat(bool Changed, bool Saved, string HabitatId,
+        List<ValidationFailure> ValidationFailures);
 }

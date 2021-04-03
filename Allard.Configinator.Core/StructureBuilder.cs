@@ -7,13 +7,9 @@ namespace Allard.Configinator.Core
 {
     public class StructureBuilder
     {
-        public static ObjectDto ToStructure(ConfigurationSection configurationSection)
-        {
-            return new StructureBuilder(configurationSection).Build();
-        }
+        private readonly ConfigurationSection configurationSection;
 
         private readonly Dictionary<SchemaTypeId, SchemaType> schemaTypes;
-        private readonly ConfigurationSection configurationSection;
 
         private StructureBuilder(ConfigurationSection configurationSection)
         {
@@ -23,6 +19,11 @@ namespace Allard.Configinator.Core
                 .Organization
                 .SchemaTypes
                 .ToDictionary(s => s.SchemaTypeId);
+        }
+
+        public static ObjectDto ToStructure(ConfigurationSection configurationSection)
+        {
+            return new StructureBuilder(configurationSection).Build();
         }
 
         private ObjectDto Build()

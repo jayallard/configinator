@@ -39,20 +39,18 @@ namespace Allard.Configinator.Core.DocumentValidator
             foreach (var property in properties)
             {
                 var propertyPath = path + "/" + property.Name;
-                var schemaType = schemas[property.SchemaTypeId];
-                if (schemaType.SchemaTypeId.IsPrimitive)
+                if (property.SchemaTypeId.IsPrimitive)
                 {
                     // property
                     var value = obj.GetProperty(property.Name).Value;
                     if (string.IsNullOrWhiteSpace(value) && property.IsRequired)
-                    {
                         errors.Add(new ValidationFailure(configId, propertyPath,
                             "RequiredValueMissing", "A value is required."));
-                    }
 
                     continue;
                 }
 
+                var schemaType = schemas[property.SchemaTypeId];
                 var valueObject = obj.GetObject(property.Name);
                 Validate(errors, habitatId, schemaType.Properties.ToList(), valueObject, propertyPath);
             }

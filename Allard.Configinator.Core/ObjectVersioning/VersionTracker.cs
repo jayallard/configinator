@@ -9,18 +9,12 @@ namespace Allard.Configinator.Core.ObjectVersioning
         private readonly Dictionary<string, VersionedObject> objectVersions = new();
         private readonly List<VersionedObject> objectVersionsOrdered = new();
 
-        private static readonly IReadOnlyCollection<VersionedObject> EmptyObjects =
-            new List<VersionedObject>().AsReadOnly();
-
-        private static readonly IReadOnlyCollection<VersionedProperty> EmptyProperties =
-            new List<VersionedProperty>().AsReadOnly();
-
-        public IReadOnlyCollection<VersionedObject> Versions => objectVersionsOrdered.ToList();
-
         public VersionTracker(ObjectDto model)
         {
             this.model = model.EnsureValue(nameof(model));
         }
+
+        public IReadOnlyCollection<VersionedObject> Versions => objectVersionsOrdered.ToList();
 
         public VersionedObject AddVersion(string versionName, ObjectDto version)
         {
@@ -42,17 +36,11 @@ namespace Allard.Configinator.Core.ObjectVersioning
         {
             var childObjects = updatedValues.Objects.ToDictionary(o => o.Name);
             var objectsToUpdate = objectDto.Objects.Where(o => childObjects.ContainsKey(o.Name));
-            foreach (var o in objectsToUpdate)
-            {
-                UpdateObjectValues(o, toUpdate.GetObject(o.Name), childObjects[o.Name]);
-            }
+            foreach (var o in objectsToUpdate) UpdateObjectValues(o, toUpdate.GetObject(o.Name), childObjects[o.Name]);
 
             var childProperties = updatedValues.Properties.ToDictionary(o => o.Name);
             var propertiesToUpdate = objectDto.Properties.Where(p => childProperties.ContainsKey(p.Name));
-            foreach (var p in propertiesToUpdate)
-            {
-                toUpdate.GetProperty(p.Name).SetValue(childProperties[p.Name].Value);
-            }
+            foreach (var p in propertiesToUpdate) toUpdate.GetProperty(p.Name).SetValue(childProperties[p.Name].Value);
         }
 
         private static VersionedObject ConvertDtoToObject(

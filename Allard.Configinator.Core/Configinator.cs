@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Allard.Configinator.Core.DocumentValidator;
@@ -24,9 +25,13 @@ namespace Allard.Configinator.Core
 
         public async Task<SetValueResponse> SetValueAsync(SetValueRequest request)
         {
+            // super messy... once logic is finalized, cleanup and refactor
+            
+            
             var realm = Organization.GetRealmByName(request.ConfigurationId.RealmId);
             var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
+
             async Task<JsonDocument> ConfigResolver(IHabitat h)
             {
                 return await GetValueFromConfigstore(cs, h);
@@ -37,26 +42,84 @@ namespace Allard.Configinator.Core
             var resolver = new HabitatValueResolver(model, ConfigResolver, habitat);
             await resolver.LoadExistingValues();
             var newValue = request.Value.ToObjectDto();
+            // todo: convert versioned object instead... one less conversion
             resolver.OverwriteValue(habitat, newValue);
-            
-            var changed = resolver.ChangedHabitats.ToList();
-            if (changed.Count == 0)
-                // nothing to do
-                return new SetValueResponse(request.ConfigurationId, new List<ValidationFailure>());
+
+            var state = resolver
+                .Habitats
+                .Select(h => new State
+                {
+                    Habitat = realm.GetHabitat(h.VersionName),
+                    IsChanged = h.IsChanged,
+                    Object = h.IsChanged ? h.ToObjectDto() : null,
+                    IsSaved = false
+                })
+                .ToList();
+
+            if (state.All(s => !s.IsChanged))
+            {
+                var habitats = state
+                    .Select(h =>
+                        new SetValueResponseHabitat(h.IsChanged, h.IsSaved, h.Habitat.HabitatId.Id,
+                            h.Failures))
+                    .ToList();
+                return new SetValueResponse(habitats);
+            }
 
             // validate
-            var validator = new ConfigurationValidator(cs, Organization.SchemaTypes);
-            // var failures = changed
-            //     .SelectMany(c => validator.Validate(habitat.HabitatId, c.Objects.Last().ToDto()))
-            //     .ToList();
-
-            //if (failures.Count == 0)
+            foreach (var s in state.Where(s => s.IsChanged))
             {
-                // save
+                var failures = new ConfigurationValidator(cs, Organization.SchemaTypes)
+                    .Validate(s.Habitat.HabitatId, s.Object).ToList();
+                s.Failures.AddRange(failures);
+            }
+
+            if (state.Any(s => !s.CanSave))
+            {
+                var habitats = state
+                    .Select(h =>
+                        new SetValueResponseHabitat(h.IsChanged, h.IsSaved, h.Habitat.HabitatId.Id,
+                            h.Failures))
+                    .ToList();
+                return new SetValueResponse(habitats);
             }
 
             // save
-            return new SetValueResponse(request.ConfigurationId, null);
+            foreach (var s in state.Where(s => s.CanSave))
+            {
+                // todo: change config store to take a list in case it can do them all in a transaction
+                var json = s.Object.ToJson();
+                var path = OrganizationAggregate.GetConfigurationPath(cs, s.Habitat);
+                var r = new SetConfigStoreValueRequest(path, json);
+                await configStore.SetValueAsync(r);
+                s.IsSaved = true;
+            }
+
+            var h = state
+                .Select(h =>
+                    new SetValueResponseHabitat(h.IsChanged, h.IsSaved, h.Habitat.HabitatId.Id,
+                        h.Failures))
+                .ToList();
+            return new SetValueResponse(h);
+        }
+
+        private class State
+        {
+            public ObjectDto Object { get; set; }
+            public IHabitat Habitat { get; set; }
+            public List<ValidationFailure> Failures { get; } = new();
+            public bool IsChanged { get; set; }
+            public bool IsSaved { get; set; }
+            public bool CanSave => IsChanged && Failures.Count == 0;
+        }
+
+        private ConfigurationId CreateConfigurationId(ConfigurationSection configurationSection, IHabitat habitat)
+        {
+            return new(
+                Organization.OrganizationId.Id,
+                configurationSection.Realm.RealmId.Id,
+                configurationSection.SectionId.Id,
+                habitat.HabitatId.Id);
         }
 
         public async Task<GetValueResponse> GetValueAsync(GetValueRequest request)

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Allard.Configinator.Core.Model;
@@ -11,10 +10,10 @@ namespace Allard.Configinator.Core
 {
     public class HabitatValueResolver
     {
-        private readonly ObjectDto objectModel;
-        private readonly Func<IHabitat, Task<JsonDocument>> configStore;
         private readonly IHabitat baseHabitat;
+        private readonly Func<IHabitat, Task<JsonDocument>> configStore;
         private readonly Dictionary<IHabitat, VersionTracker> habitatTrackers = new();
+        private readonly ObjectDto objectModel;
 
         public HabitatValueResolver(
             ObjectDto objectModel,
@@ -38,11 +37,11 @@ namespace Allard.Configinator.Core
 
 
         /// <summary>
-        /// Crawls the habitat tree. Creates a tracker for each habitat.
+        ///     Crawls the habitat tree. Creates a tracker for each habitat.
         /// </summary>
         private void Initialize()
         {
-            Visit(baseHabitat, h =>
+            Visit(baseHabitat, _ =>
             {
                 var tracker = new VersionTracker(objectModel);
                 habitatTrackers.Add(baseHabitat, tracker);
@@ -56,13 +55,13 @@ namespace Allard.Configinator.Core
                 Visit(baseHabitat, async h =>
                 {
                     var valueJson = await configStore(h);
-                    var value = ToObjectDto(valueJson.RootElement);
+                    var value = valueJson.ToObjectDto();
                     var tracker = habitatTrackers[h];
 
                     if (h.BaseHabitat != null)
                     {
                         var baseTracker = habitatTrackers[h.BaseHabitat];
-                        tracker.AddVersion(h.BaseHabitat.HabitatId.Id, baseTracker.Versions.Last().ToDto());
+                        tracker.AddVersion(h.BaseHabitat.HabitatId.Id, baseTracker.Versions.Last().ToObjectDto());
                     }
 
                     tracker.AddVersion(h.HabitatId.Id, value);
@@ -77,7 +76,7 @@ namespace Allard.Configinator.Core
             Visit(habitat, h =>
             {
                 var childTracker = habitatTrackers[h];
-                childTracker.UpdateVersion(habitat.HabitatId.Id, tracker.Versions.Last().ToDto());
+                childTracker.UpdateVersion(habitat.HabitatId.Id, tracker.Versions.Last().ToObjectDto());
                 CopyDown(childTracker);
             });
         }
@@ -85,10 +84,8 @@ namespace Allard.Configinator.Core
         private void CopyDown(VersionTracker tracker)
         {
             if (tracker.Versions.Count == 1)
-            {
                 // nothing to copy
                 return;
-            }
 
             CopyDown(tracker.Versions.Last().Objects);
         }
@@ -98,33 +95,21 @@ namespace Allard.Configinator.Core
             foreach (var obj in objects)
             {
                 foreach (var property in obj.Properties)
-                {
                     // if the base and child used to have the same value,
                     // then they should continue to have the same value.
                     // IE: base=x, child=x.
                     //     the base changed to y, so change the child to y
                     if (property.Value == null || string.Equals(property.Value, property.OriginalValue))
-                    {
                         property.SetValue(property.PreviousVersion.OriginalValue);
-                    }
-                }
 
                 CopyDown(obj.Objects);
             }
         }
 
-        private static ObjectDto ToObjectDto(JsonElement configValue)
-        {
-            return new();
-        }
-
         private void Visit(IHabitat habitat, Action<IHabitat> visitor)
         {
             visitor(habitat);
-            foreach (var child in habitat.Children)
-            {
-                Visit(child, visitor);
-            }
+            foreach (var child in habitat.Children) Visit(child, visitor);
         }
     }
 

@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using Allard.Configinator.Core.Infrastructure;
 using Allard.Configinator.Core.Model;
 using Allard.Configinator.Core.Model.Builders;
 using Xunit;

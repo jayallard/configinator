@@ -7,7 +7,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
     {
         public string Name { get; set; }
         public string Value { get; set; }
-        
+
         public PropertyDto SetName(string name)
         {
             Name = name;
@@ -19,7 +19,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
             Value = value;
             return this;
         }
-        
+
         public PropertyDto Clone()
         {
             return new()

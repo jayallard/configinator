@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -81,8 +82,9 @@ namespace Allard.Configinator.Core.Tests.Unit
             // the passed in is is effectively ignored
             // because it doesn't have any of the properties
             // defined in the config section.
-            setResponse.Failures.Count.Should().Be(4);
-            setResponse.Success.Should().BeFalse();
+            throw new NotImplementedException();
+            //setResponse.Failures.Count.Should().Be(4);
+            //setResponse.Success.Should().BeFalse();
         }
 
         [Fact]
@@ -93,8 +95,9 @@ namespace Allard.Configinator.Core.Tests.Unit
                 TestConfigurationSection1, "staging");
             var setRequest = new SetValueRequest(configId, null, input);
             var setResponse = await Configinator.SetValueAsync(setRequest);
-            setResponse.Failures.Should().BeEmpty();
-            setResponse.Success.Should().BeTrue();
+            throw new NotImplementedException();
+            // setResponse.Failures.Should().BeEmpty();
+            // setResponse.Success.Should().BeTrue();
 
             var getRequest = new GetValueRequest(configId);
             var get = await Configinator.GetValueAsync(getRequest);
@@ -123,7 +126,8 @@ namespace Allard.Configinator.Core.Tests.Unit
                 TestConfigurationSection1, "dev");
             var setRequest = new SetValueRequest(configId, null, JsonDocument.Parse(file));
             var setResponse = await Configinator.SetValueAsync(setRequest);
-            setResponse.Success.Should().BeTrue();
+            //setResponse.Success.Should().BeTrue();
+            throw new NotImplementedException();
 
             var configId2 = new ConfigurationId(Organization.OrganizationId.Id, TestRealm1,
                 TestConfigurationSection1, "dev-allard");
@@ -149,7 +153,8 @@ namespace Allard.Configinator.Core.Tests.Unit
             var setRequest1 =
                 new SetValueRequest(configId, null, JsonDocument.Parse(file));
             var setResponse1 = await Configinator.SetValueAsync(setRequest1);
-            setResponse1.Success.Should().BeTrue();
+            //setResponse1.Success.Should().BeTrue();
+            throw new NotImplementedException();
 
             // confirm that the value saved correctly.
             // it only checks sa. this is really just demonstrating
@@ -167,7 +172,8 @@ namespace Allard.Configinator.Core.Tests.Unit
             var setRequest2 = new SetValueRequest(configId, "/sql-source/user-id",
                 JsonDocument.Parse("\"yay!\""));
             var setResponse2 = await Configinator.SetValueAsync(setRequest2);
-            setResponse2.Success.Should().BeTrue();
+            //setResponse2.Success.Should().BeTrue();
+            throw new NotImplementedException();
 
             // get the entire cs and see the value is set
             var getResponse2 = await Configinator.GetValueAsync(getRequest1);

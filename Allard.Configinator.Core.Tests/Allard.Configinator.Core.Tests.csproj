@@ -37,4 +37,7 @@
       <Compile Remove="Unit\DocumentMerger\DocMerger2Tests.cs" />
       <Compile Remove="Unit\DocumentMerger\DocMerger3Tests.cs" />
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Unit\DocumentMerger" />
+    </ItemGroup>
 </Project>
