@@ -112,15 +112,5 @@ namespace Allard.Configinator.Core.Model
                 .EventHandlerRegistry
                 .Raise<AddedHabitatToRealmEvent, Habitat>(evt);
         }
-
-        private void ValidateHabitatHierarchy(HabitatId habitatId, IEnumerable<HabitatId> baseHabitats)
-        {
-            // var toTest = new HierarchyElement(habitatId.Id, baseHabitats.Select(b => b.Id).ToHashSet());
-            // var existingHabitats = habitats
-            //     .Values
-            //     .Select(h =>
-            //         new HierarchyElement(h.HabitatId.Id, new List<Habitat> {habitatId}.AsReadOnly()).ToHashSet()));
-            // HierarchyValidator.Validate(toTest, existingHabitats);
-        }
     }
 }

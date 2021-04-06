@@ -27,9 +27,9 @@ namespace Allard.Configinator.Core.DocumentValidator
         }
 
         private void Validate(
-            List<ValidationFailure> errors,
+            ICollection<ValidationFailure> errors,
             HabitatId habitatId,
-            List<SchemaTypeProperty> properties,
+            IEnumerable<SchemaTypeProperty> properties,
             ObjectDto obj,
             string path)
         {

@@ -133,13 +133,10 @@ namespace Allard.Configinator.Core.ObjectVersioning
             ObjectDto currentDto)
         {
             var p = new VersionedProperty(versionName, currentDto.Name, currentProperty?.Value, parentObject);
-            if (previousVersion != null)
-            {
-                var lastProperty = previousVersion.GetProperty(p.Name);
-                lastProperty.NextVersion = p;
-                p.PreviousVersion = lastProperty;
-            }
-
+            if (previousVersion == null) return p;
+            var lastProperty = previousVersion.GetProperty(p.Name);
+            lastProperty.NextVersion = p;
+            p.PreviousVersion = lastProperty;
             return p;
         }
     }

@@ -129,10 +129,10 @@ namespace Allard.Configinator.Core
 
         private class State
         {
-            public ObjectDto Object { get; set; }
-            public IHabitat Habitat { get; set; }
+            public ObjectDto Object { get; init; }
+            public IHabitat Habitat { get; init; }
             public List<ValidationFailure> Failures { get; } = new();
-            public bool IsChanged { get; set; }
+            public bool IsChanged { get; init; }
             public bool IsSaved { get; set; }
             public bool CanSave => IsChanged && Failures.Count == 0;
         }

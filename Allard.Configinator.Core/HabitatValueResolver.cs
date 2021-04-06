@@ -29,12 +29,6 @@ namespace Allard.Configinator.Core
             .Values
             .Select(t => t.Versions.Last());
 
-        public IEnumerable<VersionedObject> ChangedHabitats => habitatTrackers
-            .Values
-            .Where(t => t.Versions.Last().IsChanged)
-            .Select(t => t.Versions.Last());
-
-
         /// <summary>
         ///     Crawls the habitat tree. Creates a tracker for each habitat.
         /// </summary>

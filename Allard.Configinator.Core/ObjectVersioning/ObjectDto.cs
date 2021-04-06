@@ -13,7 +13,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
     [DebuggerDisplay("Name={Name}")]
     public class ObjectDto
     {
-        public ObjectType ObjectType { get; set; }
+        public ObjectType ObjectType { get; init; }
         public string Name { get; set; }
         public List<ObjectDto> Items { get; } = new();
 
