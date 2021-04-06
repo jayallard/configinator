@@ -11,17 +11,8 @@ namespace Allard.Configinator.Core.ObjectVersioning
         {
             return new ObjectDto()
                 .SetName(obj.Name)
-                .AddProperties(obj.Properties.ToPropertyDtos())
-                .AddObjects(obj.Objects.ToObjectDtos());
-        }
-
-        private static PropertyDto ToPropertyDto(this VersionedProperty property)
-        {
-            return new()
-            {
-                Name = property.Name,
-                Value = property.Value
-            };
+                .Add(obj.Properties.ToPropertyDtos())
+                .Add(obj.Objects.ToObjectDtos());
         }
 
         private static IEnumerable<ObjectDto> ToObjectDtos(this IEnumerable<VersionedObject> objects)
@@ -31,11 +22,11 @@ namespace Allard.Configinator.Core.ObjectVersioning
                 : objects.Select(ToObjectDto);
         }
 
-        private static IEnumerable<PropertyDto> ToPropertyDtos(this IEnumerable<VersionedProperty> properties)
+        private static IEnumerable<ObjectDto> ToPropertyDtos(this IEnumerable<VersionedProperty> properties)
         {
             return properties == null
-                ? new List<PropertyDto>()
-                : properties.Select(ToPropertyDto);
+                ? new List<ObjectDto>()
+                : properties.Select(p => ObjectDto.CreateString(p.Name, p.Value));
         }
 
         public static JsonDocument ToJson(this ObjectDto obj)
@@ -43,34 +34,38 @@ namespace Allard.Configinator.Core.ObjectVersioning
             using var stream = new MemoryStream();
             using var writer = new Utf8JsonWriter(stream);
             writer.WriteStartObject();
-            WriteProperties(writer, obj.Properties);
-            WriteObjects(writer, obj.Objects);
+            WriteItems(writer, obj.Items);
             writer.WriteEndObject();
             writer.Flush();
             stream.Flush();
             stream.Position = 0;
-            //using var reader = new StreamReader(stream);
-            //var json = reader.ReadToEnd();
             return JsonDocument.Parse(stream);
         }
-        
-        private static void WriteProperties(Utf8JsonWriter writer, IEnumerable<PropertyDto> properties)
+
+        private static void WriteItems(Utf8JsonWriter writer, IEnumerable<ObjectDto> items)
         {
-            foreach (var p in properties)
+            foreach (var obj in items)
             {
-                writer.WriteString(p.Name, p.Value);
+                if (obj.IsProperty())
+                {
+                    writer.WriteString(obj.Name, obj.Value);
+                    continue;
+                }
+
+                writer.WriteStartObject(obj.Name);
+                WriteItems(writer, obj.Items);
+                writer.WriteEndObject();
             }
         }
 
-        private static void WriteObjects(Utf8JsonWriter writer, IEnumerable<ObjectDto> objects)
+        public static bool IsProperty(this ObjectDto obj)
         {
-            foreach (var obj in objects)
-            {
-                writer.WriteStartObject(obj.Name);
-                WriteProperties(writer, obj.Properties);
-                WriteObjects(writer, obj.Objects);
-                writer.WriteEndObject();
-            }
+            return obj.ObjectType == ObjectType.String;
+        }
+
+        public static bool IsObject(this ObjectDto obj)
+        {
+            return obj.ObjectType == ObjectType.Object;
         }
     }
 }

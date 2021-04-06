@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Allard.Configinator.Core.Model;
 using Allard.Configinator.Core.ObjectVersioning;
@@ -74,13 +73,15 @@ namespace Allard.Configinator.Core
             tracker.UpdateVersion(habitat.HabitatId.Id, newValue, path);
             Visit(habitat, h =>
             {
+                if (habitat == h) return;
+
                 var childTracker = habitatTrackers[h];
                 childTracker.UpdateVersion(habitat.HabitatId.Id, tracker.Versions.Last().ToObjectDto());
                 CopyDown(childTracker);
             });
         }
 
-        private void CopyDown(VersionTracker tracker)
+        private static void CopyDown(VersionTracker tracker)
         {
             if (tracker.Versions.Count == 1)
                 // nothing to copy
@@ -89,7 +90,7 @@ namespace Allard.Configinator.Core
             CopyDown(tracker.Versions.Last().Objects);
         }
 
-        private void CopyDown(IEnumerable<VersionedObject> objects)
+        private static void CopyDown(IEnumerable<VersionedObject> objects)
         {
             foreach (var obj in objects)
             {
@@ -105,7 +106,7 @@ namespace Allard.Configinator.Core
             }
         }
 
-        private void Visit(IHabitat habitat, Action<IHabitat> visitor)
+        private static void Visit(IHabitat habitat, Action<IHabitat> visitor)
         {
             visitor(habitat);
             foreach (var child in habitat.Children) Visit(child, visitor);

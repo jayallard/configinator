@@ -26,43 +26,50 @@ namespace Allard.Configinator.Core.ObjectVersioning
             return v;
         }
 
-        public VersionedObject UpdateVersion(string versionName, ObjectDto version, string path = null)
+        public VersionedObject UpdateVersion(string versionName, ObjectDto values, string path = null)
         {
+            var existing = objectVersions[versionName];
+            var (m, v) = Goto(model, existing, path);
+
+
+            // hack - PROPERTIES and OBJECTS are different types of objects.
+            // IE:
+            //      path =    /a/b/c
+            //      value =     "update single value"
+            // VALUES is just the string value; no name.
+            // create a new ObjectDto with the single updated property: name=c, value=value.
+            // OOP fail. consider merging VersionedObject and VersionedProperty
+            // into a single class... might be too ugly, but look at it.
             if (!string.IsNullOrWhiteSpace(path))
             {
-                return SetPath(versionName, version, path);
+                var last = path.Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                    .Last();
+                if (m.PropertyExists(last))
+                    values = new ObjectDto()
+                        .SetName(m.Name)
+                        .Add(ObjectDto.CreateString(last, values.Value));
             }
-            
-            var existing = objectVersions[versionName];
-            UpdateObjectValues(model, existing, version);
+
+
+            UpdateObjectValues(m, v, values);
             return existing;
         }
 
-        private VersionedObject SetPath(string versionName, ObjectDto version, string path)
+        private static (ObjectDto, VersionedObject) Goto(ObjectDto m, VersionedObject version, string path)
         {
+            if (string.IsNullOrWhiteSpace(path)) return (m, version);
+
             var parts = path.Split("/", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            var currentModel = model;
-            var baseValue = objectVersions[versionName];
-            var currentValue = baseValue;
+            var currentModel = m;
+            var currentVersion = version;
             for (var i = 0; i < parts.Length - 1; i++)
             {
                 // todo: will throw an exception if path is invalid.
                 currentModel = currentModel.GetObject(parts[i]);
-                currentValue = currentValue.GetObject(parts[i]);
+                currentVersion = currentVersion.GetObject(parts[i]);
             }
 
-            // if it's an object, then start iterating here.
-            if (model.ObjectExists(parts.Last()))
-            {
-                UpdateObjectValues(currentModel, currentValue, version);
-                return baseValue;
-            }
-            
-            // if it's a property, then set the value.
-            currentValue
-                .GetProperty(parts.Last())
-                .SetValue(version.GetProperty(parts.Last()).Value);
-            return baseValue;
+            return (currentModel, currentVersion);
         }
 
         private static void UpdateObjectValues(ObjectDto model, VersionedObject toUpdate, ObjectDto updatedValues)
@@ -85,7 +92,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
         {
             // hack
             toConvert ??= new ObjectDto().SetName(objectModel.Name);
-            var childObjects = toConvert.Objects.ToDictionary(o => o.Name);
+            var childObjects = toConvert.Items.ToDictionary(o => o.Name);
             var childProperties = toConvert.Properties.ToDictionary(o => o.Name);
             var objs = objectModel
                 .Objects
@@ -122,8 +129,8 @@ namespace Allard.Configinator.Core.ObjectVersioning
             string versionName,
             VersionedObject parentObject,
             VersionedObject previousVersion,
-            PropertyDto currentProperty,
-            PropertyDto currentDto)
+            ObjectDto currentProperty,
+            ObjectDto currentDto)
         {
             var p = new VersionedProperty(versionName, currentDto.Name, currentProperty?.Value, parentObject);
             if (previousVersion != null)

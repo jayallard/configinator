@@ -39,14 +39,14 @@ namespace Allard.Configinator.Core
             {
                 if (p.SchemaTypeId.IsPrimitive)
                 {
-                    var propertyDto = new PropertyDto {Name = p.Name};
-                    obj.Properties.Add(propertyDto);
+                    var propertyDto = ObjectDto.CreateString(p.Name);
+                    obj.Add(propertyDto);
                     continue;
                 }
 
                 var type = schemaTypes[p.SchemaTypeId];
                 var childObj = new ObjectDto().SetName(p.Name);
-                obj.Objects.Add(childObj);
+                obj.Items.Add(childObj);
                 Build(childObj, type.Properties);
             }
         }

@@ -19,6 +19,8 @@ namespace Allard.Configinator.Core.DocumentValidator
 
         public IEnumerable<ValidationFailure> Validate(HabitatId habitatId, ObjectDto value)
         {
+            habitatId.EnsureValue(nameof(habitatId));
+            value.EnsureValue(nameof(value));
             var results = new List<ValidationFailure>();
             Validate(results, habitatId, configurationSection.Properties.ToList(), value, string.Empty);
             return results;

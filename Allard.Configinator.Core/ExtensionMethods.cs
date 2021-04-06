@@ -9,10 +9,13 @@ namespace Allard.Configinator.Core
     {
         public static ObjectDto ToObjectDto(this JsonDocument json)
         {
+            if (json.RootElement.ValueKind != JsonValueKind.Object)
+                return ObjectDto.CreateString(null, json.RootElement.GetString());
+
             var properties = json
                 .RootElement
                 .GetProperties()
-                .Select(p => p.ToPropertyDto());
+                .Select(p => ObjectDto.CreateString(p.Name, p.Value.GetString()));
             var objects =
                 json
                     .RootElement
@@ -21,8 +24,8 @@ namespace Allard.Configinator.Core
 
             return new ObjectDto()
                 .SetName("root")
-                .AddProperties(properties)
-                .AddObjects(objects);
+                .Add(properties)
+                .Add(objects);
         }
 
         private static ObjectDto GetObject(JsonProperty json)
@@ -32,21 +35,16 @@ namespace Allard.Configinator.Core
             var objs = jsonObjects
                 .Select(GetObject);
             var props = jsonProperties
-                .Select(p => p.ToPropertyDto());
+                .Select(p => ObjectDto.CreateString(p.Name, p.Value.GetString()));
             return new ObjectDto()
                 .SetName(json.Name)
-                .AddProperties(props)
-                .AddObjects(objs);
+                .Add(props)
+                .Add(objs);
         }
 
         private static IEnumerable<JsonProperty> GetObjects(this JsonElement element)
         {
             return element.EnumerateObject().Where(e => e.Value.ValueKind == JsonValueKind.Object);
-        }
-
-        private static PropertyDto ToPropertyDto(this JsonProperty property)
-        {
-            return new PropertyDto().SetName(property.Name).SetValue(property.Value.GetString());
         }
 
         private static IEnumerable<JsonProperty> GetProperties(this JsonElement element)

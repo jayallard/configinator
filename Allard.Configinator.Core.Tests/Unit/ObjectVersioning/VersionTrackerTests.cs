@@ -20,12 +20,12 @@ namespace Allard.Configinator.Core.Tests.Unit.ObjectVersioning
         {
             var model = new ObjectDto()
                 .SetName("root")
-                .AddObject(new ObjectDto()
+                .Add(new ObjectDto()
                     .SetName("root")
-                    .AddProperty("world")
-                    .AddProperty("Galzxy"))
-                .AddProperty("a")
-                .AddProperty("b");
+                    .AddString("world")
+                    .AddString("Galaxy"))
+                .AddString("a")
+                .AddString("b");
 
             var a = model.Clone();
             a.GetProperty("a").SetValue("aaa 1");

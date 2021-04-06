@@ -77,14 +77,12 @@ namespace Allard.Configinator.Core.Tests.Unit
                 new SetValueRequest(configId, null,
                     JsonDocument.Parse("{ \"nothing-to\": \"see-here\" }"));
             var setResponse = await Configinator.SetValueAsync(setRequest);
+            setResponse.Habitats.Single().ValidationFailures.Count.Should().Be(4);
 
-            // there are 4 properties, and all 4 are null.
-            // the passed in is is effectively ignored
-            // because it doesn't have any of the properties
-            // defined in the config section.
-            throw new NotImplementedException();
-            //setResponse.Failures.Count.Should().Be(4);
-            //setResponse.Success.Should().BeFalse();
+            // it's not changed because no matching properties.
+            // nothing was touched.
+            setResponse.Habitats.Single().Changed.Should().BeFalse();
+            setResponse.Habitats.Single().Saved.Should().BeFalse();
         }
 
         [Fact]
@@ -98,17 +96,20 @@ namespace Allard.Configinator.Core.Tests.Unit
             setResponse.Habitats.Count.Should().Be(1);
             setResponse.Habitats.Single().ValidationFailures.Should().BeEmpty();
             setResponse.Habitats.Single().Saved.Should().BeTrue();
+            setResponse.Habitats.Single().Changed.Should().BeTrue();
 
             ConfigStore.Values.Count.Should().Be(1);
-            var value = ConfigStore.Values.Values.Single();
-            testOutputHelper.WriteLine("");
+            var value = ConfigStore.Values.Values.Single().Value.RootElement;
+            var sql = value.GetProperty("sql-source");
+            sql.EnumerateObject().ToList().Count.Should().Be(5);
+            sql.GetProperty("password").GetString().Should().Be("password");
+            sql.GetProperty("host").GetString().Should().Be("localhost");
+            sql.GetProperty("user-id").GetString().Should().Be("sa");
+            sql.GetProperty("instance").GetString().Should().BeNull();
+            sql.GetProperty("initial-catalog").GetString().Should().BeNull();
 
-            // var getRequest = new GetValueRequest(configId);
-            // var get = await Configinator.GetValueAsync(getRequest);
-            //
-            // var expectedString = input.RootElement.ToString();
-            // var actualString = get.Value.RootElement.ToString();
-            // actualString.Should().Be(expectedString);
+            value.GetProperty("kafka-target").EnumerateObject().Count().Should().Be(1);
+            value.GetProperty("kafka-target").GetProperty("broker-list").GetString().Should().Be("localhost:9092");
         }
 
         [Fact]
@@ -123,12 +124,10 @@ namespace Allard.Configinator.Core.Tests.Unit
             var setProperty = new SetValueRequest(configId, "/sql-source/user-id", JsonDocument.Parse("\"partial\""));
             await Configinator.SetValueAsync(setProperty);
             ConfigStore.Values.Count.Should().Be(1);
-            ConfigStore.Values.Values.Single().Value.RootElement.GetProperty("sql-Source").GetProperty("user-id")
+            ConfigStore.Values.Values.Single().Value.RootElement.GetProperty("sql-source").GetProperty("user-id")
                 .GetString().Should().Be("partial");
         }
-        
-        
-        
+
         [Fact]
         public async Task OnlySubDocWillBeSaved()
         {
@@ -155,73 +154,6 @@ namespace Allard.Configinator.Core.Tests.Unit
 
             // test is no longer valid because RAW has been eliminated.
             // fix the assert to look at the layers
-        }
-
-        [Fact]
-        public async Task SetPropertyWithinDoc()
-        {
-            // setup - write an entire config section at once.
-            var file = TestUtility.GetFile("FullDocumentPasses.json");
-            var configId = new ConfigurationId(Organization.OrganizationId.Id, TestRealm1,
-                TestConfigurationSection1, "dev");
-            var setRequest1 =
-                new SetValueRequest(configId, null, JsonDocument.Parse(file));
-            var setResponse1 = await Configinator.SetValueAsync(setRequest1);
-            //setResponse1.Success.Should().BeTrue();
-            throw new NotImplementedException();
-
-            // confirm that the value saved correctly.
-            // it only checks sa. this is really just demonstrating
-            // that it starts as SA
-            var getRequest1 = new GetValueRequest(configId);
-            var getResponse1 = await Configinator.GetValueAsync(getRequest1);
-            getResponse1.Value.RootElement.GetProperty("sql-source").GetProperty("user-id").GetString().Should()
-                .Be("sa");
-            getResponse1.Value.RootElement.GetProperty("sql-source").GetProperty("password").GetString().Should()
-                .Be("password");
-            getResponse1.Value.RootElement.GetProperty("sql-source").GetProperty("host").GetString().Should()
-                .Be("localhost");
-
-            // overwrite the user-id value.
-            var setRequest2 = new SetValueRequest(configId, "/sql-source/user-id",
-                JsonDocument.Parse("\"yay!\""));
-            var setResponse2 = await Configinator.SetValueAsync(setRequest2);
-            //setResponse2.Success.Should().BeTrue();
-            throw new NotImplementedException();
-
-            // get the entire cs and see the value is set
-            var getResponse2 = await Configinator.GetValueAsync(getRequest1);
-            getResponse2.Value.RootElement.GetProperty("sql-source").GetProperty("user-id").GetString().Should()
-                .Be("yay!");
-
-            // the other values shouldn't have changed.
-            getResponse2.Value.RootElement.GetProperty("sql-source").GetProperty("password").GetString().Should()
-                .Be("password");
-            getResponse2.Value.RootElement.GetProperty("sql-source").GetProperty("host").GetString().Should()
-                .Be("localhost");
-
-            // get the single value
-            var getRequest3 = new GetValueRequest(configId, "sql-source/user-id");
-            var getResponse3 = await Configinator.GetValueAsync(getRequest3);
-            getResponse3.Value.RootElement.ValueKind.Should().Be(JsonValueKind.String);
-            getResponse3.Value.RootElement.GetString().Should().Be("yay!");
-        }
-
-        private class TestDataBuilder
-        {
-            private readonly Dictionary<string, IHabitat> values = new();
-
-            public List<IHabitat> Values => values.Values.ToList();
-
-            public TestDataBuilder Add(string habitatId, string baseHabitatId)
-            {
-                var baseHabitat = baseHabitatId == null
-                    ? null
-                    : values[baseHabitatId];
-                var h = new DummyHabitat(habitatId, baseHabitat);
-                values.Add(habitatId, h);
-                return this;
-            }
         }
 
         public record DummyHabitat : IHabitat

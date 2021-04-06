@@ -104,16 +104,7 @@ namespace Allard.Configinator.Core.Model
             // make sure habitat doesn't already exist.
             habitats.Keys.EnsureIdDoesntExist(habitatId);
 
-            // make sure the hierarchy is sound.
-            // ie: no circular references, self references, invalid references.
-            // ValidateHabitatHierarchy(habitatId, baseHabitats);
-            //
-            // // get the ids of the base habitats
-            // var baseIds = habitats
-            //     .Values
-            //     .Where(h => baseHabitats.Contains(h.HabitatId))
-            //     .Select(h => h.HabitatId)
-            //     .ToHashSet();
+            // TODO: validate base hierarchy. prevent circular reference.
 
             // create and raise the event.
             var evt = new AddedHabitatToRealmEvent(Organization.OrganizationId, RealmId, habitatId);

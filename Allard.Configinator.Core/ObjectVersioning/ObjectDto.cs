@@ -4,12 +4,33 @@ using System.Linq;
 
 namespace Allard.Configinator.Core.ObjectVersioning
 {
+    public enum ObjectType
+    {
+        Object,
+        String
+    }
+
     [DebuggerDisplay("Name={Name}")]
     public class ObjectDto
     {
+        public ObjectType ObjectType { get; set; }
         public string Name { get; set; }
-        public List<ObjectDto> Objects { get; } = new();
-        public List<PropertyDto> Properties { get; } = new();
+        public List<ObjectDto> Items { get; } = new();
+
+        public IEnumerable<ObjectDto> Properties => Items.Where(i => i.IsProperty());
+        public IEnumerable<ObjectDto> Objects => Items.Where(i => i.IsObject());
+
+        public string Value { get; set; }
+
+        public static ObjectDto CreateString(string name, string value = null)
+        {
+            return new()
+            {
+                ObjectType = ObjectType.String,
+                Name = name,
+                Value = value
+            };
+        }
 
         public ObjectDto SetName(string name)
         {
@@ -17,62 +38,55 @@ namespace Allard.Configinator.Core.ObjectVersioning
             return this;
         }
 
-        public ObjectDto AddProperty(string name, string value = null)
+        public ObjectDto SetValue(string value)
         {
-            Properties.Add(new PropertyDto {Name = name, Value = value});
+            Value = value;
             return this;
         }
 
-        public ObjectDto AddProperties(IEnumerable<PropertyDto> properties)
+        public ObjectDto AddString(string name, string value = null)
         {
-            Properties.AddRange(properties);
+            Items.Add(new ObjectDto {Name = name, Value = value});
             return this;
         }
 
         public ObjectDto GetObject(string name)
         {
-            return Objects.Single(o => o.Name == name);
+            return Items.Single(o => o.Name == name && o.IsObject());
         }
 
-        public ObjectDto AddObject(ObjectDto obj)
+        public ObjectDto Add(ObjectDto obj)
         {
-            Objects.Add(obj);
+            Items.Add(obj);
             return this;
         }
 
         public bool ObjectExists(string name)
         {
-            return Objects.Any(o => o.Name == name);
+            return Items.Any(o => o.Name == name && o.IsObject());
         }
 
         public bool PropertyExists(string name)
         {
-            return Properties.Any(p => p.Name == name);
+            return Items.Any(o => o.Name == name && o.IsProperty());
         }
 
-        public ObjectDto AddProperty(PropertyDto property)
+        public ObjectDto Add(IEnumerable<ObjectDto> objects)
         {
-            Properties.Add(property);
+            Items.AddRange(objects);
             return this;
         }
 
-        public ObjectDto AddObjects(IEnumerable<ObjectDto> objects)
+        public ObjectDto GetProperty(string name)
         {
-            Objects.AddRange(objects);
-            return this;
-        }
-
-        public PropertyDto GetProperty(string name)
-        {
-            return Properties.Single(p => p.Name == name);
+            return Items.Single(p => p.Name == name && p.IsProperty());
         }
 
         public ObjectDto Clone()
         {
             return new ObjectDto()
                 .SetName(Name)
-                .AddObjects(Objects?.Select(o => o.Clone()))
-                .AddProperties(Properties?.Select(p => p.Clone()));
+                .Add(Items?.Select(o => o.Clone()));
         }
     }
 }

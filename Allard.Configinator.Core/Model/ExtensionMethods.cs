@@ -12,13 +12,5 @@ namespace Allard.Configinator.Core.Model
                 throw new InvalidOperationException(
                     $"{id.GetType().Name} already exists. Id={id.Id}");
         }
-
-        public static List<T> AddIfNotNull<T>(this List<T> list, T item)
-        {
-            if (item == null) return list;
-
-            list.Add(item);
-            return list;
-        }
     }
 }

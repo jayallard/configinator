@@ -19,14 +19,14 @@ namespace Allard.Configinator.Core.ObjectVersioning
 
         public bool IsSet { get; private set; }
         public bool IsChanged => IsSet && !string.Equals(OriginalValue, Value);
-
-        public string Name { get; }
         public string VersionName { get; }
         public string OriginalValue { get; }
-        public string Value { get; private set; }
         public VersionedObject Parent { get; }
         public VersionedProperty PreviousVersion { get; internal set; }
         public VersionedProperty NextVersion { get; internal set; }
+
+        public string Name { get; }
+        public string Value { get; private set; }
 
         public void SetValue(string value)
         {
