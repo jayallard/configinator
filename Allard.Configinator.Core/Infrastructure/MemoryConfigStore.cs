@@ -15,8 +15,7 @@ namespace Allard.Configinator.Core.Infrastructure
     {
         private readonly Mutex readWriteLock = new();
 
-        // key = path
-        private readonly ConcurrentDictionary<string, ConfigStoreValue> repo = new();
+        public ConcurrentDictionary<string, ConfigStoreValue> Values { get; } = new();
 
         public Task<ConfigStoreValue> GetValueAsync(string path)
         {
@@ -24,7 +23,7 @@ namespace Allard.Configinator.Core.Infrastructure
             try
             {
                 readWriteLock.WaitOne();
-                return repo.TryGetValue(path, out var value)
+                return Values.TryGetValue(path, out var value)
                     ? Task.FromResult(value)
                     : Task.FromResult(new ConfigStoreValue(path, null, false));
             }
@@ -40,8 +39,8 @@ namespace Allard.Configinator.Core.Infrastructure
             try
             {
                 readWriteLock.WaitOne();
-                repo[value.Path] = new ConfigStoreValue(value.Path, value.Value, true);
-                return Task.FromResult(repo[value.Path]);
+                Values[value.Path] = new ConfigStoreValue(value.Path, value.Value, true);
+                return Task.FromResult(Values[value.Path]);
             }
             finally
             {

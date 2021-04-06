@@ -26,7 +26,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             Configinator = new Configinator(Organization, ConfigStore);
         }
 
-        private IConfigStore ConfigStore { get; }
+        private MemoryConfigStore ConfigStore { get; }
         private Configinator Configinator { get; }
 
         private OrganizationAggregate Organization { get; }
@@ -95,26 +95,40 @@ namespace Allard.Configinator.Core.Tests.Unit
                 TestConfigurationSection1, "staging");
             var setRequest = new SetValueRequest(configId, null, input);
             var setResponse = await Configinator.SetValueAsync(setRequest);
-            throw new NotImplementedException();
-            // setResponse.Failures.Should().BeEmpty();
-            // setResponse.Success.Should().BeTrue();
+            setResponse.Habitats.Count.Should().Be(1);
+            setResponse.Habitats.Single().ValidationFailures.Should().BeEmpty();
+            setResponse.Habitats.Single().Saved.Should().BeTrue();
 
-            var getRequest = new GetValueRequest(configId);
-            var get = await Configinator.GetValueAsync(getRequest);
+            ConfigStore.Values.Count.Should().Be(1);
+            var value = ConfigStore.Values.Values.Single();
+            testOutputHelper.WriteLine("");
 
-            var expectedString = input.RootElement.ToString();
-            var actualString = get.Value.RootElement.ToString();
-            actualString.Should().Be(expectedString);
+            // var getRequest = new GetValueRequest(configId);
+            // var get = await Configinator.GetValueAsync(getRequest);
+            //
+            // var expectedString = input.RootElement.ToString();
+            // var actualString = get.Value.RootElement.ToString();
+            // actualString.Should().Be(expectedString);
         }
 
         [Fact]
-        public void JsonCompare()
+        public async Task SetPropertyByPath()
         {
-            var a = JsonDocument.Parse("{ \"a\": \"b\", \"c\": \"d\" }");
-            var b = JsonDocument.Parse("   { \"c\": \"d\", \"a\": \"b\" }   ");
-            testOutputHelper.WriteLine(a.Equals(b).ToString());
-        }
+            var input = JsonDocument.Parse(TestUtility.GetFile("FullDocumentPasses.json"));
+            var configId = new ConfigurationId(Organization.OrganizationId.Id, TestRealm1,
+                TestConfigurationSection1, "staging");
+            var setRequest = new SetValueRequest(configId, null, input);
+            await Configinator.SetValueAsync(setRequest);
 
+            var setProperty = new SetValueRequest(configId, "/sql-source/user-id", JsonDocument.Parse("\"partial\""));
+            await Configinator.SetValueAsync(setProperty);
+            ConfigStore.Values.Count.Should().Be(1);
+            ConfigStore.Values.Values.Single().Value.RootElement.GetProperty("sql-Source").GetProperty("user-id")
+                .GetString().Should().Be("partial");
+        }
+        
+        
+        
         [Fact]
         public async Task OnlySubDocWillBeSaved()
         {

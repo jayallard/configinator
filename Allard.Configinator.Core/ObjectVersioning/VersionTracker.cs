@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -25,21 +26,53 @@ namespace Allard.Configinator.Core.ObjectVersioning
             return v;
         }
 
-        public VersionedObject UpdateVersion(string versionName, ObjectDto version)
+        public VersionedObject UpdateVersion(string versionName, ObjectDto version, string path = null)
         {
+            if (!string.IsNullOrWhiteSpace(path))
+            {
+                return SetPath(versionName, version, path);
+            }
+            
             var existing = objectVersions[versionName];
             UpdateObjectValues(model, existing, version);
             return existing;
         }
 
-        private static void UpdateObjectValues(ObjectDto objectDto, VersionedObject toUpdate, ObjectDto updatedValues)
+        private VersionedObject SetPath(string versionName, ObjectDto version, string path)
+        {
+            var parts = path.Split("/", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var currentModel = model;
+            var baseValue = objectVersions[versionName];
+            var currentValue = baseValue;
+            for (var i = 0; i < parts.Length - 1; i++)
+            {
+                // todo: will throw an exception if path is invalid.
+                currentModel = currentModel.GetObject(parts[i]);
+                currentValue = currentValue.GetObject(parts[i]);
+            }
+
+            // if it's an object, then start iterating here.
+            if (model.ObjectExists(parts.Last()))
+            {
+                UpdateObjectValues(currentModel, currentValue, version);
+                return baseValue;
+            }
+            
+            // if it's a property, then set the value.
+            currentValue
+                .GetProperty(parts.Last())
+                .SetValue(version.GetProperty(parts.Last()).Value);
+            return baseValue;
+        }
+
+        private static void UpdateObjectValues(ObjectDto model, VersionedObject toUpdate, ObjectDto updatedValues)
         {
             var childObjects = updatedValues.Objects.ToDictionary(o => o.Name);
-            var objectsToUpdate = objectDto.Objects.Where(o => childObjects.ContainsKey(o.Name));
+            var objectsToUpdate = model.Objects.Where(o => childObjects.ContainsKey(o.Name));
             foreach (var o in objectsToUpdate) UpdateObjectValues(o, toUpdate.GetObject(o.Name), childObjects[o.Name]);
 
             var childProperties = updatedValues.Properties.ToDictionary(o => o.Name);
-            var propertiesToUpdate = objectDto.Properties.Where(p => childProperties.ContainsKey(p.Name));
+            var propertiesToUpdate = model.Properties.Where(p => childProperties.ContainsKey(p.Name));
             foreach (var p in propertiesToUpdate) toUpdate.GetProperty(p.Name).SetValue(childProperties[p.Name].Value);
         }
 

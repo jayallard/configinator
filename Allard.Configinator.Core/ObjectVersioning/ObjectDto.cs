@@ -40,6 +40,16 @@ namespace Allard.Configinator.Core.ObjectVersioning
             return this;
         }
 
+        public bool ObjectExists(string name)
+        {
+            return Objects.Any(o => o.Name == name);
+        }
+
+        public bool PropertyExists(string name)
+        {
+            return Properties.Any(p => p.Name == name);
+        }
+
         public ObjectDto AddProperty(PropertyDto property)
         {
             Properties.Add(property);

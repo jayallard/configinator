@@ -11,13 +11,13 @@ namespace Allard.Configinator.Core
     public class HabitatValueResolver
     {
         private readonly IHabitat baseHabitat;
-        private readonly Func<IHabitat, Task<JsonDocument>> configStore;
+        private readonly Func<IHabitat, Task<ObjectDto>> configStore;
         private readonly Dictionary<IHabitat, VersionTracker> habitatTrackers = new();
         private readonly ObjectDto objectModel;
 
         public HabitatValueResolver(
             ObjectDto objectModel,
-            Func<IHabitat, Task<JsonDocument>> configStore,
+            Func<IHabitat, Task<ObjectDto>> configStore,
             IHabitat baseHabitat)
         {
             this.objectModel = objectModel.EnsureValue(nameof(objectModel));
@@ -54,8 +54,7 @@ namespace Allard.Configinator.Core
             {
                 Visit(baseHabitat, async h =>
                 {
-                    var valueJson = await configStore(h);
-                    var value = valueJson.ToObjectDto();
+                    var value = await configStore(h);
                     var tracker = habitatTrackers[h];
 
                     if (h.BaseHabitat != null)
@@ -69,10 +68,10 @@ namespace Allard.Configinator.Core
             });
         }
 
-        public void OverwriteValue(IHabitat habitat, ObjectDto newValue)
+        public void OverwriteValue(IHabitat habitat, ObjectDto newValue, string path = null)
         {
             var tracker = habitatTrackers[habitat];
-            tracker.UpdateVersion(habitat.HabitatId.Id, newValue);
+            tracker.UpdateVersion(habitat.HabitatId.Id, newValue, path);
             Visit(habitat, h =>
             {
                 var childTracker = habitatTrackers[h];

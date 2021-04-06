@@ -25,25 +25,23 @@ namespace Allard.Configinator.Core
 
         public async Task<SetValueResponse> SetValueAsync(SetValueRequest request)
         {
-            // super messy... once logic is finalized, cleanup and refactor
-            
-            
             var realm = Organization.GetRealmByName(request.ConfigurationId.RealmId);
             var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
-
-            async Task<JsonDocument> ConfigResolver(IHabitat h)
+            var valueForHabitat = (await GetValueFromConfigstore(cs, habitat)).ToObjectDto();
+            async Task<ObjectDto> ConfigResolver(IHabitat h)
             {
-                return await GetValueFromConfigstore(cs, h);
+                return
+                    h == habitat
+                        ? valueForHabitat
+                        : (await GetValueFromConfigstore(cs, h)).ToObjectDto();
             }
 
-            // TODO: if a single habitat, simplify.. 
             var model = StructureBuilder.ToStructure(cs);
             var resolver = new HabitatValueResolver(model, ConfigResolver, habitat);
             await resolver.LoadExistingValues();
             var newValue = request.Value.ToObjectDto();
-            // todo: convert versioned object instead... one less conversion
-            resolver.OverwriteValue(habitat, newValue);
+            resolver.OverwriteValue(habitat, newValue, request.SettingsPath);
 
             var state = resolver
                 .Habitats
@@ -56,32 +54,26 @@ namespace Allard.Configinator.Core
                 })
                 .ToList();
 
+            // if nothing changed, then nothing to do
             if (state.All(s => !s.IsChanged))
             {
-                var habitats = state
-                    .Select(h =>
-                        new SetValueResponseHabitat(h.IsChanged, h.IsSaved, h.Habitat.HabitatId.Id,
-                            h.Failures))
-                    .ToList();
-                return new SetValueResponse(habitats);
+                return ToResponse(state);
             }
 
             // validate
             foreach (var s in state.Where(s => s.IsChanged))
             {
                 var failures = new ConfigurationValidator(cs, Organization.SchemaTypes)
-                    .Validate(s.Habitat.HabitatId, s.Object).ToList();
+                    .Validate(s.Habitat.HabitatId, s.Object)
+                    .ToList();
                 s.Failures.AddRange(failures);
             }
 
+            // if there are any errors, then can't save.
+            // exit.
             if (state.Any(s => !s.CanSave))
             {
-                var habitats = state
-                    .Select(h =>
-                        new SetValueResponseHabitat(h.IsChanged, h.IsSaved, h.Habitat.HabitatId.Id,
-                            h.Failures))
-                    .ToList();
-                return new SetValueResponse(habitats);
+                return ToResponse(state);
             }
 
             // save
@@ -95,12 +87,17 @@ namespace Allard.Configinator.Core
                 s.IsSaved = true;
             }
 
-            var h = state
+            return ToResponse(state);
+        }
+
+        private static SetValueResponse ToResponse(IEnumerable<State> states)
+        {
+            var habitats = states
                 .Select(h =>
                     new SetValueResponseHabitat(h.IsChanged, h.IsSaved, h.Habitat.HabitatId.Id,
                         h.Failures))
                 .ToList();
-            return new SetValueResponse(h);
+            return new SetValueResponse(habitats);
         }
 
         private class State
@@ -113,20 +110,12 @@ namespace Allard.Configinator.Core
             public bool CanSave => IsChanged && Failures.Count == 0;
         }
 
-        private ConfigurationId CreateConfigurationId(ConfigurationSection configurationSection, IHabitat habitat)
-        {
-            return new(
-                Organization.OrganizationId.Id,
-                configurationSection.Realm.RealmId.Id,
-                configurationSection.SectionId.Id,
-                habitat.HabitatId.Id);
-        }
-
         public async Task<GetValueResponse> GetValueAsync(GetValueRequest request)
         {
             var realm = Organization.GetRealmByName(request.ConfigurationId.RealmId);
             var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
+
 
             // get the bases and the specific value, then merge.
             //var configsToGet = GetValueFromConfigstore(cs, habitat);
@@ -190,6 +179,14 @@ namespace Allard.Configinator.Core
             return JsonDocument.Parse(node.ToJsonString(habitatId.Id));
         }
         */
+
+        /// <summary>
+        /// Retrieve a value from the config store, if it exists.
+        /// If it doesn't exist, returns an empty document.
+        /// </summary>
+        /// <param name="cs">The configuration section of the value.</param>
+        /// <param name="habitat">The habitat of the value.</param>
+        /// <returns></returns>
         private async Task<JsonDocument> GetValueFromConfigstore(
             ConfigurationSection cs, IHabitat habitat)
         {
@@ -199,75 +196,5 @@ namespace Allard.Configinator.Core
                 ? value.Value
                 : JsonDocument.Parse("{}");
         }
-
-        // public static Tree<HabitatId, IHabitat> GetHabitatTree(HabitatId rootHabitatId, List<IHabitat> allHabitats)
-        // {
-        //     var rootHabitat = allHabitats.Single(h => h.HabitatId == rootHabitatId);
-        //     var tree = new Tree<HabitatId, IHabitat>(rootHabitatId, rootHabitat);
-        //     AddChildren(tree, allHabitats, rootHabitatId);
-        //     return tree;
-        // }
-
-        // private static void AddChildren(Tree<HabitatId, IHabitat> tree, List<IHabitat> allHabitats, HabitatId currentId)
-        // {
-        //     var children = allHabitats.Where(h => h.BaseHabitat?.HabitatId == currentId).ToList();
-        //     if (children.Count == 0)
-        //         // done
-        //         return;
-        //
-        //     foreach (var child in children)
-        //     {
-        //         tree.Add(currentId, child.HabitatId, child);
-        //         AddChildren(tree, allHabitats, child.HabitatId);
-        //     }
-        // }
-
-        /// <summary>
-        ///     Gets all of the descendent dependency chains for a habitat.
-        /// </summary>
-        /// <param name="targetHabitatId"></param>
-        /// <param name="allHabitats"></param>
-        /// <returns></returns>
-        // public static List<List<IHabitat>> GetHabitatDescendantChains(HabitatId targetHabitatId,
-        //     List<IHabitat> allHabitats)
-        // {
-        //     // get all the habitats that are parents.
-        //     var bases = allHabitats
-        //         .Where(h => h.BaseHabitat != null)
-        //         .Select(h => h.BaseHabitat.HabitatId)
-        //         .ToHashSet();
-        //
-        //     // find the habitats that don't have any children
-        //     // these are the bottom-level habitats.
-        //     var bottomHabitats = allHabitats
-        //         .Where(h => !bases.Contains(h.HabitatId))
-        //         .ToList();
-        //
-        //     var chains = new List<List<IHabitat>>();
-        //     foreach (var bottom in bottomHabitats)
-        //     {
-        //         var current = bottom;
-        //         var chain = new List<IHabitat>();
-        //         while (current != null)
-        //         {
-        //             chain.Add(current);
-        //             if (current.HabitatId == targetHabitatId) break;
-        //
-        //             current = current.BaseHabitat;
-        //         }
-        //
-        //         if (current != null) chains.Add(chain);
-        //
-        //
-        //         // put the base class as the top
-        //         chain.Reverse();
-        //     }
-        //
-        //     return chains;
-        // }
     }
-
-    //public record HabitatConfigurationValue(IHabitat Habitat, JsonVersionedObject Value);
-
-    //public record HabitatValue(HabitatId HabitatId, List<ValidationFailure> Errors, JsonDocument Value);
 }
