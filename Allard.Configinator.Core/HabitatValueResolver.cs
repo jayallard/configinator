@@ -12,34 +12,25 @@ namespace Allard.Configinator.Core
         private readonly IHabitat baseHabitat;
         private readonly Func<IHabitat, Task<ObjectDto>> configStore;
         private readonly Dictionary<IHabitat, VersionTracker> habitatTrackers = new();
-        private readonly ObjectDto objectModel;
 
         public HabitatValueResolver(
             ObjectDto objectModel,
             Func<IHabitat, Task<ObjectDto>> configStore,
             IHabitat baseHabitat)
         {
-            this.objectModel = objectModel.EnsureValue(nameof(objectModel));
+            objectModel.EnsureValue(nameof(objectModel));
             this.configStore = configStore.EnsureValue(nameof(configStore));
             this.baseHabitat = baseHabitat.EnsureValue(nameof(baseHabitat));
-            Initialize();
-        }
-
-        public IEnumerable<VersionedObject> Habitats => habitatTrackers
-            .Values
-            .Select(t => t.Versions.Last());
-
-        /// <summary>
-        ///     Crawls the habitat tree. Creates a tracker for each habitat.
-        /// </summary>
-        private void Initialize()
-        {
-            Visit(baseHabitat, _ =>
+            
+            // create a new tracker for each habitat
+            Visit(baseHabitat, h =>
             {
-                var tracker = new VersionTracker(objectModel);
-                habitatTrackers.Add(baseHabitat, tracker);
+                var tracker = new VersionTracker(objectModel, h.HabitatId.Id);
+                habitatTrackers.Add(h, tracker);
             });
         }
+
+        public IEnumerable<VersionTracker> VersionedHabitats => habitatTrackers.Values;
 
         public async Task LoadExistingValues()
         {
@@ -70,7 +61,7 @@ namespace Allard.Configinator.Core
                 if (habitat == h) return;
 
                 var childTracker = habitatTrackers[h];
-                childTracker.UpdateVersion(habitat.HabitatId.Id, tracker.Versions.Last().ToObjectDto());
+                childTracker.UpdateVersion(h.HabitatId.Id, tracker.Versions.Last().ToObjectDto());
                 CopyDown(childTracker);
             });
         }
@@ -99,13 +90,11 @@ namespace Allard.Configinator.Core
                 CopyDown(obj.Objects);
             }
         }
-
+        
         private static void Visit(IHabitat habitat, Action<IHabitat> visitor)
         {
             visitor(habitat);
             foreach (var child in habitat.Children) Visit(child, visitor);
         }
     }
-
-    public record HabitatConfigurationVersioning(HabitatId HabitatId, VersionedObject Object);
 }

@@ -128,34 +128,6 @@ namespace Allard.Configinator.Core.Tests.Unit
                 .GetString().Should().Be("partial");
         }
 
-        [Fact]
-        public async Task OnlySubDocWillBeSaved()
-        {
-            // set everything at the base: dev   
-            // set one value as a descendant: dev-jay
-            // make sure only the one value is saved to dev-jay.
-            var file = TestUtility.GetFile("FullDocumentPasses.json");
-            var configId = new ConfigurationId(Organization.OrganizationId.Id, TestRealm1,
-                TestConfigurationSection1, "dev");
-            var setRequest = new SetValueRequest(configId, null, JsonDocument.Parse(file));
-            var setResponse = await Configinator.SetValueAsync(setRequest);
-            //setResponse.Success.Should().BeTrue();
-            throw new NotImplementedException();
-
-            var configId2 = new ConfigurationId(Organization.OrganizationId.Id, TestRealm1,
-                TestConfigurationSection1, "dev-allard");
-            var sqlPassword = " { \"sql-source\": { \"password\": \"new password\" } } ";
-            var setRequest2 =
-                new SetValueRequest(configId2, null, JsonDocument.Parse(sqlPassword));
-            await Configinator.SetValueAsync(setRequest2);
-            var path = $"/{Organization.OrganizationId.Id}/{TestRealm1}/{TestConfigurationSection1}/dev-allard";
-            var value = (await ConfigStore.GetValueAsync(path)).Value.RootElement.ToString();
-            value.Should().Be(JsonDocument.Parse(sqlPassword).RootElement.ToString());
-
-            // test is no longer valid because RAW has been eliminated.
-            // fix the assert to look at the layers
-        }
-
         public record DummyHabitat : IHabitat
         {
             public DummyHabitat(string id, IHabitat baseHabitat)

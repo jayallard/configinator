@@ -4,6 +4,8 @@
     &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.Unit.ConfiginatorTests&lt;/TestId&gt;
     &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.Unit.DocumentMerger.JsonVersionedObjectTests.Blah&lt;/TestId&gt;
     &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.Unit.ObjectVersioning.VersionTrackerTests.Blah&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.Unit.HabitatValueResolverTests.LoadChildHabitats&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::AA8F4058-A20A-4B49-9888-D49BE4D00F5F::net5.0::Allard.Configinator.Core.Tests.Unit.HabitatValueResolverTests.CopyDown&lt;/TestId&gt;
   &lt;/TestAncestor&gt;
 &lt;/SessionState&gt;</s:String>
 	

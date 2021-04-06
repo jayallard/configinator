@@ -13,7 +13,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
     [DebuggerDisplay("Name={Name}")]
     public class ObjectDto
     {
-        public ObjectType ObjectType { get; init; }
+        public ObjectType ObjectType { get; init; } = ObjectType.Object;
         public string Name { get; set; }
         public List<ObjectDto> Items { get; } = new();
 
@@ -46,7 +46,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
 
         public ObjectDto AddString(string name, string value = null)
         {
-            Items.Add(new ObjectDto {Name = name, Value = value});
+            Items.Add(ObjectDto.CreateString(name, value));
             return this;
         }
 

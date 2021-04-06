@@ -26,13 +26,8 @@ namespace Allard.Configinator.Core
             var realm = Organization.GetRealmByName(request.ConfigurationId.RealmId);
             var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
-
-            //var valueForHabitat = (await GetValueFromConfigstore(cs, habitat)).ToObjectDto();
             async Task<ObjectDto> ConfigResolver(IHabitat h)
             {
-                // return
-                //     h == habitat
-                //         ? valueForHabitat
                 return (await GetValueFromConfigstore(cs, h)).ToObjectDto();
             }
 
@@ -43,7 +38,8 @@ namespace Allard.Configinator.Core
             resolver.OverwriteValue(habitat, newValue, request.SettingsPath);
 
             var state = resolver
-                .Habitats
+                .VersionedHabitats
+                .Select(v => v.Versions.Last())
                 .Select(h => new State
                 {
                     Habitat = realm.GetHabitat(h.VersionName),

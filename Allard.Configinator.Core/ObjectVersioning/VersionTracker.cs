@@ -1,18 +1,22 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Allard.Configinator.Core.ObjectVersioning
 {
+    [DebuggerDisplay("Name={Name}")]
     public class VersionTracker
     {
         private readonly ObjectDto model;
         private readonly Dictionary<string, VersionedObject> objectVersions = new();
         private readonly List<VersionedObject> objectVersionsOrdered = new();
 
-        public VersionTracker(ObjectDto model)
+        public string Name { get; }
+        public VersionTracker(ObjectDto model, string name = null)
         {
             this.model = model.EnsureValue(nameof(model));
+            Name = name;
         }
 
         public IReadOnlyCollection<VersionedObject> Versions => objectVersionsOrdered.ToList();
