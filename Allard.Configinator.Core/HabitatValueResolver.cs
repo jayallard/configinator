@@ -61,7 +61,7 @@ namespace Allard.Configinator.Core
                 if (habitat == h) return;
 
                 var childTracker = habitatTrackers[h];
-                childTracker.UpdateVersion(h.HabitatId.Id, tracker.Versions.Last().ToObjectDto());
+                childTracker.UpdateVersion(h.BaseHabitat.HabitatId.Id, tracker.Versions.Last().ToObjectDto());
                 CopyDown(childTracker);
             });
         }
@@ -72,22 +72,22 @@ namespace Allard.Configinator.Core
                 // nothing to copy
                 return;
 
-            CopyDown(tracker.Versions.Last().Objects);
+            CopyDown(tracker.Versions.Last());
         }
 
-        private static void CopyDown(IEnumerable<VersionedObject> objects)
+        private static void CopyDown(VersionedObject obj)
         {
-            foreach (var obj in objects)
+            foreach (var property in obj.Properties)
+                // if the base and child used to have the same value,
+                // then they should continue to have the same value.
+                // IE: base=x, child=x.
+                //     the base changed to y, so change the child to y
+                if (property.Value == null || string.Equals(property.Value, property.PreviousVersion.OriginalValue))
+                    property.SetValue(property.PreviousVersion.Value);
+            
+            foreach (var o in obj.Objects)
             {
-                foreach (var property in obj.Properties)
-                    // if the base and child used to have the same value,
-                    // then they should continue to have the same value.
-                    // IE: base=x, child=x.
-                    //     the base changed to y, so change the child to y
-                    if (property.Value == null || string.Equals(property.Value, property.OriginalValue))
-                        property.SetValue(property.PreviousVersion.OriginalValue);
-
-                CopyDown(obj.Objects);
+                CopyDown(o);
             }
         }
         

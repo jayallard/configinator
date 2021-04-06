@@ -46,7 +46,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
 
         public ObjectDto AddString(string name, string value = null)
         {
-            Items.Add(ObjectDto.CreateString(name, value));
+            Items.Add(CreateString(name, value));
             return this;
         }
 

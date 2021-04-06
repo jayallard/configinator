@@ -92,7 +92,6 @@ namespace Allard.Configinator.Core.Tests.Unit
             // overwrite the value  
             h1Value.GetProperty("hello").SetValue("world");
             resolver.OverwriteValue(h1, h1Value);
-            testOutputHelper.WriteLine("");
 
             var resolved = resolver.VersionedHabitats.ToDictionary(v => v.Name);
             
