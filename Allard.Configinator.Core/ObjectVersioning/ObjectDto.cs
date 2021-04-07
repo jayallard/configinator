@@ -13,7 +13,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
     [DebuggerDisplay("Name={Name}")]
     public class ObjectDto
     {
-        public ObjectType ObjectType { get; init; } = ObjectType.Object;
+        public ObjectType ObjectType { get; set; } = ObjectType.Object;
         public string Name { get; set; }
         public List<ObjectDto> Items { get; } = new();
 
@@ -41,6 +41,12 @@ namespace Allard.Configinator.Core.ObjectVersioning
         public ObjectDto SetValue(string value)
         {
             Value = value;
+            return this;
+        }
+
+        public ObjectDto SetObjectType(ObjectType objectType)
+        {
+            ObjectType = objectType;
             return this;
         }
 
@@ -86,6 +92,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
         {
             return new ObjectDto()
                 .SetName(Name)
+                .SetObjectType(ObjectType)
                 .Add(Items?.Select(o => o.Clone()));
         }
     }

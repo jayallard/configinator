@@ -47,10 +47,9 @@ namespace Allard.Configinator.Core
          *
          * This cascades down the tree where each value is considered against
          * the new value of its base.
-         * 
          */
-        
-        
+
+
         private readonly IHabitat baseHabitat;
         private readonly Func<IHabitat, Task<ObjectDto>> configStore;
         private readonly Dictionary<IHabitat, VersionTracker> habitatTrackers = new();
@@ -63,7 +62,7 @@ namespace Allard.Configinator.Core
             objectModel.EnsureValue(nameof(objectModel));
             this.configStore = configStore.EnsureValue(nameof(configStore));
             this.baseHabitat = baseHabitat.EnsureValue(nameof(baseHabitat));
-            
+
             // create a new tracker for each habitat
             Visit(baseHabitat, h =>
             {
@@ -86,14 +85,14 @@ namespace Allard.Configinator.Core
                 {
                     // get the value for the habitat
                     var value = await configStore(h);
-                    
+
                     // get the tracker for the habitat
                     var tracker = habitatTrackers[h];
                     if (h.BaseHabitat != null)
                     {
                         // if the habitat has a base, get its tracker.
                         var baseTracker = habitatTrackers[h.BaseHabitat];
-                        
+
                         // copy the values from the base's tracker to this tracker.
                         tracker.AddVersion(h.BaseHabitat.HabitatId.Id, baseTracker.Versions.Last().ToObjectDto());
                     }
@@ -116,26 +115,31 @@ namespace Allard.Configinator.Core
             // update the tracker with the new value for the habitat.
             var tracker = habitatTrackers[habitat];
             tracker.UpdateVersion(habitat.HabitatId.Id, newValue, path);
+            Process(habitat);
             
-            // now that this habitat has changed, then all habitats that
-            // inherit from it must be updated.
-            Visit(habitat, h =>
+            // not using VISIT in this case, because its more efficient not too.
+            // with VISIT, the BASE would reload for each child, and convert to DTO.
+            // by using this loop instead, we can load it and convert it once,
+            // and reuse for all children. slightly more efficient.
+            void Process(IHabitat h)
             {
-                // skip the one that we started with.
-                if (habitat == h) return;
+                var baseTracker = habitatTrackers[h];
+                var baseDto = baseTracker.Versions.Last().ToObjectDto();
+                foreach (var child in h.Children)
+                {
+                    // get the trackers for the habitat to update.
+                    var childTracker = habitatTrackers[child];
 
-                // get the trackers for the habitat to update.
-                var currentTracker = habitatTrackers[h];
-                
-                // get it's base tracker.
-                var baseTracker = habitatTrackers[h.BaseHabitat];
-                
-                // update the habitat tracker with the values from the base.
-                currentTracker.UpdateVersion(h.BaseHabitat.HabitatId.Id, baseTracker.Versions.Last().ToObjectDto());
-                
-                // copy the values from the base to the habitat
-                ResolveHabitatFromBase(currentTracker.Versions.Last());
-            });
+                    // update the habitat tracker with the values from the base.
+                    childTracker.UpdateVersion(child.BaseHabitat.HabitatId.Id, baseDto);
+
+                    // copy the values from the base to the habitat
+                    ResolveHabitatFromBase(childTracker.Versions.Last());
+
+                    // cascade
+                    Process(child);
+                }
+            }
         }
 
         /// <summary>
@@ -152,13 +156,13 @@ namespace Allard.Configinator.Core
                 //     the base changed to y, so change the child to y
                 if (property.Value == null || string.Equals(property.Value, property.PreviousVersion.OriginalValue))
                     property.SetValue(property.PreviousVersion.Value);
-            
+
             foreach (var o in obj.Objects)
             {
                 ResolveHabitatFromBase(o);
             }
         }
-        
+
         /// <summary>
         /// Visit the habitat, and all of its descendants.
         /// </summary>

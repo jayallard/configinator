@@ -26,17 +26,30 @@ namespace Allard.Configinator.Core
             var realm = Organization.GetRealmByName(request.ConfigurationId.RealmId);
             var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
+
             async Task<ObjectDto> ConfigResolver(IHabitat h)
             {
+                // delegate to get value from config store
                 return (await GetValueFromConfigstore(cs, h)).ToObjectDto();
             }
 
+            // the model represents what the configuration value
+            // looks like. it has structure and data types (currently only string)
             var model = StructureBuilder.ToStructure(cs);
+
+            // does the heavy lifting of copying values from a habitat to
+            // the descendent habitats.
             var resolver = new HabitatValueResolver(model, ConfigResolver, habitat);
+
+            // load the existing values from config store into the trackers
             await resolver.LoadExistingValues();
+
+            // overwrite the config store value with the new value.
+            // this is the value that the user is saving.
             var newValue = request.Value.ToObjectDto();
             resolver.OverwriteValue(habitat, newValue, request.SettingsPath);
 
+            // the state object keeps track of things.
             var state = resolver
                 .VersionedHabitats
                 .Select(v => v.Versions.Last())
@@ -49,7 +62,7 @@ namespace Allard.Configinator.Core
                 })
                 .ToList();
 
-            // validate
+            // validate every habitat.
             foreach (var s in state)
             {
                 var failures = new ConfigurationValidator(cs, Organization.SchemaTypes)
@@ -59,7 +72,7 @@ namespace Allard.Configinator.Core
             }
 
             // if there are any errors, then can't save.
-            // exit.
+            // if nothing changed, then no point in saving.
             if (state.Any(s => !s.CanSave || !s.IsChanged)) return ToResponse(state);
 
             // save
@@ -81,19 +94,25 @@ namespace Allard.Configinator.Core
             var realm = Organization.GetRealmByName(request.ConfigurationId.RealmId);
             var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
-
-
-            // get the bases and the specific value, then merge.
-            //var configsToGet = GetValueFromConfigstore(cs, habitat);
-            //var habitats = GetHabitatTree(habitat.HabitatId, realm.Habitats.ToList());
-
-            return null;
-            // var toMerge = (await configsToGet).ToList();
-            // var model = structureModelBuilder.ToStructureModel(cs);
-            // var merged = await DocMerger3.Merge(model, toMerge.Select(m => m.Item1));
-            // var value = GetDeepValue(merged, request.ValuePath, habitat.HabitatId);
-            // var anyExists = toMerge.Any(m => m.Item2.Exists);
-            // return new GetValueResponse(request.ConfigurationId, anyExists, value, merged);
+            var path = OrganizationAggregate.GetConfigurationPath(cs, habitat);
+            var value = await configStore.GetValueAsync(path);
+            var doc = value.Exists
+                ? value.Value
+                : StructureBuilder.ToStructure(cs).ToJson();
+            
+            // if validation is requested
+            if (request.Validate)
+            {
+                var v = value.Exists
+                    ? value.Value.ToObjectDto()
+                    : StructureBuilder.ToStructure(cs);
+                var results = new ConfigurationValidator(cs, Organization.SchemaTypes).Validate(habitat.HabitatId, v);
+                return new GetValueResponse(request.ConfigurationId, value.Exists, results.ToList(), doc);
+            }
+            
+            // no validation - just return it
+            var response = new GetValueResponse(request.ConfigurationId, value.Exists, null, doc);
+            return response;
         }
 
         private static SetValueResponse ToResponse(IEnumerable<State> states)

@@ -28,7 +28,6 @@ namespace Allard.Configinator.Core.Tests.Unit
 
         private MemoryConfigStore ConfigStore { get; }
         private Configinator Configinator { get; }
-
         private OrganizationAggregate Organization { get; }
 
         private static OrganizationAggregate CreateOrganization()
@@ -128,19 +127,15 @@ namespace Allard.Configinator.Core.Tests.Unit
                 .GetString().Should().Be("partial");
         }
 
-        public record DummyHabitat : IHabitat
+        [Fact]
+        public async Task WhenValueDoesntExistReturnsStructure()
         {
-            public DummyHabitat(string id, IHabitat baseHabitat)
-            {
-                Realm = null;
-                HabitatId = new HabitatId(id);
-                BaseHabitat = baseHabitat;
-            }
-
-            public IRealm Realm { get; }
-            public HabitatId HabitatId { get; }
-            public IHabitat BaseHabitat { get; }
-            public IEnumerable<IHabitat> Children { get; }
+            var configId = new ConfigurationId(Organization.OrganizationId.Id, TestRealm1,
+                TestConfigurationSection1, "staging");
+            var get = new GetValueRequest(configId);
+            var response = await Configinator.GetValueAsync(get);
+            response.Exists.Should().Be(false);
+            testOutputHelper.WriteLine(response.Value.RootElement.ToString());
         }
     }
 }

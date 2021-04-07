@@ -53,7 +53,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb
 
         public void ApplyEvent(DomainEvent evt)
         {
-            ApplyMethod.Invoke(registry, BindingFlags.Default, null, new object?[] {evt}, null);
+            ApplyMethod.Invoke(registry, BindingFlags.Default, null, new object[] {evt}, null);
         }
 
         public IEnumerable<DomainEvent> GetEvents()

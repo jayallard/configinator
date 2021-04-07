@@ -8,7 +8,7 @@
 
 }
 
-@if (string.IsNullOrWhiteSpace(Property.Value) && Property.Layers.Last().Transition == "Inherit")
+@if (string.IsNullOrWhiteSpace(Property.Value) && Property.BaseValues.Last().Transition == "Inherit")
 {
     <span style="margin-left:15px" class="badge-pill badge-primary">Inherited</span>
 }

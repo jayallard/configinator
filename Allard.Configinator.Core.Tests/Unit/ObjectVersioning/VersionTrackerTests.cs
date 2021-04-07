@@ -16,16 +16,17 @@ namespace Allard.Configinator.Core.Tests.Unit.ObjectVersioning
         }
 
         [Fact]
-        public void Blah()
+        public void Demo()
         {
             var model = new ObjectDto()
                 .SetName("root")
                 .Add(new ObjectDto()
-                    .SetName("root")
+                    .SetName("hello")
                     .AddString("world")
                     .AddString("Galaxy"))
                 .AddString("a")
-                .AddString("b");
+                .AddString("b")
+                .AddString("c");
 
             var a = model.Clone();
             a.GetProperty("a").SetValue("aaa 1");
