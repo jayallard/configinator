@@ -109,6 +109,10 @@ namespace Allard.Configinator.Core.Tests.Unit
 
             value.GetProperty("kafka-target").EnumerateObject().Count().Should().Be(1);
             value.GetProperty("kafka-target").GetProperty("broker-list").GetString().Should().Be("localhost:9092");
+
+            var request = new GetValueRequest(configId, false);
+            var x = await Configinator.GetValueDetailAsync(request);
+            testOutputHelper.WriteLine("");
         }
 
         [Fact]

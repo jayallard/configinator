@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Allard.Configinator.Core.DocumentValidator;
@@ -89,6 +90,101 @@ namespace Allard.Configinator.Core
             return ToResponse(state);
         }
 
+        public async Task<GetDetailedValue> GetValueDetailAsync(GetValueRequest request)
+        {
+            var realm = Organization.GetRealmByName(request.ConfigurationId.RealmId);
+            var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
+            var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
+
+            var result = new GetDetailedValue();
+            var current = habitat;
+            var validator = new ConfigurationValidator(cs, Organization.SchemaTypes);
+            var dtos = new List<ObjectDto>();
+            var modelDto = StructureBuilder.ToStructure(cs);
+            var modelJson = modelDto.ToJson().RootElement.ToString();
+            var habitats = new List<string>();
+            while (current != null)
+            {
+                habitats.Add(current.HabitatId.Id);
+                var path = OrganizationAggregate.GetConfigurationPath(cs, habitat);
+                var value = await configStore.GetValueAsync(path);
+                var json = value.Exists
+                    ? value.Value.RootElement.ToString()
+                    : modelJson;
+                var dto = value.Exists
+                    ? value.Value.ToObjectDto()
+                    : modelDto;
+                dtos.Add(dto);
+
+                var habitatDetails = new GetDetailedValue.HabitatDetails
+                {
+                    Exists = value.Exists,
+                    ConfigurationValue = json,
+                    HabitatId = current.HabitatId.Id
+                };
+                result.Habitats.Add(habitatDetails);
+                if (request.Validate)
+                {
+                    var toValidate = value.Exists
+                        ? value.Value.ToObjectDto()
+                        : StructureBuilder.ToStructure(cs);
+                    habitatDetails.ValidationFailures.AddRange(validator.Validate(habitat.HabitatId, toValidate));
+                }
+
+                current = current.BaseHabitat;
+            }
+
+            habitats.Reverse();
+            dtos.Reverse();
+            result.Value = BuildDetailedValue(modelDto, dtos, habitats);
+            return result;
+        }
+
+        private static GetDetailedValue.ValueDetail BuildDetailedValue(
+            ObjectDto model,
+            List<ObjectDto> dtos,
+            List<string> habitatIds)
+        {
+            var detail = new GetDetailedValue.ValueDetail();
+            AddObject(model, detail, dtos);
+
+            void AddObject(ObjectDto currentModel, GetDetailedValue.ValueDetail currentDetail, List<ObjectDto> values)
+            {
+                foreach (var p in currentModel.Properties)
+                {
+                    var valuesPerHabitat = values
+                        .Select(v => new GetDetailedValue.HabitatValue
+                        {
+                            HabitatName = "", // todo:
+                            Transition = null,
+                            Value = v.GetProperty(p.Name).Value
+                        })
+                        .ToList();
+                    currentDetail.Properties.Add(new GetDetailedValue.PropertyValue
+                        {
+                            Name = p.Name,
+                            Value = valuesPerHabitat.Last().Value
+                        }
+                        .AddValues(valuesPerHabitat)
+                    );
+                }
+
+                foreach (var modelObject in currentModel.Objects)
+                {
+                    var nextObject = new GetDetailedValue.ValueDetail
+                    {
+                        Name = modelObject.Name
+                    };
+                    currentDetail.Objects.Add(nextObject);
+                    var nextValues = values.Select(v => v.GetObject(modelObject.Name)).ToList();
+                    AddObject(modelObject, nextObject, nextValues);
+                }
+            }
+
+            return detail;
+        }
+
+
         public async Task<GetValueResponse> GetValueAsync(GetValueRequest request)
         {
             var realm = Organization.GetRealmByName(request.ConfigurationId.RealmId);
@@ -99,7 +195,7 @@ namespace Allard.Configinator.Core
             var doc = value.Exists
                 ? value.Value
                 : StructureBuilder.ToStructure(cs).ToJson();
-            
+
             // if validation is requested
             if (request.Validate)
             {
@@ -109,7 +205,7 @@ namespace Allard.Configinator.Core
                 var results = new ConfigurationValidator(cs, Organization.SchemaTypes).Validate(habitat.HabitatId, v);
                 return new GetValueResponse(request.ConfigurationId, value.Exists, results.ToList(), doc);
             }
-            
+
             // no validation - just return it
             var response = new GetValueResponse(request.ConfigurationId, value.Exists, null, doc);
             return response;

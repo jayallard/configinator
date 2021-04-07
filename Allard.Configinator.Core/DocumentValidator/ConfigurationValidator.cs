@@ -33,6 +33,8 @@ namespace Allard.Configinator.Core.DocumentValidator
             ObjectDto obj,
             string path)
         {
+            // TODO: only works if all expected objects and properties exist.
+            // needs to be hardened. objects and properties might not exist.
             var configId = new ConfigurationId(
                 configurationSection.Realm.Organization.OrganizationId.Id,
                 configurationSection.Realm.RealmId.Id,
