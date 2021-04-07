@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -109,6 +110,7 @@ namespace Allard.Configinator.Core.Tests.Unit
         }
     }
 
+    [DebuggerDisplay("Id={HabitatId.Id}")]
     public class DummyHabitat : IHabitat
     {
         public List<IHabitat> ChildHabitats { get; } = new();

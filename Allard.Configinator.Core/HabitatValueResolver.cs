@@ -9,6 +9,48 @@ namespace Allard.Configinator.Core
 {
     public class HabitatValueResolver
     {
+        /*
+         * Stores one tracker per habitat.
+         * IE Given this habitat tree:
+         *              H1
+         *          H2A     H2B
+         *                      H3C
+         *
+         * There are 4 trackers.
+         * Each tracker has up to 2 versions: itself, and its base.
+         * H1 doesn't have a base, so it only has one version.
+         * H2A contains versions: H1, H2A.
+         * H3C contains versions: H3C, H2B.
+         *
+         * To start, a tracker is created for each habitat.
+         * LoadExistingValues adds the versions to the tracker.
+         * - the base version is copied from the base's tracker
+         * - the current version is retrieved from the config store.
+         *
+         * Now, everything is loaded.
+         * When a habitat value is updated via OverWrite value:
+         * - the habitat is updated with the new value
+         * - each habitat below it is updated
+         *    - the version that represents the base is overwritten with the new version
+         *    - the base version is resolved against the current version.
+         *
+         * The merge strategy is simple:
+         *  - when a base value changes
+         *      - if the sub habitat has the same value as the original base value (pre-change),
+         *        or if the value for the sub habitat is null,
+         *              then the sub value is assigned the value of the base.
+         *  
+         * IE: if the base value changes from a to b:
+         *     if the sub habitat value is a, it also changes to b
+         *     if the sub habitat value is x, it doesn't change
+         *     if the sub habitat value is null, it is set to b
+         *
+         * This cascades down the tree where each value is considered against
+         * the new value of its base.
+         * 
+         */
+        
+        
         private readonly IHabitat baseHabitat;
         private readonly Func<IHabitat, Task<ObjectDto>> configStore;
         private readonly Dictionary<IHabitat, VersionTracker> habitatTrackers = new();
@@ -36,46 +78,72 @@ namespace Allard.Configinator.Core
         {
             await Task.Run(() =>
             {
+                // Iterate the tree of habitats. Get the configuration value for each.
+                // set 2 versions of the object in the tracker:
+                //  1 - the value of the base habitat (if there is one)
+                //  2 - the value of the current habitat as provided by the config store.
                 Visit(baseHabitat, async h =>
                 {
+                    // get the value for the habitat
                     var value = await configStore(h);
+                    
+                    // get the tracker for the habitat
                     var tracker = habitatTrackers[h];
-
                     if (h.BaseHabitat != null)
                     {
+                        // if the habitat has a base, get its tracker.
                         var baseTracker = habitatTrackers[h.BaseHabitat];
+                        
+                        // copy the values from the base's tracker to this tracker.
                         tracker.AddVersion(h.BaseHabitat.HabitatId.Id, baseTracker.Versions.Last().ToObjectDto());
                     }
 
+                    // add this habitat's value to the tracker.
+                    // now the tracker has 2 values: the copy of it's base's value, and its own value.
                     tracker.AddVersion(h.HabitatId.Id, value);
                 });
             });
         }
 
+        /// <summary>
+        /// Replace the value of a habitat.
+        /// </summary>
+        /// <param name="habitat">The habitat with the updated value.</param>
+        /// <param name="newValue">The new value.</param>
+        /// <param name="path">The path of the value. Used for partial updates. If null or empty, then the entire object is updated.</param>
         public void OverwriteValue(IHabitat habitat, ObjectDto newValue, string path = null)
         {
+            // update the tracker with the new value for the habitat.
             var tracker = habitatTrackers[habitat];
             tracker.UpdateVersion(habitat.HabitatId.Id, newValue, path);
+            
+            // now that this habitat has changed, then all habitats that
+            // inherit from it must be updated.
             Visit(habitat, h =>
             {
+                // skip the one that we started with.
                 if (habitat == h) return;
 
-                var childTracker = habitatTrackers[h];
-                childTracker.UpdateVersion(h.BaseHabitat.HabitatId.Id, tracker.Versions.Last().ToObjectDto());
-                CopyDown(childTracker);
+                // get the trackers for the habitat to update.
+                var currentTracker = habitatTrackers[h];
+                
+                // get it's base tracker.
+                var baseTracker = habitatTrackers[h.BaseHabitat];
+                
+                // update the habitat tracker with the values from the base.
+                currentTracker.UpdateVersion(h.BaseHabitat.HabitatId.Id, baseTracker.Versions.Last().ToObjectDto());
+                
+                // copy the values from the base to the habitat
+                ResolveHabitatFromBase(currentTracker.Versions.Last());
             });
         }
 
-        private static void CopyDown(VersionTracker tracker)
-        {
-            if (tracker.Versions.Count == 1)
-                // nothing to copy
-                return;
-
-            CopyDown(tracker.Versions.Last());
-        }
-
-        private static void CopyDown(VersionedObject obj)
+        /// <summary>
+        /// Copy the values from the BASE version (version 0)
+        /// to the HABITAT version (version 1)
+        /// </summary>
+        /// <param name="obj"></param>
+        private static void ResolveHabitatFromBase(VersionedObject obj)
         {
             foreach (var property in obj.Properties)
                 // if the base and child used to have the same value,
@@ -87,10 +155,15 @@ namespace Allard.Configinator.Core
             
             foreach (var o in obj.Objects)
             {
-                CopyDown(o);
+                ResolveHabitatFromBase(o);
             }
         }
         
+        /// <summary>
+        /// Visit the habitat, and all of its descendants.
+        /// </summary>
+        /// <param name="habitat"></param>
+        /// <param name="visitor"></param>
         private static void Visit(IHabitat habitat, Action<IHabitat> visitor)
         {
             visitor(habitat);
