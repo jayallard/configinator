@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
         String
     }
 
-    [DebuggerDisplay("Name={Name}")]
+    [DebuggerDisplay("Name={Name}, Value={Value}")]
     public class ObjectDto
     {
         public ObjectType ObjectType { get; set; } = ObjectType.Object;
@@ -41,6 +42,19 @@ namespace Allard.Configinator.Core.ObjectVersioning
         public ObjectDto SetValue(string value)
         {
             Value = value;
+            return this;
+        }
+
+        public ObjectDto SetValue(string path, string value)
+        {
+            var parts = path.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var current = this;
+            for (var i = 0; i < parts.Length - 1; i++)
+            {
+                current = current.GetObject(parts[i]);
+            }
+
+            current.GetProperty(parts.Last()).SetValue(value);
             return this;
         }
 
@@ -93,6 +107,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
             return new ObjectDto()
                 .SetName(Name)
                 .SetObjectType(ObjectType)
+                .SetValue(Value)
                 .Add(Items?.Select(o => o.Clone()));
         }
     }

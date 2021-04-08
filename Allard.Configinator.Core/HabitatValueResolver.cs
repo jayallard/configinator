@@ -70,7 +70,7 @@ namespace Allard.Configinator.Core
             //     habitatTrackers.Add(current.HabitatId, tracker);
             //     current = current.BaseHabitat;
             // }
-            
+
             // create a new tracker for each child habitat
             Visit(habitat, h =>
             {
@@ -91,26 +91,18 @@ namespace Allard.Configinator.Core
                 //  2 - the value of the current habitat as provided by the config store.
                 Visit(habitat, async h =>
                 {
-                    if (h == habitat)
-                    {
-                        return;
-                    }
-                    
                     // get the value for the habitat
                     var value = await configStore(h);
 
                     // get the tracker for the habitat
                     var tracker = habitatTrackers[h.HabitatId];
-                    if (h.BaseHabitat != null && habitatTrackers.ContainsKey(h.BaseHabitat.HabitatId))
+                    if (h != habitat)
                     {
                         // if the habitat has a base, get its tracker.
                         var baseTracker = habitatTrackers[h.BaseHabitat.HabitatId];
 
                         // copy the values from the base's tracker to this tracker.
-                        if (baseTracker.Versions.Any())
-                        {
-                            tracker.AddVersion(h.BaseHabitat.HabitatId.Id, baseTracker.Versions.Last().ToObjectDto());
-                        }
+                        tracker.AddVersion(h.BaseHabitat.HabitatId.Id, baseTracker.Versions.Last().ToObjectDto());
                     }
 
                     // add this habitat's value to the tracker.
@@ -132,22 +124,22 @@ namespace Allard.Configinator.Core
             var tracker = habitatTrackers[habitat.HabitatId];
             tracker.UpdateVersion(habitat.HabitatId.Id, newValue, path);
             Process(habitat);
-            
+
             // not using VISIT in this case, because its more efficient not too.
             // with VISIT, the BASE would reload for each child, and convert to DTO.
             // by using this loop instead, we can load it and convert it once,
             // and reuse for all children. slightly more efficient.
             void Process(IHabitat h)
             {
-                var baseTracker = habitatTrackers[h.HabitatId];
-                var baseDto = baseTracker.Versions.Last().ToObjectDto();
+                var habitatTracker = habitatTrackers[h.HabitatId];
+                var habitatNode = habitatTracker.Versions.Last().ToObjectDto();
                 foreach (var child in h.Children)
                 {
                     // get the trackers for the habitat to update.
                     var childTracker = habitatTrackers[child.HabitatId];
 
                     // update the habitat tracker with the values from the base.
-                    childTracker.UpdateVersion(child.BaseHabitat.HabitatId.Id, baseDto);
+                    childTracker.UpdateVersion(child.BaseHabitat.HabitatId.Id, habitatNode);
 
                     // copy the values from the base to the habitat
                     ResolveHabitatFromBase(childTracker.Versions.Last());

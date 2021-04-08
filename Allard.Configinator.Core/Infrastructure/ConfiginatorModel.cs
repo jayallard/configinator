@@ -13,7 +13,7 @@ namespace Allard.Configinator.Core.Infrastructure
         List<ValidationFailure> ValidationFailures,
         JsonDocument Value);
 
-    public class GetDetailedValue
+    public class GetDetailedValueResponse
     {
         public ValueDetail Value { get; set; }
         public List<HabitatDetails> Habitats { get; } = new();
@@ -49,7 +49,7 @@ namespace Allard.Configinator.Core.Infrastructure
             }
         }
 
-        [DebuggerDisplay("HabitatId={HabitatId}, Value={Value}, Transition={Transition}")]
+        [DebuggerDisplay("HabitatId={HabitatId}, Value={Value}")]
         public class HabitatValue
         {
             public string HabitatId { get; set; }

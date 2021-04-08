@@ -90,13 +90,13 @@ namespace Allard.Configinator.Core
             return ToResponse(state);
         }
 
-        public async Task<GetDetailedValue> GetValueDetailAsync(GetValueRequest request)
+        public async Task<GetDetailedValueResponse> GetValueDetailAsync(GetValueRequest request)
         {
             var realm = Organization.GetRealmByName(request.ConfigurationId.RealmId);
             var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
             var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
 
-            var result = new GetDetailedValue();
+            var result = new GetDetailedValueResponse();
             var current = habitat;
             var validator = new ConfigurationValidator(cs, Organization.SchemaTypes);
             var dtos = new List<ObjectDto>();
@@ -104,7 +104,7 @@ namespace Allard.Configinator.Core
             var modelJson = modelDto.ToJson().RootElement.ToString();
             while (current != null)
             {
-                var path = OrganizationAggregate.GetConfigurationPath(cs, habitat);
+                var path = OrganizationAggregate.GetConfigurationPath(cs, current);
                 var value = await configStore.GetValueAsync(path);
                 var json = value.Exists
                     ? value.Value.RootElement.ToString()
@@ -114,7 +114,7 @@ namespace Allard.Configinator.Core
                     : modelDto;
                 dtos.Add(dto);
 
-                var habitatDetails = new GetDetailedValue.HabitatDetails
+                var habitatDetails = new GetDetailedValueResponse.HabitatDetails
                 {
                     Exists = value.Exists,
                     ConfigurationValue = json,
@@ -124,8 +124,8 @@ namespace Allard.Configinator.Core
                 if (request.Validate)
                 {
                     var toValidate = value.Exists
-                        ? value.Value.ToObjectDto()
-                        : StructureBuilder.ToStructure(cs);
+                        ? dto
+                        : modelDto;
                     habitatDetails.ValidationFailures.AddRange(validator.Validate(habitat.HabitatId, toValidate));
                 }
 
@@ -139,37 +139,20 @@ namespace Allard.Configinator.Core
             return result;
         }
 
-        private static GetDetailedValue.ValueDetail BuildDetailedValue(
+        private static GetDetailedValueResponse.ValueDetail BuildDetailedValue(
             ObjectDto model,
-            List<ObjectDto> dtos,
-            List<string> habitatIds)
+            IReadOnlyCollection<ObjectDto> dtos,
+            IReadOnlyList<string> habitatIds)
         {
-            var detail = new GetDetailedValue.ValueDetail();
+            var detail = new GetDetailedValueResponse.ValueDetail();
             AddObject(model, detail, dtos);
 
-            void AddObject(ObjectDto currentModel, GetDetailedValue.ValueDetail currentDetail, List<ObjectDto> values)
+            void AddObject(ObjectDto currentModel, GetDetailedValueResponse.ValueDetail currentDetail, IReadOnlyCollection<ObjectDto> values)
             {
-                foreach (var p in currentModel.Properties)
-                {
-                    var valuesPerHabitat = values
-                        .Select((t, i) => new GetDetailedValue.HabitatValue
-                        {
-                            HabitatId = habitatIds[i],
-                            Value = t.GetProperty(p.Name).Value
-                        }).ToList();
-
-                    currentDetail.Properties.Add(new GetDetailedValue.PropertyValue
-                        {
-                            Name = p.Name,
-                            ResolvedValue = valuesPerHabitat.Last().Value
-                        }
-                        .AddValues(valuesPerHabitat)
-                    );
-                }
-
+                // iterate the objects
                 foreach (var modelObject in currentModel.Objects)
                 {
-                    var nextObject = new GetDetailedValue.ValueDetail
+                    var nextObject = new GetDetailedValueResponse.ValueDetail
                     {
                         Name = modelObject.Name
                     };
@@ -178,6 +161,24 @@ namespace Allard.Configinator.Core
                         .Select(v => v.GetObject(modelObject.Name))
                         .ToList();
                     AddObject(modelObject, nextObject, nextValues);
+                }
+
+                foreach (var p in currentModel.Properties)
+                {
+                    var valuesPerHabitat = values
+                        .Select((t, i) => new GetDetailedValueResponse.HabitatValue
+                        {
+                            HabitatId = habitatIds[i],
+                            Value = t.GetProperty(p.Name).Value
+                        }).ToList();
+
+                    currentDetail.Properties.Add(new GetDetailedValueResponse.PropertyValue
+                        {
+                            Name = p.Name,
+                            ResolvedValue = valuesPerHabitat.Last().Value
+                        }
+                        .AddValues(valuesPerHabitat)
+                    );
                 }
             }
 

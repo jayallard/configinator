@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -71,7 +70,7 @@ namespace Allard.Configinator.Core.Tests.Unit
 
         private static ConfigurationId CreateConfigurationId(string habitatId)
         {
-            return new (OrganizationId, TestRealm1, TestConfigurationSection1, habitatId);
+            return new(OrganizationId, TestRealm1, TestConfigurationSection1, habitatId);
         }
 
         [Fact]
@@ -149,6 +148,96 @@ namespace Allard.Configinator.Core.Tests.Unit
             testOutputHelper.WriteLine(response.Value.RootElement.ToString());
         }
 
+        /// <summary>
+        /// Given: dev = x, and dev-allard=x, and dev-allard2=x.
+        /// When: dev is changed to y
+        /// Then: dev-allard is changed to y, and dev-allard2 is changed to y.
+        /// --
+        /// Follow-up:
+        /// When: dev-allard is changed to z
+        /// Then: dev is not changed. dev-allard2 is changed to z.
+        /// </summary>
+        [Fact]
+        public async Task InheritedValueIsUpdatedWhenParentChanges()
+        {
+            var input = JsonDocument
+                .Parse(TestUtility.GetFile("FullDocumentPasses.json"))
+                .ToObjectDto();
+
+            var idDev = CreateConfigurationId("dev");
+            var idDevAllard = CreateConfigurationId("dev-allard");
+            var idDevAllard2 = CreateConfigurationId("dev-allard2");
+            // ----------------------------------------------------------------
+            //   setup and setup confirmation
+            // ----------------------------------------------------------------
+            // set the value for DEV, and it will cascade down.
+            var setup = input
+                .Clone()
+                .SetValue("sql-source/host", "FirstValue")
+                .ToJson();
+            
+            var setupResult = await Configinator.SetValueAsync(new SetValueRequest(idDev, null, setup));
+            setupResult.Habitats.Count.Should().Be(3);
+            setupResult.Habitats.All(h => h.Saved).Should().BeTrue();
+
+            // make sure it cascaded before changing values.
+            var setupConfirmation = await Configinator.GetValueDetailAsync(new GetValueRequest(idDevAllard2));
+            setupConfirmation.Habitats.Count.Should().Be(3);
+            setupConfirmation
+                .Value
+                .Objects.Single(o => o.Name == "sql-source")
+                .Properties.Single(p => p.Name == "host")
+                .HabitatValues.All(v => v.Value == "FirstValue")
+                .Should().BeTrue();
+            
+            // ----------------------------------------------------------------
+            //   update DEV and confirm it cascades down to
+            //   DEV-ALLARD and DEV-ALLARD2
+            // ----------------------------------------------------------------
+            // change the value of the top layer: dev.
+            // dev-allard and dev-allard2 will inherit.
+            var setDev = input
+                .Clone()
+                .SetValue("sql-source/host", "SecondValue")
+                .ToJson();
+            var setDevResult = await Configinator.SetValueAsync(new SetValueRequest(idDev, null, setDev));
+            setDevResult.Habitats.Count.Should().Be(3);
+            setDevResult.Habitats.All(h => h.Saved).Should().BeTrue();
+            
+            // confirm the new value cascaded down
+            var devConfirmation = await Configinator.GetValueDetailAsync(new GetValueRequest(idDevAllard2));
+            devConfirmation.Habitats.Count.Should().Be(3);
+            devConfirmation
+                .Value
+                .Objects.Single(o => o.Name == "sql-source")
+                .Properties.Single(p => p.Name == "host")
+                .HabitatValues.All(v => v.Value == "SecondValue")
+                .Should().BeTrue();        
+            
+            // ----------------------------------------------------------------
+            //   update DEV-ALLARD and confirm it cascades down to
+            //   DEV-ALLARD2. DEV doesn't change.
+            // ----------------------------------------------------------------
+            // change the value of the middle layer: dev-allard
+            // dev-allard2 will inherit. dev will not change.
+            var setAllard = input
+                .Clone()
+                .SetValue("sql-source/host", "ThirdValue")
+                .ToJson();
+            var setAllardResult = await Configinator.SetValueAsync(new SetValueRequest(idDevAllard, null, setAllard));
+            setAllardResult.Habitats.Count.Should().Be(2);
+            setAllardResult.Habitats.All(h => h.Saved).Should().BeTrue();
+            
+            var allardConfirmation = await Configinator.GetValueDetailAsync(new GetValueRequest(idDevAllard2));
+            var allardHostProperty = allardConfirmation
+                .Value
+                .Objects.Single(o => o.Name == "sql-source")
+                .Properties.Single(p => p.Name == "host");
+            allardHostProperty.HabitatValues.Single(h => h.HabitatId == "dev").Value.Should().Be("SecondValue");
+            allardHostProperty.HabitatValues.Single(h => h.HabitatId == "dev-allard").Value.Should().Be("ThirdValue");
+            allardHostProperty.HabitatValues.Single(h => h.HabitatId == "dev-allard2").Value.Should().Be("ThirdValue");
+        }
+
         [Fact]
         public async Task DetailedValue()
         {
@@ -159,33 +248,69 @@ namespace Allard.Configinator.Core.Tests.Unit
             var id1 = CreateConfigurationId("dev");
             var set1 = input
                 .Clone()
-                .GetObject("sql-source")
-                .GetProperty("host")
-                .SetValue("dev")
+                .SetValue("sql-source/host", "dev")
                 .ToJson();
-            await Configinator.SetValueAsync(new SetValueRequest(id1, null, set1));
+            var set1Result = await Configinator.SetValueAsync(new SetValueRequest(id1, null, set1));
+            set1Result.Habitats.Count.Should().Be(3);
+            set1Result.Habitats.All(h => h.Saved).Should().BeTrue();
 
             var id2 = CreateConfigurationId("dev-allard");
             var set2 = input
                 .Clone()
-                .GetObject("sql-source")
-                .GetProperty("host")
-                .SetValue("dev-allard")
+                .SetValue("sql-source/host", "dev-allard")
                 .ToJson();
-            await Configinator.SetValueAsync(new SetValueRequest(id2, null, set2));
+            var set2Result = await Configinator.SetValueAsync(new SetValueRequest(id2, null, set2));
+            set2Result.Habitats.Count.Should().Be(2);
+            set2Result.Habitats.All(h => h.Saved).Should().BeTrue();
 
             var id3 = CreateConfigurationId("dev-allard2");
             var set3 = input
                 .Clone()
-                .GetObject("sql-source")
-                .GetProperty("host")
-                .SetValue("dev-allard2")
+                .SetValue("sql-source/host", "dev-allard2")
                 .ToJson();
-            await Configinator.SetValueAsync(new SetValueRequest(id3, null, set3));
+            var set3Result = await Configinator.SetValueAsync(new SetValueRequest(id3, null, set3));
+            set3Result.Habitats.Count.Should().Be(1);
+            set3Result.Habitats.All(h => h.Saved).Should().BeTrue();
 
-            var get3 = new GetValueRequest(id2);
-            var result = await Configinator.GetValueDetailAsync(get3);
-            testOutputHelper.WriteLine("");
+
+            // the hierarchy is (from top) dev/dev-allard/dev-allard2.
+            // each GET will include the requested habitat, and its bases.
+            // dev returns 1, dev-allard returns 2, dev-allard2 returns 3.
+            {
+                var get1 = new GetValueRequest(id1);
+                var get1Result = await Configinator.GetValueDetailAsync(get1);
+                get1Result.Habitats.Count.Should().Be(1);
+                var host1 = get1Result.Value.Objects.Single(o => o.Name == "sql-source").Properties
+                    .Single(p => p.Name == "host");
+                host1.HabitatValues.Count.Should().Be(1);
+                host1.ResolvedValue.Should().Be("dev");
+                host1.HabitatValues[0].Value.Should().Be("dev");
+            }
+
+            {
+                var get2 = new GetValueRequest(id2);
+                var get2Result = await Configinator.GetValueDetailAsync(get2);
+                get2Result.Habitats.Count.Should().Be(2);
+                var host2 = get2Result.Value.Objects.Single(o => o.Name == "sql-source").Properties
+                    .Single(p => p.Name == "host");
+                host2.HabitatValues.Count.Should().Be(2);
+                host2.ResolvedValue.Should().Be("dev-allard");
+                host2.HabitatValues[0].Value.Should().Be("dev");
+                host2.HabitatValues[1].Value.Should().Be("dev-allard");
+            }
+
+            {
+                var get3 = new GetValueRequest(id3);
+                var get3Result = await Configinator.GetValueDetailAsync(get3);
+                get3Result.Habitats.Count.Should().Be(3);
+                var host3 = get3Result.Value.Objects.Single(o => o.Name == "sql-source").Properties
+                    .Single(p => p.Name == "host");
+                host3.HabitatValues.Count.Should().Be(3);
+                host3.ResolvedValue.Should().Be("dev-allard2");
+                host3.HabitatValues[0].Value.Should().Be("dev");
+                host3.HabitatValues[1].Value.Should().Be("dev-allard");
+                host3.HabitatValues[2].Value.Should().Be("dev-allard2");
+            }
         }
     }
 }
