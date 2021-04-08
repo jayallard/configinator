@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Allard.Configinator.Core.DocumentValidator;
@@ -139,6 +138,32 @@ namespace Allard.Configinator.Core
             return result;
         }
 
+        public async Task<GetValueResponse> GetValueAsync(GetValueRequest request)
+        {
+            var realm = Organization.GetRealmByName(request.ConfigurationId.RealmId);
+            var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
+            var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
+            var path = OrganizationAggregate.GetConfigurationPath(cs, habitat);
+            var value = await configStore.GetValueAsync(path);
+            var doc = value.Exists
+                ? value.Value
+                : StructureBuilder.ToStructure(cs).ToJson();
+
+            // if validation is requested
+            if (request.Validate)
+            {
+                var v = value.Exists
+                    ? value.Value.ToObjectDto()
+                    : StructureBuilder.ToStructure(cs);
+                var results = new ConfigurationValidator(cs, Organization.SchemaTypes).Validate(habitat.HabitatId, v);
+                return new GetValueResponse(request.ConfigurationId, value.Exists, results.ToList(), doc);
+            }
+
+            // no validation - just return it
+            var response = new GetValueResponse(request.ConfigurationId, value.Exists, null, doc);
+            return response;
+        }
+
         private static GetDetailedValueResponse.ValueDetail BuildDetailedValue(
             ObjectDto model,
             IReadOnlyCollection<ObjectDto> dtos,
@@ -147,7 +172,8 @@ namespace Allard.Configinator.Core
             var detail = new GetDetailedValueResponse.ValueDetail();
             AddObject(model, detail, dtos);
 
-            void AddObject(ObjectDto currentModel, GetDetailedValueResponse.ValueDetail currentDetail, IReadOnlyCollection<ObjectDto> values)
+            void AddObject(ObjectDto currentModel, GetDetailedValueResponse.ValueDetail currentDetail,
+                IReadOnlyCollection<ObjectDto> values)
             {
                 // iterate the objects
                 foreach (var modelObject in currentModel.Objects)
@@ -183,32 +209,6 @@ namespace Allard.Configinator.Core
             }
 
             return detail;
-        }
-
-        public async Task<GetValueResponse> GetValueAsync(GetValueRequest request)
-        {
-            var realm = Organization.GetRealmByName(request.ConfigurationId.RealmId);
-            var habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
-            var cs = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
-            var path = OrganizationAggregate.GetConfigurationPath(cs, habitat);
-            var value = await configStore.GetValueAsync(path);
-            var doc = value.Exists
-                ? value.Value
-                : StructureBuilder.ToStructure(cs).ToJson();
-
-            // if validation is requested
-            if (request.Validate)
-            {
-                var v = value.Exists
-                    ? value.Value.ToObjectDto()
-                    : StructureBuilder.ToStructure(cs);
-                var results = new ConfigurationValidator(cs, Organization.SchemaTypes).Validate(habitat.HabitatId, v);
-                return new GetValueResponse(request.ConfigurationId, value.Exists, results.ToList(), doc);
-            }
-
-            // no validation - just return it
-            var response = new GetValueResponse(request.ConfigurationId, value.Exists, null, doc);
-            return response;
         }
 
         private static SetValueResponse ToResponse(IEnumerable<State> states)

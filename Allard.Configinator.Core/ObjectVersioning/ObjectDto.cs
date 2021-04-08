@@ -49,10 +49,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
         {
             var parts = path.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             var current = this;
-            for (var i = 0; i < parts.Length - 1; i++)
-            {
-                current = current.GetObject(parts[i]);
-            }
+            for (var i = 0; i < parts.Length - 1; i++) current = current.GetObject(parts[i]);
 
             current.GetProperty(parts.Last()).SetValue(value);
             return this;

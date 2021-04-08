@@ -12,12 +12,13 @@ namespace Allard.Configinator.Core.ObjectVersioning
         private readonly Dictionary<string, VersionedObject> objectVersions = new();
         private readonly List<VersionedObject> objectVersionsOrdered = new();
 
-        public string Name { get; }
         public VersionTracker(ObjectDto model, string name = null)
         {
             this.model = model.EnsureValue(nameof(model));
             Name = name;
         }
+
+        public string Name { get; }
 
         public IReadOnlyCollection<VersionedObject> Versions => objectVersionsOrdered.ToList();
 

@@ -149,13 +149,13 @@ namespace Allard.Configinator.Core.Tests.Unit
         }
 
         /// <summary>
-        /// Given: dev = x, and dev-allard=x, and dev-allard2=x.
-        /// When: dev is changed to y
-        /// Then: dev-allard is changed to y, and dev-allard2 is changed to y.
-        /// --
-        /// Follow-up:
-        /// When: dev-allard is changed to z
-        /// Then: dev is not changed. dev-allard2 is changed to z.
+        ///     Given: dev = x, and dev-allard=x, and dev-allard2=x.
+        ///     When: dev is changed to y
+        ///     Then: dev-allard is changed to y, and dev-allard2 is changed to y.
+        ///     --
+        ///     Follow-up:
+        ///     When: dev-allard is changed to z
+        ///     Then: dev is not changed. dev-allard2 is changed to z.
         /// </summary>
         [Fact]
         public async Task InheritedValueIsUpdatedWhenParentChanges()
@@ -175,7 +175,7 @@ namespace Allard.Configinator.Core.Tests.Unit
                 .Clone()
                 .SetValue("sql-source/host", "FirstValue")
                 .ToJson();
-            
+
             var setupResult = await Configinator.SetValueAsync(new SetValueRequest(idDev, null, setup));
             setupResult.Habitats.Count.Should().Be(3);
             setupResult.Habitats.All(h => h.Saved).Should().BeTrue();
@@ -189,7 +189,7 @@ namespace Allard.Configinator.Core.Tests.Unit
                 .Properties.Single(p => p.Name == "host")
                 .HabitatValues.All(v => v.Value == "FirstValue")
                 .Should().BeTrue();
-            
+
             // ----------------------------------------------------------------
             //   update DEV and confirm it cascades down to
             //   DEV-ALLARD and DEV-ALLARD2
@@ -203,7 +203,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             var setDevResult = await Configinator.SetValueAsync(new SetValueRequest(idDev, null, setDev));
             setDevResult.Habitats.Count.Should().Be(3);
             setDevResult.Habitats.All(h => h.Saved).Should().BeTrue();
-            
+
             // confirm the new value cascaded down
             var devConfirmation = await Configinator.GetValueDetailAsync(new GetValueRequest(idDevAllard2));
             devConfirmation.Habitats.Count.Should().Be(3);
@@ -212,8 +212,8 @@ namespace Allard.Configinator.Core.Tests.Unit
                 .Objects.Single(o => o.Name == "sql-source")
                 .Properties.Single(p => p.Name == "host")
                 .HabitatValues.All(v => v.Value == "SecondValue")
-                .Should().BeTrue();        
-            
+                .Should().BeTrue();
+
             // ----------------------------------------------------------------
             //   update DEV-ALLARD and confirm it cascades down to
             //   DEV-ALLARD2. DEV doesn't change.
@@ -227,7 +227,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             var setAllardResult = await Configinator.SetValueAsync(new SetValueRequest(idDevAllard, null, setAllard));
             setAllardResult.Habitats.Count.Should().Be(2);
             setAllardResult.Habitats.All(h => h.Saved).Should().BeTrue();
-            
+
             var allardConfirmation = await Configinator.GetValueDetailAsync(new GetValueRequest(idDevAllard2));
             var allardHostProperty = allardConfirmation
                 .Value

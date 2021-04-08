@@ -9,6 +9,7 @@ namespace Allard.Configinator.Core
 {
     public class HabitatValueResolver
     {
+        private readonly Func<IHabitat, Task<ObjectDto>> configStore;
         /*
          * Stores one tracker per habitat.
          * IE Given this habitat tree:
@@ -51,7 +52,6 @@ namespace Allard.Configinator.Core
 
 
         private readonly IHabitat habitat;
-        private readonly Func<IHabitat, Task<ObjectDto>> configStore;
         private readonly Dictionary<HabitatId, VersionTracker> habitatTrackers = new();
 
         public HabitatValueResolver(
@@ -113,11 +113,14 @@ namespace Allard.Configinator.Core
         }
 
         /// <summary>
-        /// Replace the value of a habitat.
+        ///     Replace the value of a habitat.
         /// </summary>
         /// <param name="habitat">The habitat with the updated value.</param>
         /// <param name="newValue">The new value.</param>
-        /// <param name="path">The path of the value. Used for partial updates. If null or empty, then the entire object is updated.</param>
+        /// <param name="path">
+        ///     The path of the value. Used for partial updates. If null or empty, then the entire object is
+        ///     updated.
+        /// </param>
         public void OverwriteValue(IHabitat habitat, ObjectDto newValue, string path = null)
         {
             // update the tracker with the new value for the habitat.
@@ -151,8 +154,8 @@ namespace Allard.Configinator.Core
         }
 
         /// <summary>
-        /// Copy the values from the BASE version (version 0)
-        /// to the HABITAT version (version 1)
+        ///     Copy the values from the BASE version (version 0)
+        ///     to the HABITAT version (version 1)
         /// </summary>
         /// <param name="obj"></param>
         private static void ResolveHabitatFromBase(VersionedObject obj)
@@ -165,14 +168,11 @@ namespace Allard.Configinator.Core
                 if (property.Value == null || string.Equals(property.Value, property.PreviousVersion.OriginalValue))
                     property.SetValue(property.PreviousVersion.Value);
 
-            foreach (var o in obj.Objects)
-            {
-                ResolveHabitatFromBase(o);
-            }
+            foreach (var o in obj.Objects) ResolveHabitatFromBase(o);
         }
 
         /// <summary>
-        /// Visit the habitat, and all of its descendants.
+        ///     Visit the habitat, and all of its descendants.
         /// </summary>
         /// <param name="habitat"></param>
         /// <param name="visitor"></param>

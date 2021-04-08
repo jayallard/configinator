@@ -26,7 +26,7 @@ namespace Allard.Configinator.Core.Infrastructure
             public bool Exists { get; set; }
             public string ConfigurationValue { get; set; }
         }
-        
+
         [DebuggerDisplay("Name={Name}")]
         public class ValueDetail
         {

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 namespace Allard.Configinator.Blazor.Shared.ViewModels.Configuration
 {
     public record ObjectViewModel(
-        string ObjectPath, 
-        string Name, 
+        string ObjectPath,
+        string Name,
         List<PropertyValueViewModel> Properties,
         List<ObjectViewModel> Objects);
 
@@ -17,7 +17,7 @@ namespace Allard.Configinator.Blazor.Shared.ViewModels.Configuration
     }
 
     public record PropertyValueLayerViewModel(
-        string Name, 
-        string Transition, 
+        string Name,
+        string Transition,
         object Value);
 }
