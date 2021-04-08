@@ -1,7 +1,7 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.Json;
 using Allard.Configinator.Core.DocumentValidator;
-using Allard.Configinator.Core.Model;
 
 namespace Allard.Configinator.Core.Infrastructure
 {
@@ -18,6 +18,7 @@ namespace Allard.Configinator.Core.Infrastructure
         public ValueDetail Value { get; set; }
         public List<HabitatDetails> Habitats { get; } = new();
 
+        [DebuggerDisplay("HabitatId={HabitatId}, Exists={Exists}, Failure Count={ValidationFailures.Count}")]
         public class HabitatDetails
         {
             public string HabitatId { get; set; }
@@ -26,6 +27,7 @@ namespace Allard.Configinator.Core.Infrastructure
             public string ConfigurationValue { get; set; }
         }
         
+        [DebuggerDisplay("Name={Name}")]
         public class ValueDetail
         {
             public string Name { get; set; }
@@ -33,23 +35,24 @@ namespace Allard.Configinator.Core.Infrastructure
             public List<ValueDetail> Objects { get; } = new();
         }
 
+        [DebuggerDisplay("Name={Name}, Value={ResolvedValue}")]
         public class PropertyValue
         {
             public string Name { get; set; }
-            public string Value { get; set; }
-            public List<HabitatValue> Values { get; } = new();
+            public string ResolvedValue { get; set; }
+            public List<HabitatValue> HabitatValues { get; } = new();
 
             public PropertyValue AddValues(IEnumerable<HabitatValue> values)
             {
-                Values.AddRange(values);
+                HabitatValues.AddRange(values);
                 return this;
             }
         }
 
+        [DebuggerDisplay("HabitatId={HabitatId}, Value={Value}, Transition={Transition}")]
         public class HabitatValue
         {
-            public string HabitatName { get; set; }
-            public string Transition { get; set; }
+            public string HabitatId { get; set; }
             public string Value { get; set; }
         }
     }

@@ -102,10 +102,8 @@ namespace Allard.Configinator.Core
             var dtos = new List<ObjectDto>();
             var modelDto = StructureBuilder.ToStructure(cs);
             var modelJson = modelDto.ToJson().RootElement.ToString();
-            var habitats = new List<string>();
             while (current != null)
             {
-                habitats.Add(current.HabitatId.Id);
                 var path = OrganizationAggregate.GetConfigurationPath(cs, habitat);
                 var value = await configStore.GetValueAsync(path);
                 var json = value.Exists
@@ -134,9 +132,10 @@ namespace Allard.Configinator.Core
                 current = current.BaseHabitat;
             }
 
-            habitats.Reverse();
             dtos.Reverse();
-            result.Value = BuildDetailedValue(modelDto, dtos, habitats);
+            var habitatIds = result.Habitats.Select(h => h.HabitatId).ToList();
+            habitatIds.Reverse();
+            result.Value = BuildDetailedValue(modelDto, dtos, habitatIds);
             return result;
         }
 
@@ -153,17 +152,16 @@ namespace Allard.Configinator.Core
                 foreach (var p in currentModel.Properties)
                 {
                     var valuesPerHabitat = values
-                        .Select(v => new GetDetailedValue.HabitatValue
+                        .Select((t, i) => new GetDetailedValue.HabitatValue
                         {
-                            HabitatName = "", // todo:
-                            Transition = null,
-                            Value = v.GetProperty(p.Name).Value
-                        })
-                        .ToList();
+                            HabitatId = habitatIds[i],
+                            Value = t.GetProperty(p.Name).Value
+                        }).ToList();
+
                     currentDetail.Properties.Add(new GetDetailedValue.PropertyValue
                         {
                             Name = p.Name,
-                            Value = valuesPerHabitat.Last().Value
+                            ResolvedValue = valuesPerHabitat.Last().Value
                         }
                         .AddValues(valuesPerHabitat)
                     );
@@ -176,14 +174,15 @@ namespace Allard.Configinator.Core
                         Name = modelObject.Name
                     };
                     currentDetail.Objects.Add(nextObject);
-                    var nextValues = values.Select(v => v.GetObject(modelObject.Name)).ToList();
+                    var nextValues = values
+                        .Select(v => v.GetObject(modelObject.Name))
+                        .ToList();
                     AddObject(modelObject, nextObject, nextValues);
                 }
             }
 
             return detail;
         }
-
 
         public async Task<GetValueResponse> GetValueAsync(GetValueRequest request)
         {

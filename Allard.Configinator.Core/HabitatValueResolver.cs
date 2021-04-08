@@ -50,24 +50,32 @@ namespace Allard.Configinator.Core
          */
 
 
-        private readonly IHabitat baseHabitat;
+        private readonly IHabitat habitat;
         private readonly Func<IHabitat, Task<ObjectDto>> configStore;
-        private readonly Dictionary<IHabitat, VersionTracker> habitatTrackers = new();
+        private readonly Dictionary<HabitatId, VersionTracker> habitatTrackers = new();
 
         public HabitatValueResolver(
             ObjectDto objectModel,
             Func<IHabitat, Task<ObjectDto>> configStore,
-            IHabitat baseHabitat)
+            IHabitat habitat)
         {
             objectModel.EnsureValue(nameof(objectModel));
             this.configStore = configStore.EnsureValue(nameof(configStore));
-            this.baseHabitat = baseHabitat.EnsureValue(nameof(baseHabitat));
+            this.habitat = habitat.EnsureValue(nameof(habitat));
 
-            // create a new tracker for each habitat
-            Visit(baseHabitat, h =>
+            // var current = habitat.BaseHabitat;
+            // while (current != null)
+            // {
+            //     var tracker = new VersionTracker(objectModel, current.HabitatId.Id);
+            //     habitatTrackers.Add(current.HabitatId, tracker);
+            //     current = current.BaseHabitat;
+            // }
+            
+            // create a new tracker for each child habitat
+            Visit(habitat, h =>
             {
                 var tracker = new VersionTracker(objectModel, h.HabitatId.Id);
-                habitatTrackers.Add(h, tracker);
+                habitatTrackers.Add(h.HabitatId, tracker);
             });
         }
 
@@ -81,20 +89,28 @@ namespace Allard.Configinator.Core
                 // set 2 versions of the object in the tracker:
                 //  1 - the value of the base habitat (if there is one)
                 //  2 - the value of the current habitat as provided by the config store.
-                Visit(baseHabitat, async h =>
+                Visit(habitat, async h =>
                 {
+                    if (h == habitat)
+                    {
+                        return;
+                    }
+                    
                     // get the value for the habitat
                     var value = await configStore(h);
 
                     // get the tracker for the habitat
-                    var tracker = habitatTrackers[h];
-                    if (h.BaseHabitat != null)
+                    var tracker = habitatTrackers[h.HabitatId];
+                    if (h.BaseHabitat != null && habitatTrackers.ContainsKey(h.BaseHabitat.HabitatId))
                     {
                         // if the habitat has a base, get its tracker.
-                        var baseTracker = habitatTrackers[h.BaseHabitat];
+                        var baseTracker = habitatTrackers[h.BaseHabitat.HabitatId];
 
                         // copy the values from the base's tracker to this tracker.
-                        tracker.AddVersion(h.BaseHabitat.HabitatId.Id, baseTracker.Versions.Last().ToObjectDto());
+                        if (baseTracker.Versions.Any())
+                        {
+                            tracker.AddVersion(h.BaseHabitat.HabitatId.Id, baseTracker.Versions.Last().ToObjectDto());
+                        }
                     }
 
                     // add this habitat's value to the tracker.
@@ -113,7 +129,7 @@ namespace Allard.Configinator.Core
         public void OverwriteValue(IHabitat habitat, ObjectDto newValue, string path = null)
         {
             // update the tracker with the new value for the habitat.
-            var tracker = habitatTrackers[habitat];
+            var tracker = habitatTrackers[habitat.HabitatId];
             tracker.UpdateVersion(habitat.HabitatId.Id, newValue, path);
             Process(habitat);
             
@@ -123,12 +139,12 @@ namespace Allard.Configinator.Core
             // and reuse for all children. slightly more efficient.
             void Process(IHabitat h)
             {
-                var baseTracker = habitatTrackers[h];
+                var baseTracker = habitatTrackers[h.HabitatId];
                 var baseDto = baseTracker.Versions.Last().ToObjectDto();
                 foreach (var child in h.Children)
                 {
                     // get the trackers for the habitat to update.
-                    var childTracker = habitatTrackers[child];
+                    var childTracker = habitatTrackers[child.HabitatId];
 
                     // update the habitat tracker with the values from the base.
                     childTracker.UpdateVersion(child.BaseHabitat.HabitatId.Id, baseDto);

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Allard.Configinator.Core.Model
 {
@@ -12,6 +13,7 @@ namespace Allard.Configinator.Core.Model
         IEnumerable<IHabitat> Children { get; }
     }
 
+    [DebuggerDisplay("HabitatId={HabitatId.Id}")]
     public class Habitat : IHabitat
     {
         private readonly List<IHabitat> children = new();

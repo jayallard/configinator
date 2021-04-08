@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Allard.Configinator.Core.Events;
 
@@ -10,6 +11,7 @@ namespace Allard.Configinator.Core.Model
         IReadOnlyCollection<IHabitat> Habitats { get; }
     }
 
+    [DebuggerDisplay("RealmId={RealmId.Id}")]
     public class Realm : IRealm
     {
         private readonly Dictionary<SectionId, ConfigurationSection> configurationSections = new();
@@ -96,10 +98,10 @@ namespace Allard.Configinator.Core.Model
 
         public IHabitat AddHabitat(string habitatId, string baseHabitatId)
         {
-            return AddHabitat(new HabitatId(habitatId), baseHabitatId);
+            return AddHabitat(new HabitatId(habitatId), baseHabitatId == null ? null : new HabitatId(baseHabitatId));
         }
 
-        public Habitat AddHabitat(HabitatId habitatId, string baseHabitatId = null)
+        public Habitat AddHabitat(HabitatId habitatId, HabitatId baseHabitatId = null)
         {
             // make sure habitat doesn't already exist.
             habitats.Keys.EnsureIdDoesntExist(habitatId);
@@ -107,7 +109,7 @@ namespace Allard.Configinator.Core.Model
             // TODO: validate base hierarchy. prevent circular reference.
 
             // create and raise the event.
-            var evt = new AddedHabitatToRealmEvent(Organization.OrganizationId, RealmId, habitatId);
+            var evt = new AddedHabitatToRealmEvent(Organization.OrganizationId, RealmId, habitatId, baseHabitatId);
             return Organization
                 .EventHandlerRegistry
                 .Raise<AddedHabitatToRealmEvent, Habitat>(evt);

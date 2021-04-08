@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Allard.Configinator.Core.Infrastructure;
 using Allard.Configinator.Core.Model;
 using Allard.Configinator.Core.Model.Builders;
+using Allard.Configinator.Core.ObjectVersioning;
 using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
@@ -14,6 +15,7 @@ namespace Allard.Configinator.Core.Tests.Unit
 {
     public class ConfiginatorTests
     {
+        private const string OrganizationId = "allard";
         private const string TestRealm1 = "something-domain";
         private const string TestConfigurationSection1 = "shovel-service";
         private readonly ITestOutputHelper testOutputHelper;
@@ -46,16 +48,16 @@ namespace Allard.Configinator.Core.Tests.Unit
                 .AddStringProperty("initial-catalog", isOptional: true)
                 .Build();
 
-            var org = new OrganizationAggregate(new OrganizationId("allard"));
+            var org = new OrganizationAggregate(new OrganizationId(OrganizationId));
             org.AddSchemaType(kafkaType);
             org.AddSchemaType(sqlType);
-            //org.AddSchemaType(shovelServiceType);
 
             var realm = org.AddRealm(TestRealm1);
             realm.AddHabitat("production", null);
             realm.AddHabitat("staging", null);
             realm.AddHabitat("dev", null);
             realm.AddHabitat("dev-allard", "dev");
+            realm.AddHabitat("dev-allard2", "dev-allard");
 
             var properties = new List<SchemaTypeProperty>
             {
@@ -65,6 +67,11 @@ namespace Allard.Configinator.Core.Tests.Unit
 
             realm.AddConfigurationSection(TestConfigurationSection1, properties, "description");
             return org;
+        }
+
+        private static ConfigurationId CreateConfigurationId(string habitatId)
+        {
+            return new (OrganizationId, TestRealm1, TestConfigurationSection1, habitatId);
         }
 
         [Fact]
@@ -140,6 +147,45 @@ namespace Allard.Configinator.Core.Tests.Unit
             var response = await Configinator.GetValueAsync(get);
             response.Exists.Should().Be(false);
             testOutputHelper.WriteLine(response.Value.RootElement.ToString());
+        }
+
+        [Fact]
+        public async Task DetailedValue()
+        {
+            var input = JsonDocument
+                .Parse(TestUtility.GetFile("FullDocumentPasses.json"))
+                .ToObjectDto();
+
+            var id1 = CreateConfigurationId("dev");
+            var set1 = input
+                .Clone()
+                .GetObject("sql-source")
+                .GetProperty("host")
+                .SetValue("dev")
+                .ToJson();
+            await Configinator.SetValueAsync(new SetValueRequest(id1, null, set1));
+
+            var id2 = CreateConfigurationId("dev-allard");
+            var set2 = input
+                .Clone()
+                .GetObject("sql-source")
+                .GetProperty("host")
+                .SetValue("dev-allard")
+                .ToJson();
+            await Configinator.SetValueAsync(new SetValueRequest(id2, null, set2));
+
+            var id3 = CreateConfigurationId("dev-allard2");
+            var set3 = input
+                .Clone()
+                .GetObject("sql-source")
+                .GetProperty("host")
+                .SetValue("dev-allard2")
+                .ToJson();
+            await Configinator.SetValueAsync(new SetValueRequest(id3, null, set3));
+
+            var get3 = new GetValueRequest(id2);
+            var result = await Configinator.GetValueDetailAsync(get3);
+            testOutputHelper.WriteLine("");
         }
     }
 }
