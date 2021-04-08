@@ -20,18 +20,17 @@ namespace Allard.Configinator.Core.ObjectVersioning
 
         public string Name { get; }
 
-        public IReadOnlyCollection<VersionedObject> Versions => objectVersionsOrdered.ToList();
+        public IEnumerable<VersionedObject> Versions => objectVersionsOrdered.ToList();
 
-        public VersionedObject AddVersion(string versionName, ObjectDto version)
+        public void AddVersion(string versionName, ObjectDto version)
         {
             var previousVersion = objectVersionsOrdered.LastOrDefault();
             var v = ConvertDtoToObject(null, previousVersion, versionName, model, version);
             objectVersions[versionName] = v;
             objectVersionsOrdered.Add(v);
-            return v;
         }
 
-        public VersionedObject UpdateVersion(string versionName, ObjectDto values, string path = null)
+        public void UpdateVersion(string versionName, ObjectDto values, string path = null)
         {
             var existing = objectVersions[versionName];
             var (m, v) = Goto(model, existing, path);
@@ -57,7 +56,6 @@ namespace Allard.Configinator.Core.ObjectVersioning
 
 
             UpdateObjectValues(m, v, values);
-            return existing;
         }
 
         private static (ObjectDto, VersionedObject) Goto(ObjectDto m, VersionedObject version, string path)

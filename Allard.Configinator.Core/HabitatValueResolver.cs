@@ -115,18 +115,18 @@ namespace Allard.Configinator.Core
         /// <summary>
         ///     Replace the value of a habitat.
         /// </summary>
-        /// <param name="habitat">The habitat with the updated value.</param>
+        /// <param name="habitatToUpdate">The habitat with the updated value.</param>
         /// <param name="newValue">The new value.</param>
         /// <param name="path">
         ///     The path of the value. Used for partial updates. If null or empty, then the entire object is
         ///     updated.
         /// </param>
-        public void OverwriteValue(IHabitat habitat, ObjectDto newValue, string path = null)
+        public void OverwriteValue(IHabitat habitatToUpdate, ObjectDto newValue, string path = null)
         {
             // update the tracker with the new value for the habitat.
-            var tracker = habitatTrackers[habitat.HabitatId];
-            tracker.UpdateVersion(habitat.HabitatId.Id, newValue, path);
-            Process(habitat);
+            var tracker = habitatTrackers[habitatToUpdate.HabitatId];
+            tracker.UpdateVersion(habitatToUpdate.HabitatId.Id, newValue, path);
+            Process(habitatToUpdate);
 
             // not using VISIT in this case, because its more efficient not too.
             // with VISIT, the BASE would reload for each child, and convert to DTO.

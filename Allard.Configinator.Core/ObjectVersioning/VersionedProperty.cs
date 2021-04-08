@@ -17,11 +17,11 @@ namespace Allard.Configinator.Core.ObjectVersioning
             Parent = parent;
         }
 
-        public bool IsSet { get; private set; }
+        private bool IsSet { get; set; }
         public bool IsChanged => IsSet && !string.Equals(OriginalValue, Value);
         public string VersionName { get; }
         public string OriginalValue { get; }
-        public VersionedObject Parent { get; }
+        private VersionedObject Parent { get; }
         public VersionedProperty PreviousVersion { get; internal set; }
         public VersionedProperty NextVersion { get; internal set; }
 

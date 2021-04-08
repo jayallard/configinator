@@ -21,16 +21,16 @@ namespace Allard.Configinator.Core.Infrastructure
         [DebuggerDisplay("HabitatId={HabitatId}, Exists={Exists}, Failure Count={ValidationFailures.Count}")]
         public class HabitatDetails
         {
-            public string HabitatId { get; set; }
+            public string HabitatId { get; init; }
             public List<ValidationFailure> ValidationFailures { get; } = new();
-            public bool Exists { get; set; }
-            public string ConfigurationValue { get; set; }
+            public bool Exists { get; init; }
+            public string ConfigurationValue { get; init; }
         }
 
         [DebuggerDisplay("Name={Name}")]
         public class ValueDetail
         {
-            public string Name { get; set; }
+            public string Name { get; init; }
             public List<PropertyValue> Properties { get; } = new();
             public List<ValueDetail> Objects { get; } = new();
         }
@@ -38,8 +38,8 @@ namespace Allard.Configinator.Core.Infrastructure
         [DebuggerDisplay("Name={Name}, Value={ResolvedValue}")]
         public class PropertyValue
         {
-            public string Name { get; set; }
-            public string ResolvedValue { get; set; }
+            public string Name { get; init; }
+            public string ResolvedValue { get; init; }
             public List<HabitatValue> HabitatValues { get; } = new();
 
             public PropertyValue AddValues(IEnumerable<HabitatValue> values)
@@ -52,8 +52,8 @@ namespace Allard.Configinator.Core.Infrastructure
         [DebuggerDisplay("HabitatId={HabitatId}, Value={Value}")]
         public class HabitatValue
         {
-            public string HabitatId { get; set; }
-            public string Value { get; set; }
+            public string HabitatId { get; init; }
+            public string Value { get; init; }
         }
     }
 

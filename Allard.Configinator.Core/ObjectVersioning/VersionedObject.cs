@@ -31,7 +31,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
         public string VersionName { get; }
         public IReadOnlyCollection<VersionedProperty> Properties { get; }
         public IReadOnlyCollection<VersionedObject> Objects { get; }
-        public VersionedObject Parent { get; }
+        private VersionedObject Parent { get; }
         public VersionedObject PreviousVersion { get; internal set; }
         public VersionedObject NextVersion { get; internal set; }
 

@@ -50,7 +50,7 @@ namespace Allard.Configinator.Core
         private static IEnumerable<JsonProperty> GetProperties(this JsonElement element)
         {
             return element.EnumerateObject().Where(e =>
-                e.Value.ValueKind == JsonValueKind.String || e.Value.ValueKind == JsonValueKind.Null);
+                e.Value.ValueKind is JsonValueKind.String or JsonValueKind.Null);
         }
     }
 }

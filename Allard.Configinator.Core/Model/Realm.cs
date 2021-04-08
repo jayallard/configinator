@@ -25,7 +25,7 @@ namespace Allard.Configinator.Core.Model
 
         public OrganizationAggregate Organization { get; }
         public RealmId RealmId { get; }
-        public IReadOnlyCollection<ConfigurationSection> ConfigurationSections => configurationSections.Values;
+        public IEnumerable<ConfigurationSection> ConfigurationSections => configurationSections.Values;
         public IReadOnlyCollection<IHabitat> Habitats => habitats.Values;
 
         public IHabitat GetHabitat(string habitatId)
