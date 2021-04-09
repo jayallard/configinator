@@ -34,12 +34,12 @@ namespace Allard.Configinator.Core.Tests.Unit
             var h3A = new DummyHabitat {HabitatId = new HabitatId("h3a"), BaseHabitat = h2B};
             h2B.ChildHabitats.Add(h3A);
 
-            static Task<ObjectDto> ConfigStore(IHabitat h)
+            static Task<Node> ConfigStore(IHabitat h)
             {
-                return Task.FromResult(new ObjectDto());
+                return Task.FromResult(new Node());
             }
 
-            var model = new ObjectDto();
+            var model = new Node();
             var resolver = new HabitatValueResolver(model, ConfigStore, h1);
             await resolver.LoadExistingValues();
             resolver.VersionedHabitats.Count().Should().Be(4);
@@ -48,20 +48,20 @@ namespace Allard.Configinator.Core.Tests.Unit
         [Fact]
         public async Task CopyDown()
         {
-            var model = new ObjectDto().AddString("hello");
+            var model = new Node().AddString("hello");
 
             // value = starts as null, but we will set it to world
             // after load.
-            var h1Value = new ObjectDto().AddString("hello");
+            var h1Value = new Node().AddString("hello");
 
             // no value, so inherit world.
-            var h2AValue = new ObjectDto();
+            var h2AValue = new Node();
 
             // explicit value, so will keep it.
-            var h2BValue = new ObjectDto().AddString("hello", "galaxy");
+            var h2BValue = new Node().AddString("hello", "galaxy");
 
             // null value, so inherit galaxy./
-            var h3AValue = new ObjectDto().AddString("hello");
+            var h3AValue = new Node().AddString("hello");
 
             // h1 : h2a
             // h1 : h2b : h3a 
@@ -75,7 +75,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             var h3A = new DummyHabitat {HabitatId = new HabitatId("h3a"), BaseHabitat = h2B};
             h2B.ChildHabitats.Add(h3A);
 
-            var configValues = new Dictionary<IHabitat, ObjectDto>
+            var configValues = new Dictionary<IHabitat, Node>
             {
                 {h1, h1Value},
                 {h2A, h2AValue},
@@ -83,7 +83,7 @@ namespace Allard.Configinator.Core.Tests.Unit
                 {h3A, h3AValue}
             };
 
-            Task<ObjectDto> ConfigStore(IHabitat h)
+            Task<Node> ConfigStore(IHabitat h)
             {
                 return Task.FromResult(configValues[h]);
             }

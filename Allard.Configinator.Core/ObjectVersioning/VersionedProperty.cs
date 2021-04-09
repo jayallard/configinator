@@ -9,7 +9,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
             string versionName,
             string name,
             string value,
-            VersionedObject parent)
+            VersionedNode parent)
         {
             Name = name;
             VersionName = versionName;
@@ -21,13 +21,11 @@ namespace Allard.Configinator.Core.ObjectVersioning
         public bool IsChanged => IsSet && !string.Equals(OriginalValue, Value);
         public string VersionName { get; }
         public string OriginalValue { get; }
-        private VersionedObject Parent { get; }
+        private VersionedNode Parent { get; }
         public VersionedProperty PreviousVersion { get; internal set; }
         public VersionedProperty NextVersion { get; internal set; }
-
         public string Name { get; }
         public string Value { get; private set; }
-
         public void SetValue(string value)
         {
             Value = value;

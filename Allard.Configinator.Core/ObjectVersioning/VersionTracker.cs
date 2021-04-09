@@ -8,11 +8,11 @@ namespace Allard.Configinator.Core.ObjectVersioning
     [DebuggerDisplay("Name={Name}")]
     public class VersionTracker
     {
-        private readonly ObjectDto model;
-        private readonly Dictionary<string, VersionedObject> objectVersions = new();
-        private readonly List<VersionedObject> objectVersionsOrdered = new();
+        private readonly Node model;
+        private readonly Dictionary<string, VersionedNode> objectVersions = new();
+        private readonly List<VersionedNode> objectVersionsOrdered = new();
 
-        public VersionTracker(ObjectDto model, string name = null)
+        public VersionTracker(Node model, string name = null)
         {
             this.model = model.EnsureValue(nameof(model));
             Name = name;
@@ -20,9 +20,9 @@ namespace Allard.Configinator.Core.ObjectVersioning
 
         public string Name { get; }
 
-        public IEnumerable<VersionedObject> Versions => objectVersionsOrdered.ToList();
+        public IEnumerable<VersionedNode> Versions => objectVersionsOrdered.ToList();
 
-        public void AddVersion(string versionName, ObjectDto version)
+        public void AddVersion(string versionName, Node version)
         {
             var previousVersion = objectVersionsOrdered.LastOrDefault();
             var v = ConvertDtoToObject(null, previousVersion, versionName, model, version);
@@ -30,7 +30,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
             objectVersionsOrdered.Add(v);
         }
 
-        public void UpdateVersion(string versionName, ObjectDto values, string path = null)
+        public void UpdateVersion(string versionName, Node values, string path = null)
         {
             var existing = objectVersions[versionName];
             var (m, v) = Goto(model, existing, path);
@@ -49,16 +49,16 @@ namespace Allard.Configinator.Core.ObjectVersioning
                 var last = path.Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
                     .Last();
                 if (m.PropertyExists(last))
-                    values = new ObjectDto()
+                    values = new Node()
                         .SetName(m.Name)
-                        .Add(ObjectDto.CreateString(last, values.Value));
+                        .Add(Node.CreateString(last, values.Value));
             }
 
 
             UpdateObjectValues(m, v, values);
         }
 
-        private static (ObjectDto, VersionedObject) Goto(ObjectDto m, VersionedObject version, string path)
+        private static (Node, VersionedNode) Goto(Node m, VersionedNode version, string path)
         {
             if (string.IsNullOrWhiteSpace(path)) return (m, version);
 
@@ -69,32 +69,32 @@ namespace Allard.Configinator.Core.ObjectVersioning
             {
                 // todo: will throw an exception if path is invalid.
                 currentModel = currentModel.GetObject(parts[i]);
-                currentVersion = currentVersion.GetObject(parts[i]);
+                currentVersion = currentVersion.GetNode(parts[i]);
             }
 
             return (currentModel, currentVersion);
         }
 
-        private static void UpdateObjectValues(ObjectDto model, VersionedObject toUpdate, ObjectDto updatedValues)
+        private static void UpdateObjectValues(Node model, VersionedNode toUpdate, Node updatedValues)
         {
             var childObjects = updatedValues.Objects.ToDictionary(o => o.Name);
             var objectsToUpdate = model.Objects.Where(o => childObjects.ContainsKey(o.Name));
-            foreach (var o in objectsToUpdate) UpdateObjectValues(o, toUpdate.GetObject(o.Name), childObjects[o.Name]);
+            foreach (var o in objectsToUpdate) UpdateObjectValues(o, toUpdate.GetNode(o.Name), childObjects[o.Name]);
 
             var childProperties = updatedValues.Properties.ToDictionary(o => o.Name);
             var propertiesToUpdate = model.Properties.Where(p => childProperties.ContainsKey(p.Name));
             foreach (var p in propertiesToUpdate) toUpdate.GetProperty(p.Name).SetValue(childProperties[p.Name].Value);
         }
 
-        private static VersionedObject ConvertDtoToObject(
-            VersionedObject parentObject,
-            VersionedObject previousVersion,
+        private static VersionedNode ConvertDtoToObject(
+            VersionedNode parentNode,
+            VersionedNode previousVersion,
             string versionName,
-            ObjectDto objectModel,
-            ObjectDto toConvert)
+            Node objectModel,
+            Node toConvert)
         {
             // hack
-            toConvert ??= new ObjectDto().SetName(objectModel.Name);
+            toConvert ??= new Node().SetName(objectModel.Name);
             var childObjects = toConvert.Items.ToDictionary(o => o.Name);
             var childProperties = toConvert.Properties.ToDictionary(o => o.Name);
             var objs = objectModel
@@ -105,7 +105,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
                         .ContainsKey(cm.Name)
                         ? childObjects[cm.Name]
                         : null;
-                    return ConvertDtoToObject(parentObject, previousVersion?.GetObject(cm.Name), versionName,
+                    return ConvertDtoToObject(parentNode, previousVersion?.GetNode(cm.Name), versionName,
                         cm, childToConvert);
                 })
                 .ToList();
@@ -118,10 +118,10 @@ namespace Allard.Configinator.Core.ObjectVersioning
                         .ContainsKey(cp.Name)
                         ? childProperties[cp.Name]
                         : null;
-                    return ConvertDtoToProperty(versionName, parentObject, previousVersion, propertyToConvert, cp);
+                    return ConvertDtoToProperty(versionName, parentNode, previousVersion, propertyToConvert, cp);
                 });
 
-            var obj = new VersionedObject(toConvert.Name, versionName, properties, objs, parentObject);
+            var obj = new VersionedNode(toConvert.Name, versionName, properties, objs, parentNode);
             if (previousVersion == null) return obj;
             previousVersion.NextVersion = obj;
             obj.PreviousVersion = previousVersion;
@@ -130,12 +130,12 @@ namespace Allard.Configinator.Core.ObjectVersioning
 
         private static VersionedProperty ConvertDtoToProperty(
             string versionName,
-            VersionedObject parentObject,
-            VersionedObject previousVersion,
-            ObjectDto currentProperty,
-            ObjectDto currentDto)
+            VersionedNode parentNode,
+            VersionedNode previousVersion,
+            Node currentProperty,
+            Node currentDto)
         {
-            var p = new VersionedProperty(versionName, currentDto.Name, currentProperty?.Value, parentObject);
+            var p = new VersionedProperty(versionName, currentDto.Name, currentProperty?.Value, parentNode);
             if (previousVersion == null) return p;
             var lastProperty = previousVersion.GetProperty(p.Name);
             lastProperty.NextVersion = p;

@@ -10,7 +10,6 @@
       <Compile Remove="DocumentMerger\DocMerger2.cs" />
       <Compile Remove="DocumentMerger\DocMerger4.cs" />
       <Compile Remove="DocumentMerger\DocMerger3.cs" />
-      <Compile Remove="ValueResolver.cs" />
       <Compile Remove="ObjectVersioning\PropertyDto.cs" />
     </ItemGroup>
 

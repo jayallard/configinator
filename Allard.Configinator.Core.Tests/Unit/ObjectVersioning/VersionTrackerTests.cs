@@ -18,9 +18,9 @@ namespace Allard.Configinator.Core.Tests.Unit.ObjectVersioning
         [Fact]
         public void Demo()
         {
-            var model = new ObjectDto()
+            var model = new Node()
                 .SetName("root")
-                .Add(new ObjectDto()
+                .Add(new Node()
                     .SetName("hello")
                     .AddString("world")
                     .AddString("Galaxy"))
@@ -48,7 +48,7 @@ namespace Allard.Configinator.Core.Tests.Unit.ObjectVersioning
             testOutputHelper.WriteLine(output.ToString());
         }
 
-        private static void PrintObject(StringBuilder output, VersionedObject obj, int level)
+        private static void PrintObject(StringBuilder output, VersionedNode obj, int level)
         {
             var spaces = new string('\t', level);
             var spaces2 = new string('\t', level + 1);

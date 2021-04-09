@@ -17,7 +17,7 @@ namespace Allard.Configinator.Core.DocumentValidator
             schemas = schemaTypes.EnsureValue(nameof(schemaTypes)).ToDictionary(st => st.SchemaTypeId);
         }
 
-        public IEnumerable<ValidationFailure> Validate(HabitatId habitatId, ObjectDto value)
+        public IEnumerable<ValidationFailure> Validate(HabitatId habitatId, Node value)
         {
             habitatId.EnsureValue(nameof(habitatId));
             value.EnsureValue(nameof(value));
@@ -30,7 +30,7 @@ namespace Allard.Configinator.Core.DocumentValidator
             ICollection<ValidationFailure> errors,
             HabitatId habitatId,
             IEnumerable<SchemaTypeProperty> properties,
-            ObjectDto obj,
+            Node obj,
             string path)
         {
             // TODO: only works if all expected objects and properties exist.

@@ -7,29 +7,29 @@ namespace Allard.Configinator.Core.ObjectVersioning
 {
     public static class ExtensionMethods
     {
-        public static ObjectDto ToObjectDto(this VersionedObject obj)
+        public static Node ToObjectDto(this VersionedNode obj)
         {
-            return new ObjectDto()
+            return new Node()
                 .SetName(obj.Name)
                 .Add(obj.Properties.ToPropertyDtos())
                 .Add(obj.Objects.ToObjectDtos());
         }
 
-        private static IEnumerable<ObjectDto> ToObjectDtos(this IEnumerable<VersionedObject> objects)
+        private static IEnumerable<Node> ToObjectDtos(this IEnumerable<VersionedNode> objects)
         {
             return objects == null
-                ? new List<ObjectDto>()
+                ? new List<Node>()
                 : objects.Select(ToObjectDto);
         }
 
-        private static IEnumerable<ObjectDto> ToPropertyDtos(this IEnumerable<VersionedProperty> properties)
+        private static IEnumerable<Node> ToPropertyDtos(this IEnumerable<VersionedProperty> properties)
         {
             return properties == null
-                ? new List<ObjectDto>()
-                : properties.Select(p => ObjectDto.CreateString(p.Name, p.Value));
+                ? new List<Node>()
+                : properties.Select(p => Node.CreateString(p.Name, p.Value));
         }
 
-        public static JsonDocument ToJson(this ObjectDto obj)
+        public static JsonDocument ToJson(this Node obj)
         {
             using var stream = new MemoryStream();
             using var writer = new Utf8JsonWriter(stream);
@@ -42,7 +42,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
             return JsonDocument.Parse(stream);
         }
 
-        private static void WriteItems(Utf8JsonWriter writer, IEnumerable<ObjectDto> items)
+        private static void WriteItems(Utf8JsonWriter writer, IEnumerable<Node> items)
         {
             foreach (var obj in items)
             {
@@ -58,14 +58,14 @@ namespace Allard.Configinator.Core.ObjectVersioning
             }
         }
 
-        public static bool IsProperty(this ObjectDto obj)
+        public static bool IsProperty(this Node obj)
         {
-            return obj.ObjectType == ObjectType.String;
+            return obj.NodeType == NodeType.String;
         }
 
-        public static bool IsObject(this ObjectDto obj)
+        public static bool IsObject(this Node obj)
         {
-            return obj.ObjectType == ObjectType.Object;
+            return obj.NodeType == NodeType.Object;
         }
     }
 }

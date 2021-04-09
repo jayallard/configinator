@@ -5,47 +5,47 @@ using System.Linq;
 
 namespace Allard.Configinator.Core.ObjectVersioning
 {
-    public enum ObjectType
+    public enum NodeType
     {
         Object,
         String
     }
 
     [DebuggerDisplay("Name={Name}, Value={Value}")]
-    public class ObjectDto
+    public class Node
     {
-        public ObjectType ObjectType { get; set; } = ObjectType.Object;
+        public NodeType NodeType { get; set; } = NodeType.Object;
         public string Name { get; set; }
-        public List<ObjectDto> Items { get; } = new();
+        public List<Node> Items { get; } = new();
 
-        public IEnumerable<ObjectDto> Properties => Items.Where(i => i.IsProperty());
-        public IEnumerable<ObjectDto> Objects => Items.Where(i => i.IsObject());
+        public IEnumerable<Node> Properties => Items.Where(i => i.IsProperty());
+        public IEnumerable<Node> Objects => Items.Where(i => i.IsObject());
 
         public string Value { get; set; }
 
-        public static ObjectDto CreateString(string name, string value = null)
+        public static Node CreateString(string name, string value = null)
         {
             return new()
             {
-                ObjectType = ObjectType.String,
+                NodeType = NodeType.String,
                 Name = name,
                 Value = value
             };
         }
 
-        public ObjectDto SetName(string name)
+        public Node SetName(string name)
         {
             Name = name;
             return this;
         }
 
-        public ObjectDto SetValue(string value)
+        public Node SetValue(string value)
         {
             Value = value;
             return this;
         }
 
-        public ObjectDto SetValue(string path, string value)
+        public Node SetValue(string path, string value)
         {
             var parts = path.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             var current = this;
@@ -55,24 +55,24 @@ namespace Allard.Configinator.Core.ObjectVersioning
             return this;
         }
 
-        public ObjectDto SetObjectType(ObjectType objectType)
+        public Node SetObjectType(NodeType nodeType)
         {
-            ObjectType = objectType;
+            NodeType = nodeType;
             return this;
         }
 
-        public ObjectDto AddString(string name, string value = null)
+        public Node AddString(string name, string value = null)
         {
             Items.Add(CreateString(name, value));
             return this;
         }
 
-        public ObjectDto GetObject(string name)
+        public Node GetObject(string name)
         {
             return Items.Single(o => o.Name == name && o.IsObject());
         }
 
-        public ObjectDto Add(ObjectDto obj)
+        public Node Add(Node obj)
         {
             Items.Add(obj);
             return this;
@@ -88,22 +88,22 @@ namespace Allard.Configinator.Core.ObjectVersioning
             return Items.Any(o => o.Name == name && o.IsProperty());
         }
 
-        public ObjectDto Add(IEnumerable<ObjectDto> objects)
+        public Node Add(IEnumerable<Node> objects)
         {
             Items.AddRange(objects);
             return this;
         }
 
-        public ObjectDto GetProperty(string name)
+        public Node GetProperty(string name)
         {
             return Items.Single(p => p.Name == name && p.IsProperty());
         }
 
-        public ObjectDto Clone()
+        public Node Clone()
         {
-            return new ObjectDto()
+            return new Node()
                 .SetName(Name)
-                .SetObjectType(ObjectType)
+                .SetObjectType(NodeType)
                 .SetValue(Value)
                 .Add(Items?.Select(o => o.Clone()));
         }

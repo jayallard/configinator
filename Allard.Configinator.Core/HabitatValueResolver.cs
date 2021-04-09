@@ -9,7 +9,7 @@ namespace Allard.Configinator.Core
 {
     public class HabitatValueResolver
     {
-        private readonly Func<IHabitat, Task<ObjectDto>> configStore;
+        private readonly Func<IHabitat, Task<Node>> configStore;
         /*
          * Stores one tracker per habitat.
          * IE Given this habitat tree:
@@ -55,21 +55,13 @@ namespace Allard.Configinator.Core
         private readonly Dictionary<HabitatId, VersionTracker> habitatTrackers = new();
 
         public HabitatValueResolver(
-            ObjectDto objectModel,
-            Func<IHabitat, Task<ObjectDto>> configStore,
+            Node objectModel,
+            Func<IHabitat, Task<Node>> configStore,
             IHabitat habitat)
         {
             objectModel.EnsureValue(nameof(objectModel));
             this.configStore = configStore.EnsureValue(nameof(configStore));
             this.habitat = habitat.EnsureValue(nameof(habitat));
-
-            // var current = habitat.BaseHabitat;
-            // while (current != null)
-            // {
-            //     var tracker = new VersionTracker(objectModel, current.HabitatId.Id);
-            //     habitatTrackers.Add(current.HabitatId, tracker);
-            //     current = current.BaseHabitat;
-            // }
 
             // create a new tracker for each child habitat
             Visit(habitat, h =>
@@ -121,7 +113,7 @@ namespace Allard.Configinator.Core
         ///     The path of the value. Used for partial updates. If null or empty, then the entire object is
         ///     updated.
         /// </param>
-        public void OverwriteValue(IHabitat habitatToUpdate, ObjectDto newValue, string path = null)
+        public void OverwriteValue(IHabitat habitatToUpdate, Node newValue, string path = null)
         {
             // update the tracker with the new value for the habitat.
             var tracker = habitatTrackers[habitatToUpdate.HabitatId];
@@ -158,7 +150,7 @@ namespace Allard.Configinator.Core
         ///     to the HABITAT version (version 1)
         /// </summary>
         /// <param name="obj"></param>
-        private static void ResolveHabitatFromBase(VersionedObject obj)
+        private static void ResolveHabitatFromBase(VersionedNode obj)
         {
             foreach (var property in obj.Properties)
                 // if the base and child used to have the same value,

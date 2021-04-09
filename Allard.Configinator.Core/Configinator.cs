@@ -23,71 +23,7 @@ namespace Allard.Configinator.Core
 
         public async Task<SetValueResponse> SetValueAsync(SetValueRequest request)
         {
-            var (requestId, requestPath, requestValue) = request;
-            var realm = Organization.GetRealmByName(requestId.RealmId);
-            var habitat = realm.GetHabitat(requestId.HabitatId);
-            var cs = realm.GetConfigurationSection(requestId.SectionId);
-
-            async Task<ObjectDto> ConfigResolver(IHabitat h)
-            {
-                // delegate to get value from config store
-                return (await GetValueFromConfigstore(cs, h)).ToObjectDto();
-            }
-
-            // the model represents what the configuration value
-            // looks like. it has structure and data types (currently only string)
-            var model = StructureBuilder.ToStructure(cs);
-
-            // does the heavy lifting of copying values from a habitat to
-            // the descendent habitats.
-            var resolver = new HabitatValueResolver(model, ConfigResolver, habitat);
-
-            // load the existing values from config store into the trackers
-            await resolver.LoadExistingValues();
-
-            // overwrite the config store value with the new value.
-            // this is the value that the user is saving.
-            var newValue = requestValue.ToObjectDto();
-            resolver.OverwriteValue(habitat, newValue, requestPath);
-
-            // the state object keeps track of things.
-            var state = resolver
-                .VersionedHabitats
-                .Select(v => v.Versions.Last())
-                .Select(h => new State
-                {
-                    Habitat = realm.GetHabitat(h.VersionName),
-                    IsChanged = h.IsChanged,
-                    Object = h.ToObjectDto(),
-                    IsSaved = false
-                })
-                .ToList();
-
-            // validate every habitat.
-            foreach (var s in state)
-            {
-                var failures = new ConfigurationValidator(cs, Organization.SchemaTypes)
-                    .Validate(s.Habitat.HabitatId, s.Object)
-                    .ToList();
-                s.Failures.AddRange(failures);
-            }
-
-            // if there are any errors, then can't save.
-            // if nothing changed, then no point in saving.
-            if (state.Any(s => !s.CanSave || !s.IsChanged)) return ToResponse(state);
-
-            // save
-            foreach (var s in state.Where(s => s.CanSave))
-            {
-                // todo: change config store to take a list in case it can do them all in a transaction
-                var json = s.Object.ToJson();
-                var path = OrganizationAggregate.GetConfigurationPath(cs, s.Habitat);
-                var r = new SetConfigStoreValueRequest(path, json);
-                await configStore.SetValueAsync(r);
-                s.IsSaved = true;
-            }
-
-            return ToResponse(state);
+            return await new HabitatValueSetter(Organization, configStore).SetValueAsync(request);
         }
 
         public async Task<GetDetailedValueResponse> GetValueDetailAsync(GetValueRequest request)
@@ -100,7 +36,7 @@ namespace Allard.Configinator.Core
             var result = new GetDetailedValueResponse();
             var current = habitat;
             var validator = new ConfigurationValidator(cs, Organization.SchemaTypes);
-            var dtos = new List<ObjectDto>();
+            var dtos = new List<Node>();
             var modelDto = StructureBuilder.ToStructure(cs);
             var modelJson = modelDto.ToJson().RootElement.ToString();
             while (current != null)
@@ -168,15 +104,15 @@ namespace Allard.Configinator.Core
         }
 
         private static GetDetailedValueResponse.ValueDetail BuildDetailedValue(
-            ObjectDto model,
-            IReadOnlyCollection<ObjectDto> dtos,
+            Node model,
+            IReadOnlyCollection<Node> dtos,
             IReadOnlyList<string> habitatIds)
         {
             var detail = new GetDetailedValueResponse.ValueDetail();
             AddObject(model, detail, dtos);
 
-            void AddObject(ObjectDto currentModel, GetDetailedValueResponse.ValueDetail currentDetail,
-                IReadOnlyCollection<ObjectDto> values)
+            void AddObject(Node currentModel, GetDetailedValueResponse.ValueDetail currentDetail,
+                IReadOnlyCollection<Node> values)
             {
                 // iterate the objects
                 foreach (var modelObject in currentModel.Objects)
@@ -243,7 +179,7 @@ namespace Allard.Configinator.Core
 
         private class State
         {
-            public ObjectDto Object { get; init; }
+            public Node Object { get; init; }
             public IHabitat Habitat { get; init; }
             public List<ValidationFailure> Failures { get; } = new();
             public bool IsChanged { get; init; }

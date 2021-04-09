@@ -21,31 +21,31 @@ namespace Allard.Configinator.Core
                 .ToDictionary(s => s.SchemaTypeId);
         }
 
-        public static ObjectDto ToStructure(ConfigurationSection configurationSection)
+        public static Node ToStructure(ConfigurationSection configurationSection)
         {
             return new StructureBuilder(configurationSection).Build();
         }
 
-        private ObjectDto Build()
+        private Node Build()
         {
-            var obj = new ObjectDto();
+            var obj = new Node();
             Build(obj, configurationSection.Properties);
             return obj;
         }
 
-        private void Build(ObjectDto obj, IEnumerable<SchemaTypeProperty> properties)
+        private void Build(Node obj, IEnumerable<SchemaTypeProperty> properties)
         {
             foreach (var p in properties)
             {
                 if (p.SchemaTypeId.IsPrimitive)
                 {
-                    var propertyDto = ObjectDto.CreateString(p.Name);
+                    var propertyDto = Node.CreateString(p.Name);
                     obj.Add(propertyDto);
                     continue;
                 }
 
                 var type = schemaTypes[p.SchemaTypeId];
-                var childObj = new ObjectDto().SetName(p.Name);
+                var childObj = new Node().SetName(p.Name);
                 obj.Items.Add(childObj);
                 Build(childObj, type.Properties);
             }
