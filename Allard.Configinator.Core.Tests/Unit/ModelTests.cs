@@ -21,34 +21,6 @@ namespace Allard.Configinator.Core.Tests.Unit
         }
 
         [Fact]
-        public void AddConfigurationSectionFailsIfSchemaTypeDoesntExist()
-        {
-            var orgId = new OrganizationId("allard");
-            var org = new OrganizationAggregate(orgId);
-            var realm = org.AddRealm("blah");
-            var properties = new List<SchemaTypeProperty>
-            {
-                new("name", SchemaTypeId.Parse("a/b"))
-            };
-            Action test = () => realm.AddConfigurationSection("cs", properties, "description");
-            test.Should().Throw<InvalidOperationException>()
-                .WithMessage("The SchemaTypeIds don't exist in the organization: a/b");
-        }
-
-        [Fact]
-        public void AddDuplicateRealmFails()
-        {
-            var orgId = new OrganizationId("allard");
-            var org = new OrganizationAggregate(orgId);
-
-            org.Realms.Should().BeEmpty();
-            org.AddRealm("ALLARD-REALM-1");
-            Action test = () => org.AddRealm("ALLARD-REALM-1");
-            test.Should().Throw<InvalidOperationException>()
-                .WithMessage("RealmId already exists. Id=allard-realm-1");
-        }
-
-        [Fact]
         public void Build()
         {
             var orgId = new OrganizationId("allard");

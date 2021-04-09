@@ -32,12 +32,4 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
     </ItemGroup>
-    <ItemGroup>
-      <Compile Remove="Unit\DocumentMerger\DocMergerTests.cs" />
-      <Compile Remove="Unit\DocumentMerger\DocMerger2Tests.cs" />
-      <Compile Remove="Unit\DocumentMerger\DocMerger3Tests.cs" />
-    </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Unit\DocumentMerger" />
-    </ItemGroup>
 </Project>

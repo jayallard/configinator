@@ -6,11 +6,6 @@ using Allard.Configinator.Core.Events;
 
 namespace Allard.Configinator.Core.Model
 {
-    public interface IRealm
-    {
-        IReadOnlyCollection<IHabitat> Habitats { get; }
-    }
-
     [DebuggerDisplay("RealmId={RealmId.Id}")]
     public class Realm : IRealm
     {
@@ -96,7 +91,7 @@ namespace Allard.Configinator.Core.Model
                 .Raise<AddedConfigurationSectionToRealmEvent, ConfigurationSection>(evt);
         }
 
-        public IHabitat AddHabitat(string habitatId, string baseHabitatId)
+        public IHabitat AddHabitat(string habitatId, string baseHabitatId = null)
         {
             return AddHabitat(new HabitatId(habitatId), baseHabitatId == null ? null : new HabitatId(baseHabitatId));
         }
@@ -106,7 +101,10 @@ namespace Allard.Configinator.Core.Model
             // make sure habitat doesn't already exist.
             habitats.Keys.EnsureIdDoesntExist(habitatId);
 
-            // TODO: validate base hierarchy. prevent circular reference.
+            if (baseHabitatId != null && !habitats.ContainsKey(baseHabitatId))
+            {
+                throw new InvalidOperationException("BaseHabitat doesn't exist: " + baseHabitatId.Id);
+            }
 
             // create and raise the event.
             var evt = new AddedHabitatToRealmEvent(Organization.OrganizationId, RealmId, habitatId, baseHabitatId);

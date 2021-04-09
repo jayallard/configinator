@@ -1,16 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
         <Nullable>warnings</Nullable>
     </PropertyGroup>
-
-    <ItemGroup>
-      <Compile Remove="DocumentMerger\DocMerger.cs" />
-      <Compile Remove="DocumentMerger\DocMerger2.cs" />
-      <Compile Remove="DocumentMerger\DocMerger4.cs" />
-      <Compile Remove="DocumentMerger\DocMerger3.cs" />
-      <Compile Remove="ObjectVersioning\PropertyDto.cs" />
-    </ItemGroup>
-
 </Project>
