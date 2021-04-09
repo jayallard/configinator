@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Allard.Configinator.Core.Events;
-using Allard.Configinator.Core.Model.Validators;
 
 namespace Allard.Configinator.Core.Model
 {
-    public class Realm
+    [DebuggerDisplay("RealmId={RealmId.Id}")]
+    public class Realm : IRealm
     {
         private readonly Dictionary<SectionId, ConfigurationSection> configurationSections = new();
-        private readonly Dictionary<HabitatId, Habitat> habitats = new();
+        private readonly Dictionary<HabitatId, IHabitat> habitats = new();
 
         public Realm(OrganizationAggregate organization, RealmId realmId)
         {
@@ -19,17 +20,17 @@ namespace Allard.Configinator.Core.Model
 
         public OrganizationAggregate Organization { get; }
         public RealmId RealmId { get; }
-        public IReadOnlyCollection<Habitat> Habitats => habitats.Values;
-        public IReadOnlyCollection<ConfigurationSection> ConfigurationSections => configurationSections.Values;
+        public IEnumerable<ConfigurationSection> ConfigurationSections => configurationSections.Values;
+        public IReadOnlyCollection<IHabitat> Habitats => habitats.Values;
 
-        public Habitat GetHabitat(string habitatId)
+        public IHabitat GetHabitat(string habitatId)
         {
             var id = new HabitatId(habitatId);
             if (habitats.TryGetValue(id, out var habitat)) return habitat;
 
             throw new InvalidOperationException("Habitat doesn't exist. HabitatId= " + habitatId);
         }
-        
+
         public ConfigurationSection GetConfigurationSection(string sectionId)
         {
             var id = new SectionId(sectionId);
@@ -42,7 +43,7 @@ namespace Allard.Configinator.Core.Model
         ///     Used by the event handler.
         /// </summary>
         /// <param name="habitat"></param>
-        internal void AddHabitat(Habitat habitat)
+        internal void AddHabitat(IHabitat habitat)
         {
             habitats.Add(habitat.HabitatId, habitat);
         }
@@ -73,14 +74,11 @@ namespace Allard.Configinator.Core.Model
             // make sure the configuration section doesn't already exist
             habitats.Keys.EnsureIdDoesntExist(sectionId);
 
-            if (!properties.Any())
-            {
-                throw new InvalidOperationException("At least one property is required.");
-            }
-            
+            if (!properties.Any()) throw new InvalidOperationException("At least one property is required.");
+
             Organization.EnsureValidSchemaTypes(properties.Select(p => p.SchemaTypeId));
             // todo: duplicate names
-            
+
             // create and raise the event
             var evt = new AddedConfigurationSectionToRealmEvent(
                 Organization.OrganizationId,
@@ -93,42 +91,26 @@ namespace Allard.Configinator.Core.Model
                 .Raise<AddedConfigurationSectionToRealmEvent, ConfigurationSection>(evt);
         }
 
-        public Habitat AddHabitat(string habitatId, params string[] baseHabitats)
+        public IHabitat AddHabitat(string habitatId, string baseHabitatId = null)
         {
-            return AddHabitat(new HabitatId(habitatId), baseHabitats.Select(h => new HabitatId(h)).ToHashSet());
+            return AddHabitat(new HabitatId(habitatId), baseHabitatId == null ? null : new HabitatId(baseHabitatId));
         }
 
-        public Habitat AddHabitat(HabitatId habitatId, ISet<HabitatId> baseHabitats = null)
+        public Habitat AddHabitat(HabitatId habitatId, HabitatId baseHabitatId = null)
         {
             // make sure habitat doesn't already exist.
             habitats.Keys.EnsureIdDoesntExist(habitatId);
 
-            // make sure the hierarchy is sound.
-            // ie: no circular references, self references, invalid references.
-            ValidateHabitatHierarchy(habitatId, baseHabitats);
-
-            // get the ids of the base habitats
-            var baseIds = habitats
-                .Values
-                .Where(h => baseHabitats.Contains(h.HabitatId))
-                .Select(h => h.HabitatId)
-                .ToHashSet();
+            if (baseHabitatId != null && !habitats.ContainsKey(baseHabitatId))
+            {
+                throw new InvalidOperationException("BaseHabitat doesn't exist: " + baseHabitatId.Id);
+            }
 
             // create and raise the event.
-            var evt = new AddedHabitatToRealmEvent(Organization.OrganizationId, RealmId, habitatId, baseIds);
+            var evt = new AddedHabitatToRealmEvent(Organization.OrganizationId, RealmId, habitatId, baseHabitatId);
             return Organization
                 .EventHandlerRegistry
                 .Raise<AddedHabitatToRealmEvent, Habitat>(evt);
-        }
-
-        private void ValidateHabitatHierarchy(HabitatId habitatId, IEnumerable<HabitatId> baseHabitats)
-        {
-            var toTest = new HierarchyElement(habitatId.Id, baseHabitats.Select(b => b.Id).ToHashSet());
-            var existingHabitats = habitats
-                .Values
-                .Select(h =>
-                    new HierarchyElement(h.HabitatId.Id, h.Bases.Select(b => b.HabitatId.Id).ToHashSet()));
-            HierarchyValidator.Validate(toTest, existingHabitats);
         }
     }
 }

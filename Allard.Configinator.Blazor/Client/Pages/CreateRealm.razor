@@ -24,7 +24,7 @@
 
     public string Json { get; set; }
 
-    private List<string> types = new() {"primitive/string", "a/b"};
+    private readonly List<string> types = new() {"primitive/string", "a/b"};
 
     private async Task Create()
     {
@@ -58,7 +58,7 @@
         </p>
         <h4 style="padding:15px;background-color: black; color: white">
             Configuration Sections&nbsp;
-            <button  type="button" class="btn" @onclick="() => realm.ConfigurationSections.Add(new ConfigurationSectionViewModel())">
+            <button type="button" class="btn" @onclick="() => realm.ConfigurationSections.Add(new ConfigurationSectionViewModel())">
                 <span class="oi oi-plus"></span>
             </button>
         </h4>

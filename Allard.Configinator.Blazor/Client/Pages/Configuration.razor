@@ -1,8 +1,8 @@
 @page "/configuration/{organizationId}/{realmId}/{sectionId}/{habitatId}"
-@using System.Text.Json
 @using Allard.Configinator.Blazor.Client.Services
 @using Allard.Configinator.Blazor.Shared.ViewModels.Configuration
 @using Allard.Configinator.Blazor.Shared.ViewModels.Organization
+@using System.Text.Json
 @inject HttpClient client;
 @inject IOrganizationService orgService;
 <h3>Configuration</h3>
@@ -61,7 +61,7 @@
         {
             result[property.Name] = GetJsonValue(property.Value);
         }
-        
+
         foreach (var p in explained.Objects)
         {
             result[p.Name] = ToDictionary(p);
@@ -121,26 +121,23 @@
 {
     var realm = organization.GetRealm(RealmId);
     var habitat = realm.GetHabitat(HabitatId);
-    if (habitat.BaseHabitatIds.Count == 0)
+    if (habitat.BaseHabitatId != null)
     {
         <div>
-            Base Habitats:&nbsp;<i>None</i>
+            Base Habitat:&nbsp;<i>None</i>
         </div>
     }
     else
     {
         <div>
-            Base Habitats:&nbsp;
-            @foreach (var b in habitat.BaseHabitatIds)
-            {
-                <span>
-                    <a href="/configuration/@OrganizationId/@RealmId/@SectionId/@b">@b</a> &nbsp;&nbsp;
-                </span>
-            }
+            Base Habitat:&nbsp;
+            <span>
+                <a href="/configuration/@OrganizationId/@RealmId/@SectionId/@habitat.BaseHabitatId">@habitat.BaseHabitatId</a> &nbsp;&nbsp;
+            </span>
         </div>
     }
 
-    var children = realm.Habitats.Where(h => h.BaseHabitatIds.Contains(HabitatId)).Select(b => b.HabitatId).ToList();
+    var children = realm.Habitats.Where(h => h.BaseHabitatId == habitat.HabitatId).ToList();
     if (children.Count == 0)
     {
         <div>
@@ -184,16 +181,16 @@
                 {
                     @p.Value
                 }
-                @if (p.Layers.Last().Transition == "Inherit")
+                @if (p.BaseValues.Last().Transition == "Inherit")
                 {
                     <span style="margin-left:15px" class="badge-pill badge-primary">Inherited</span>
                 }
             </td>
         </tr>
-    }    
+    }
     foreach (var obj in explained.Objects)
     {
-          <ConfigurationSectionControl Edit=@Edit ObjectViewModel=@obj />
+        <ConfigurationSectionControl Edit=@Edit ObjectViewModel=@obj/>
     }
 
     <button hidden="@(!Edit)" @onclick="Save">Save</button>

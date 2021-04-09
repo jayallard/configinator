@@ -8,6 +8,7 @@
     public bool Edit { get; set; } = true;
 
 }
+
 <table class="table table-bordered">
     <thead>
     <tr>
@@ -30,7 +31,7 @@
                 {
                     @p.Value
                 }
-                @if (p.Layers.Last().Transition == "Inherit")
+                @if (p.BaseValues.Last().Transition == "Inherit")
                 {
                     <span style="margin-left:15px" class="badge-pill badge-primary">Inherited</span>
                 }
@@ -40,7 +41,7 @@
 
     @foreach (var o in ObjectViewModel.Objects)
     {
-          <ConfigurationSectionControl Edit=@Edit ObjectViewModel=@o/>
+        <ConfigurationSectionControl Edit=@Edit ObjectViewModel=@o/>
     }
     </tbody>
 </table>

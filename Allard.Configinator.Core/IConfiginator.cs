@@ -9,5 +9,6 @@ namespace Allard.Configinator.Core
         public OrganizationAggregate Organization { get; }
         public Task<SetValueResponse> SetValueAsync(SetValueRequest request);
         public Task<GetValueResponse> GetValueAsync(GetValueRequest request);
+        public Task<GetDetailedValueResponse> GetValueDetailAsync(GetValueRequest request);
     }
 }

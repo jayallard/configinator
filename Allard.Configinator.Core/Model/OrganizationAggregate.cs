@@ -18,19 +18,11 @@ namespace Allard.Configinator.Core.Model
             EventHandlerRegistry.Raise(new OrganizationCreatedEvent(organizationId));
         }
 
-        internal static string GetConfigurationPath(ConfigurationSection section, Habitat habitat)
-        {
-            return $"/{section.Realm.Organization.OrganizationId.Id}/{section.Realm.RealmId.Id}/{section.SectionId.Id}/{habitat.HabitatId.Id}";
-        }
-
         private OrganizationAggregate()
         {
             EventHandlerRegistry = new EventHandlerRegistryBuilder()
                 // create org
-                .Register<OrganizationCreatedEvent>(e =>
-                {
-                    OrganizationId = e.OrganizationId;
-                })
+                .Register<OrganizationCreatedEvent>(e => { OrganizationId = e.OrganizationId; })
 
                 // add realm to organization
                 .Register<AddedRealmToOrganizationEvent, Realm>(e =>
@@ -41,11 +33,18 @@ namespace Allard.Configinator.Core.Model
                 })
 
                 // add habitat to realm
-                .Register<AddedHabitatToRealmEvent, Habitat>(e =>
+                .Register<AddedHabitatToRealmEvent, IHabitat>(e =>
                 {
                     var realm = realms[e.RealmId];
-                    var bases = realm.Habitats.Where(h => e.Bases.Contains(h.HabitatId));
-                    var habitat = new Habitat(e.HabitatId, realm, bases);
+                    var baseHabitat =
+                        e.BaseHabitatId == null
+                            ? null
+                            : realm.GetHabitat(e.BaseHabitatId.Id);
+                    var habitat = new Habitat(e.HabitatId, realm, baseHabitat);
+
+                    // ick - hack?
+                    if (baseHabitat is Habitat h) h.AddChild(habitat);
+
                     realm.AddHabitat(habitat);
                     return habitat;
                 })
@@ -72,21 +71,6 @@ namespace Allard.Configinator.Core.Model
                 .Build();
         }
 
-        internal void EnsureValidSchemaTypes(IEnumerable<SchemaTypeId> toValidate)
-        {
-            var invalid = toValidate
-                .Where(s => !s.IsPrimitive && !schemaTypes.ContainsKey(s))
-                .Select(id => id.FullId)
-                .ToList();
-            if (!invalid.Any())
-            {
-                return;
-            }
-
-            var errors = string.Join(',', invalid);
-            throw new InvalidOperationException("The SchemaTypeIds don't exist in the organization: " + errors);
-        }
-
         internal EventHandlerRegistry EventHandlerRegistry { get; }
 
         public OrganizationId OrganizationId { get; private set; }
@@ -94,6 +78,24 @@ namespace Allard.Configinator.Core.Model
         public IReadOnlyCollection<Realm> Realms => realms.Values;
 
         public IReadOnlyCollection<SchemaType> SchemaTypes => schemaTypes.Values;
+
+        internal static string GetConfigurationPath(ConfigurationSection section, IHabitat habitat)
+        {
+            return
+                $"/{section.Realm.Organization.OrganizationId.Id}/{section.Realm.RealmId.Id}/{section.SectionId.Id}/{habitat.HabitatId.Id}";
+        }
+
+        internal void EnsureValidSchemaTypes(IEnumerable<SchemaTypeId> toValidate)
+        {
+            var invalid = toValidate
+                .Where(s => !s.IsPrimitive && !schemaTypes.ContainsKey(s))
+                .Select(id => id.FullId)
+                .ToList();
+            if (!invalid.Any()) return;
+
+            var errors = string.Join(',', invalid);
+            throw new InvalidOperationException("The SchemaTypeIds don't exist in the organization: " + errors);
+        }
 
         public Realm GetRealmById(string realmId)
         {

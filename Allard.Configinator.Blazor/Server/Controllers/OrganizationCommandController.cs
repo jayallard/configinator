@@ -34,12 +34,9 @@ namespace Allard.Configinator.Blazor.Server.Controllers
             organizationId.EnsureValue(nameof(organizationId));
             var org = await repo.GetOrganizationByIdAsync(organizationId);
             var r = org.AddRealm(realm.RealmId);
-            
+
             // habitats
-            foreach (var h in realm.Habitats)
-            {
-                r.AddHabitat(h.HabitatId, h.BaseHabitatIds.ToArray());
-            }
+            foreach (var h in realm.Habitats) r.AddHabitat(h.HabitatId, h.BaseHabitatId);
 
             // config sections
             foreach (var c in realm.ConfigurationSections)
@@ -50,7 +47,7 @@ namespace Allard.Configinator.Blazor.Server.Controllers
                         new SchemaTypeProperty(p.Name, SchemaTypeId.Parse(p.SchemaTypeId), p.IsSecret, !p.IsRequired))
                     .ToList()
                     .AsReadOnly();
-                r.AddConfigurationSection(c.SectionId, props,  "");
+                r.AddConfigurationSection(c.SectionId, props, "");
             }
 
             await repo.UpdateAsync(org);

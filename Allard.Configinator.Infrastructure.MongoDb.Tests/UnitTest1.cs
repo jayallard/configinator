@@ -53,7 +53,7 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
             for (var i = 0; i < realmCount; i++)
             {
                 var realm = org.AddRealm("realm " + i);
-                for (var i2 = 0; i2 < habitCountPerRealm; i2++) realm.AddHabitat("h " + i2);
+                for (var i2 = 0; i2 < habitCountPerRealm; i2++) realm.AddHabitat("h " + i2, null);
             }
 
             await repo.CreateAsync(org);
@@ -70,13 +70,13 @@ namespace Allard.Configinator.Infrastructure.MongoDb.Tests
             var orgId = new OrganizationId("Allard");
             var org = new OrganizationAggregate(orgId);
             var r1 = org.AddRealm("realm a");
-            r1.AddHabitat("a");
-            r1.AddHabitat("b");
+            r1.AddHabitat("a", null);
+            r1.AddHabitat("b", null);
 
             var r2 = org.AddRealm("realm b");
-            r2.AddHabitat("x");
-            r2.AddHabitat("y");
-            r2.AddHabitat("z");
+            r2.AddHabitat("x", null);
+            r2.AddHabitat("y", null);
+            r2.AddHabitat("z", null);
 
             await repo.CreateAsync(org);
             // read

@@ -1,23 +1,38 @@
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 
 namespace Allard.Configinator.Core.Model
 {
     // todo: why isn't this a record?
 
-    public class Habitat
+    public interface IHabitat
     {
-        private readonly List<Habitat> bases;
-        public Realm Realm { get; }
+        IRealm Realm { get; }
+        HabitatId HabitatId { get; }
+        IHabitat BaseHabitat { get; }
+        IEnumerable<IHabitat> Children { get; }
+    }
 
-        internal Habitat(HabitatId habitatId, Realm realm, IEnumerable<Habitat> bases)
+    [DebuggerDisplay("HabitatId={HabitatId.Id}")]
+    public class Habitat : IHabitat
+    {
+        private readonly List<IHabitat> children = new();
+
+        internal Habitat(HabitatId habitatId, IRealm realm, IHabitat baseHabitat = null)
         {
             Realm = realm;
-            this.bases = bases.ToList();
+            BaseHabitat = baseHabitat;
             HabitatId = habitatId;
         }
 
+        public IRealm Realm { get; }
         public HabitatId HabitatId { get; }
-        public IReadOnlyCollection<Habitat> Bases => bases.AsReadOnly();
+        public IHabitat BaseHabitat { get; }
+        public IEnumerable<IHabitat> Children => children.AsReadOnly();
+
+        internal void AddChild(IHabitat child)
+        {
+            children.Add(child);
+        }
     }
 }

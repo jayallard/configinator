@@ -8,12 +8,8 @@ namespace Allard.Configinator.Core.Model.Builders
 
         public IReadOnlyCollection<SchemaTypeProperty> Properties => properties.AsReadOnly();
 
-        public string TypeId { get; protected set; }
+        public string TypeId { get; protected init; }
 
-        public static SchemaTypeBuilder Create()
-        {
-            return new();
-        }
 
         public SchemaTypeBuilder AddProperty(SchemaTypeProperty schemaTypeProperty)
         {
