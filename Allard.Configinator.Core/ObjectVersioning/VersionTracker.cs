@@ -49,9 +49,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
                 var last = path.Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
                     .Last();
                 if (m.PropertyExists(last))
-                    values = new Node()
-                        .SetName(m.Name)
-                        .Add(Node.CreateString(last, values.Value));
+                    values = Node.CreateObject(m.Name).Add(Node.CreateString(last, values.Value));
             }
 
 
@@ -94,7 +92,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
             Node toConvert)
         {
             // hack
-            toConvert ??= new Node().SetName(objectModel.Name);
+            toConvert ??= Node.CreateObject(objectModel.Name);
             var childObjects = toConvert.Items.ToDictionary(o => o.Name);
             var childProperties = toConvert.Properties.ToDictionary(o => o.Name);
             var objs = objectModel

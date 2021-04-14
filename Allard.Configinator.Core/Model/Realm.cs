@@ -11,6 +11,7 @@ namespace Allard.Configinator.Core.Model
     {
         private readonly Dictionary<SectionId, ConfigurationSection> configurationSections = new();
         private readonly Dictionary<HabitatId, IHabitat> habitats = new();
+        private readonly Dictionary<string, RealmVariable> variables = new();
 
         public Realm(OrganizationAggregate organization, RealmId realmId)
         {
@@ -27,16 +28,45 @@ namespace Allard.Configinator.Core.Model
         {
             var id = new HabitatId(habitatId);
             if (habitats.TryGetValue(id, out var habitat)) return habitat;
-
-            throw new InvalidOperationException("Habitat doesn't exist. HabitatId= " + habitatId);
+            throw ModelExceptions.HabitatDoesntExist(habitatId);
         }
 
         public ConfigurationSection GetConfigurationSection(string sectionId)
         {
             var id = new SectionId(sectionId);
             if (configurationSections.TryGetValue(id, out var cs)) return cs;
+            throw ModelExceptions.ConfigurationSectionDoesntExists(id.Id);
+        }
 
-            throw new InvalidOperationException("Configuration section doesn't exist: " + cs);
+        public Realm AddVariable(RealmVariable variable)
+        {
+            var id = new SectionId(variable.ConfigurationSectionId);
+            if (!configurationSections.ContainsKey(id))
+            {
+                throw ModelExceptions.ConfigurationSectionDoesntExists(id.Id);
+            }
+
+            if (variables.ContainsKey(variable.Name))
+            {
+                throw ModelExceptions.RealmVariableAlreadyExists(variable.Name);
+            }
+
+            if (string.IsNullOrWhiteSpace(variable.ConfigPath) || variable.ConfigPath
+                .Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Length == 0)
+            {
+                throw new InvalidOperationException("Invalid Configuration Path: " + variable.ConfigPath);
+            }
+
+            var cs = GetConfigurationSection(variable.ConfigurationSectionId);
+            var structure = StructureBuilder.ToStructure(cs);
+            if (!structure.Exists(variable.ConfigPath))
+            {
+                throw new InvalidOperationException("Configuration Path doesn't exist: " + variable.ConfigPath);
+            }
+
+            var node = structure.FindNode(variable.ConfigPath);
+            
+            return this;
         }
 
         /// <summary>

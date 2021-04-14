@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Text;
 using Allard.Configinator.Core.ObjectVersioning;
+using NSubstitute;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -18,10 +19,8 @@ namespace Allard.Configinator.Core.Tests.Unit.ObjectVersioning
         [Fact]
         public void Demo()
         {
-            var model = new Node()
-                .SetName("root")
-                .Add(new Node()
-                    .SetName("hello")
+            var model = Node.CreateObject()
+                .Add(Node.CreateObject("hello")
                     .AddString("world")
                     .AddString("Galaxy"))
                 .AddString("a")

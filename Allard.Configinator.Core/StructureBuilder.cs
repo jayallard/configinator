@@ -28,7 +28,7 @@ namespace Allard.Configinator.Core
 
         private Node Build()
         {
-            var obj = new Node();
+            var obj = Node.CreateObject();
             Build(obj, configurationSection.Properties);
             return obj;
         }
@@ -45,7 +45,7 @@ namespace Allard.Configinator.Core
                 }
 
                 var type = schemaTypes[p.SchemaTypeId];
-                var childObj = new Node().SetName(p.Name);
+                var childObj = Node.CreateObject(p.Name);
                 obj.Items.Add(childObj);
                 Build(childObj, type.Properties);
             }

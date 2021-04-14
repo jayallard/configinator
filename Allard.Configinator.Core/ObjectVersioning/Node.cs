@@ -14,51 +14,71 @@ namespace Allard.Configinator.Core.ObjectVersioning
     [DebuggerDisplay("Name={Name}, Value={Value}")]
     public class Node
     {
-        public NodeType NodeType { get; set; } = NodeType.Object;
-        public string Name { get; set; }
+        public Node(string name, NodeType nodeType)
+        {
+            Name = name;
+            NodeType = nodeType;
+        }
+
+        public NodeType NodeType { get; }
+        public string Name { get; }
         public List<Node> Items { get; } = new();
 
         public IEnumerable<Node> Properties => Items.Where(i => i.IsProperty());
         public IEnumerable<Node> Objects => Items.Where(i => i.IsObject());
 
-        public string Value { get; set; }
+        public string Value { get; private set; }
 
         public static Node CreateString(string name, string value = null)
         {
-            return new()
-            {
-                NodeType = NodeType.String,
-                Name = name,
-                Value = value
-            };
+            return new Node(name, NodeType.String).SetValue(value);
         }
-
-        public Node SetName(string name)
+        
+        public static Node CreateObject(string name = null)
         {
-            Name = name;
-            return this;
+            return new (name ?? "root", NodeType.Object);
         }
 
         public Node SetValue(string value)
         {
+            if (NodeType == NodeType.Object)
+            {
+                throw new InvalidOperationException("Object Nodes don't have values.");
+            }
+
             Value = value;
             return this;
         }
 
-        public Node SetValue(string path, string value)
+        public Node SetChildValue(string path, string value)
+        {
+            FindNode(path).SetValue(value);
+            return this;
+        }
+
+        public Node FindNode(string path)
         {
             var parts = path.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             var current = this;
             for (var i = 0; i < parts.Length - 1; i++) current = current.GetObject(parts[i]);
-
-            current.GetProperty(parts.Last()).SetValue(value);
-            return this;
+            return current.Items.Single(i => i.Name == parts.Last());
         }
 
-        public Node SetObjectType(NodeType nodeType)
+        public bool Exists(string path)
         {
-            NodeType = nodeType;
-            return this;
+            var parts = path.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var current = this;
+            for (var i = 0; i < parts.Length - 1; i++)
+            {
+                if (!current.ObjectExists(parts[i]))
+                {
+                    return false;
+                }
+
+                current = current.GetObject(parts[i]);
+            }
+
+            return ObjectExists(parts.Last()) || PropertyExists(parts.Last());
         }
 
         public Node AddString(string name, string value = null)
@@ -90,6 +110,10 @@ namespace Allard.Configinator.Core.ObjectVersioning
 
         public Node Add(IEnumerable<Node> objects)
         {
+            if (NodeType != NodeType.Object)
+            {
+                throw new InvalidOperationException("Properties cannot contain properties.");
+            }
             Items.AddRange(objects);
             return this;
         }
@@ -101,11 +125,18 @@ namespace Allard.Configinator.Core.ObjectVersioning
 
         public Node Clone()
         {
-            return new Node()
-                .SetName(Name)
-                .SetObjectType(NodeType)
-                .SetValue(Value)
-                .Add(Items?.Select(o => o.Clone()));
+            var clone = new Node(Name, NodeType);
+
+            if (this.NodeType == NodeType.Object)
+            {
+                clone.Add(Items?.Select(o => o.Clone()));
+            }
+            else
+            {
+                clone.SetValue(Value);
+            }
+
+            return clone;
         }
     }
 }

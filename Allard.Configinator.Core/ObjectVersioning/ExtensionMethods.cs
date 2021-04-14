@@ -9,8 +9,7 @@ namespace Allard.Configinator.Core.ObjectVersioning
     {
         public static Node ToObjectDto(this VersionedNode obj)
         {
-            return new Node()
-                .SetName(obj.Name)
+            return Node.CreateObject(obj.Name)
                 .Add(obj.Properties.ToPropertyDtos())
                 .Add(obj.Objects.ToObjectDtos());
         }

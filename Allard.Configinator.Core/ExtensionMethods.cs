@@ -22,8 +22,7 @@ namespace Allard.Configinator.Core
                     .GetObjects()
                     .Select(GetObject);
 
-            return new Node()
-                .SetName("root")
+            return Node.CreateObject()
                 .Add(properties)
                 .Add(objects);
         }
@@ -36,8 +35,7 @@ namespace Allard.Configinator.Core
                 .Select(GetObject);
             var props = jsonProperties
                 .Select(p => Node.CreateString(p.Name, p.Value.GetString()));
-            return new Node()
-                .SetName(json.Name)
+            return Node.CreateObject(json.Name)
                 .Add(props)
                 .Add(objs);
         }

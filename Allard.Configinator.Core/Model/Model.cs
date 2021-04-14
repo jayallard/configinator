@@ -32,4 +32,10 @@ namespace Allard.Configinator.Core.Model
     {
         public bool IsRequired => !IsOptional;
     }
+
+
+    public record RealmVariable(string Name, string ConfigurationSectionId, string ConfigPath,
+        List<RealmVariableAssignment> Assignments);
+    public record RealmVariableAssignment(string ConfigurationSectionId, string ConfigPath);
+
 }

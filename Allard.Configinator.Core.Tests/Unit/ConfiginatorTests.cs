@@ -173,7 +173,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             // set the value for DEV, and it will cascade down.
             var setup = input
                 .Clone()
-                .SetValue("sql-source/host", "FirstValue")
+                .SetChildValue("sql-source/host", "FirstValue")
                 .ToJson();
 
             var setupResult = await Configinator.SetValueAsync(new SetValueRequest(idDev, null, setup));
@@ -198,7 +198,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             // dev-allard and dev-allard2 will inherit.
             var setDev = input
                 .Clone()
-                .SetValue("sql-source/host", "SecondValue")
+                .SetChildValue("sql-source/host", "SecondValue")
                 .ToJson();
             var setDevResult = await Configinator.SetValueAsync(new SetValueRequest(idDev, null, setDev));
             setDevResult.Habitats.Count.Should().Be(3);
@@ -222,7 +222,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             // dev-allard2 will inherit. dev will not change.
             var setAllard = input
                 .Clone()
-                .SetValue("sql-source/host", "ThirdValue")
+                .SetChildValue("sql-source/host", "ThirdValue")
                 .ToJson();
             var setAllardResult = await Configinator.SetValueAsync(new SetValueRequest(idDevAllard, null, setAllard));
             setAllardResult.Habitats.Count.Should().Be(2);
@@ -248,7 +248,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             var id1 = CreateConfigurationId("dev");
             var set1 = input
                 .Clone()
-                .SetValue("sql-source/host", "dev")
+                .SetChildValue("sql-source/host", "dev")
                 .ToJson();
             var set1Result = await Configinator.SetValueAsync(new SetValueRequest(id1, null, set1));
             set1Result.Habitats.Count.Should().Be(3);
@@ -257,7 +257,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             var id2 = CreateConfigurationId("dev-allard");
             var set2 = input
                 .Clone()
-                .SetValue("sql-source/host", "dev-allard")
+                .SetChildValue("sql-source/host", "dev-allard")
                 .ToJson();
             var set2Result = await Configinator.SetValueAsync(new SetValueRequest(id2, null, set2));
             set2Result.Habitats.Count.Should().Be(2);
@@ -266,7 +266,7 @@ namespace Allard.Configinator.Core.Tests.Unit
             var id3 = CreateConfigurationId("dev-allard2");
             var set3 = input
                 .Clone()
-                .SetValue("sql-source/host", "dev-allard2")
+                .SetChildValue("sql-source/host", "dev-allard2")
                 .ToJson();
             var set3Result = await Configinator.SetValueAsync(new SetValueRequest(id3, null, set3));
             set3Result.Habitats.Count.Should().Be(1);

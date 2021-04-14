@@ -36,10 +36,10 @@ namespace Allard.Configinator.Core.Tests.Unit
 
             static Task<Node> ConfigStore(IHabitat h)
             {
-                return Task.FromResult(new Node());
+                return Task.FromResult(Node.CreateObject());
             }
 
-            var model = new Node();
+            var model = Node.CreateObject();
             var resolver = new HabitatValueResolver(model, ConfigStore, h1);
             await resolver.LoadExistingValues();
             resolver.VersionedHabitats.Count().Should().Be(4);
@@ -48,20 +48,20 @@ namespace Allard.Configinator.Core.Tests.Unit
         [Fact]
         public async Task CopyDown()
         {
-            var model = new Node().AddString("hello");
+            var model = Node.CreateObject().AddString("hello");
 
             // value = starts as null, but we will set it to world
             // after load.
-            var h1Value = new Node().AddString("hello");
+            var h1Value = Node.CreateObject().AddString("hello");
 
             // no value, so inherit world.
-            var h2AValue = new Node();
+            var h2AValue = Node.CreateObject();
 
             // explicit value, so will keep it.
-            var h2BValue = new Node().AddString("hello", "galaxy");
+            var h2BValue = Node.CreateObject().AddString("hello", "galaxy");
 
             // null value, so inherit galaxy./
-            var h3AValue = new Node().AddString("hello");
+            var h3AValue = Node.CreateObject().AddString("hello");
 
             // h1 : h2a
             // h1 : h2b : h3a 
