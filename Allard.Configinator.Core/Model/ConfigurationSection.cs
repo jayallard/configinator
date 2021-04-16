@@ -5,6 +5,12 @@ namespace Allard.Configinator.Core.Model
     public record ConfigurationSection(
         Realm Realm,
         SectionId SectionId,
-        IReadOnlyCollection<SchemaTypeProperty> Properties,
-        string Description);
+        IReadOnlyCollection<SchemaTypePropertyExploded> Properties,
+        string Description)
+    {
+        public SchemaTypeProperty Find(string path)
+        {
+            return null;
+        }
+    }
 }

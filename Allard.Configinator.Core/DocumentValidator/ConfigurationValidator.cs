@@ -9,9 +9,9 @@ namespace Allard.Configinator.Core.DocumentValidator
     public class ConfigurationValidator
     {
         private readonly ConfigurationSection configurationSection;
-        private readonly Dictionary<SchemaTypeId, SchemaType> schemas;
+        private readonly Dictionary<SchemaTypeId, SchemaTypeExploded> schemas;
 
-        public ConfigurationValidator(ConfigurationSection configurationSection, IEnumerable<SchemaType> schemaTypes)
+        public ConfigurationValidator(ConfigurationSection configurationSection, IEnumerable<SchemaTypeExploded> schemaTypes)
         {
             this.configurationSection = configurationSection.EnsureValue(nameof(ConfigurationSection));
             schemas = schemaTypes.EnsureValue(nameof(schemaTypes)).ToDictionary(st => st.SchemaTypeId);
@@ -29,7 +29,7 @@ namespace Allard.Configinator.Core.DocumentValidator
         private void Validate(
             ICollection<ValidationFailure> errors,
             HabitatId habitatId,
-            IEnumerable<SchemaTypeProperty> properties,
+            IEnumerable<SchemaTypePropertyExploded> properties,
             Node obj,
             string path)
         {

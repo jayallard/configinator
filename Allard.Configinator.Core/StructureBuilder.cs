@@ -9,7 +9,7 @@ namespace Allard.Configinator.Core
     {
         private readonly ConfigurationSection configurationSection;
 
-        private readonly Dictionary<SchemaTypeId, SchemaType> schemaTypes;
+        private readonly Dictionary<SchemaTypeId, SchemaTypeExploded> schemaTypes;
 
         private StructureBuilder(ConfigurationSection configurationSection)
         {
@@ -33,7 +33,7 @@ namespace Allard.Configinator.Core
             return obj;
         }
 
-        private void Build(Node obj, IEnumerable<SchemaTypeProperty> properties)
+        private void Build(Node obj, IEnumerable<SchemaTypePropertyExploded> properties)
         {
             foreach (var p in properties)
             {
@@ -43,7 +43,8 @@ namespace Allard.Configinator.Core
                     obj.Add(propertyDto);
                     continue;
                 }
-
+                
+                // TODO: convert to use exploded. don't need to lookup the type
                 var type = schemaTypes[p.SchemaTypeId];
                 var childObj = Node.CreateObject(p.Name);
                 obj.Items.Add(childObj);

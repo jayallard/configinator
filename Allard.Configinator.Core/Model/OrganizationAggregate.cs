@@ -10,7 +10,7 @@ namespace Allard.Configinator.Core.Model
     public class OrganizationAggregate : IAggregate
     {
         private readonly Dictionary<RealmId, Realm> realms = new();
-        private readonly Dictionary<SchemaTypeId, SchemaType> schemaTypes = new();
+        private readonly Dictionary<SchemaTypeId, SchemaTypeExploded> schemaTypes = new();
 
         public OrganizationAggregate(OrganizationId organizationId) : this()
         {
@@ -53,10 +53,16 @@ namespace Allard.Configinator.Core.Model
                 .Register<AddedConfigurationSectionToRealmEvent, ConfigurationSection>(e =>
                 {
                     var realm = realms[e.RealmId];
+                    var exploder = new SchemaTypeExploder(schemaTypes.Values);
+                    var properties = e
+                        .Properties
+                        .Select(p => exploder.Explode(p))
+                        .ToList()
+                        .AsReadOnly();
                     var configurationSection = new ConfigurationSection(
                         realm,
                         e.SectionId,
-                        e.Properties,
+                        properties,
                         e.Description);
                     realm.AddConfigurationSection(configurationSection);
                     return configurationSection;
@@ -65,19 +71,20 @@ namespace Allard.Configinator.Core.Model
                 // add schema type to organization
                 .Register<AddedSchemaTypeToOrganizationEvent, SchemaType>(e =>
                 {
-                    schemaTypes.Add(e.SchemaType.SchemaTypeId, e.SchemaType);
+                    var exploder = new SchemaTypeExploder(schemaTypes.Values);
+                    schemaTypes.Add(e.SchemaType.SchemaTypeId, exploder.Explode(e.SchemaType));
                     return e.SchemaType;
                 })
                 .Build();
         }
-
+        
         internal EventHandlerRegistry EventHandlerRegistry { get; }
 
         public OrganizationId OrganizationId { get; private set; }
 
         public IReadOnlyCollection<Realm> Realms => realms.Values;
 
-        public IReadOnlyCollection<SchemaType> SchemaTypes => schemaTypes.Values;
+        public IReadOnlyCollection<SchemaTypeExploded> SchemaTypes => schemaTypes.Values;
 
         internal static string GetConfigurationPath(ConfigurationSection section, IHabitat habitat)
         {
@@ -115,7 +122,7 @@ namespace Allard.Configinator.Core.Model
             throw new InvalidOperationException("Realm doesn't exist. Name=" + realmId);
         }
 
-        public SchemaType GetSchemaType(SchemaTypeId schemaTypeId)
+        public SchemaTypeExploded GetSchemaType(SchemaTypeId schemaTypeId)
         {
             if (schemaTypes.TryGetValue(schemaTypeId, out var schemaType)) return schemaType;
             throw new InvalidOperationException("The type doesn't exist in the organization: " + schemaTypeId.FullId);
@@ -134,7 +141,8 @@ namespace Allard.Configinator.Core.Model
             if (schemaTypes.ContainsKey(schemaType.SchemaTypeId))
                 throw new InvalidOperationException("Schema already exists");
 
-            new SchemaTypeValidator(schemaType, schemaTypes.Values).Validate();
+            // todo
+            //new SchemaTypeValidator(schemaType, schemaTypes.Values).Validate();
             var evt = new AddedSchemaTypeToOrganizationEvent(OrganizationId, schemaType);
             return EventHandlerRegistry.Raise<AddedSchemaTypeToOrganizationEvent, SchemaType>(evt);
         }

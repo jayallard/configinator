@@ -5,5 +5,6 @@ namespace Allard.Configinator.Core.Model
     public interface IRealm
     {
         IReadOnlyCollection<IHabitat> Habitats { get; }
+        ConfigurationSection GetConfigurationSection(string sectionId);
     }
 }

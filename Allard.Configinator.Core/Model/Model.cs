@@ -26,6 +26,11 @@ namespace Allard.Configinator.Core.Model
         SchemaTypeId SchemaTypeId,
         IReadOnlyCollection<SchemaTypeProperty> Properties);
 
+    [DebuggerDisplay("{SchemaTypeId.FullId}")]
+    public record SchemaTypeExploded(
+        SchemaTypeId SchemaTypeId,
+        IReadOnlyCollection<SchemaTypePropertyExploded> Properties);
+
     [DebuggerDisplay("{Name} ({SchemaTypeId.FullId})")]
     public record SchemaTypeProperty(string Name, SchemaTypeId SchemaTypeId, bool IsSecret = false,
         bool IsOptional = false)
@@ -33,9 +38,15 @@ namespace Allard.Configinator.Core.Model
         public bool IsRequired => !IsOptional;
     }
 
+    [DebuggerDisplay("{Name} ({SchemaTypeId.FullId})")]
+    public record SchemaTypePropertyExploded(string Name, SchemaTypeId SchemaTypeId,
+        IReadOnlyCollection<SchemaTypePropertyExploded> Properties, bool IsSecret, bool IsOptional)
+    {
+        public bool IsRequired => !IsOptional;
+    }
+    
 
-    public record RealmVariable(string Name, string ConfigurationSectionId, string ConfigPath,
+    public record RealmVariable(string Name, string SectionId, string ConfigPath,
         List<RealmVariableAssignment> Assignments);
     public record RealmVariableAssignment(string ConfigurationSectionId, string ConfigPath);
-
 }

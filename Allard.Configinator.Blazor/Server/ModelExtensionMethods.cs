@@ -59,7 +59,7 @@ namespace Allard.Configinator.Blazor.Server
             };
         }
 
-        public static SchemaTypeViewModel ToViewModel(this SchemaType type)
+        public static SchemaTypeViewModel ToViewModel(this SchemaTypeExploded type)
         {
             return new()
             {
@@ -68,12 +68,12 @@ namespace Allard.Configinator.Blazor.Server
             };
         }
 
-        public static IEnumerable<PropertyViewModel> ToViewModel(this IEnumerable<SchemaTypeProperty> properties)
+        public static IEnumerable<PropertyViewModel> ToViewModel(this IEnumerable<SchemaTypePropertyExploded> properties)
         {
             return properties.Select(p => p.ToViewModel());
         }
 
-        public static PropertyViewModel ToViewModel(this SchemaTypeProperty schemaTypeProperty)
+        public static PropertyViewModel ToViewModel(this SchemaTypePropertyExploded schemaTypeProperty)
         {
             return new()
             {

@@ -40,32 +40,6 @@ namespace Allard.Configinator.Core.Model
 
         public Realm AddVariable(RealmVariable variable)
         {
-            var id = new SectionId(variable.ConfigurationSectionId);
-            if (!configurationSections.ContainsKey(id))
-            {
-                throw ModelExceptions.ConfigurationSectionDoesntExists(id.Id);
-            }
-
-            if (variables.ContainsKey(variable.Name))
-            {
-                throw ModelExceptions.RealmVariableAlreadyExists(variable.Name);
-            }
-
-            if (string.IsNullOrWhiteSpace(variable.ConfigPath) || variable.ConfigPath
-                .Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Length == 0)
-            {
-                throw new InvalidOperationException("Invalid Configuration Path: " + variable.ConfigPath);
-            }
-
-            var cs = GetConfigurationSection(variable.ConfigurationSectionId);
-            var structure = StructureBuilder.ToStructure(cs);
-            if (!structure.Exists(variable.ConfigPath))
-            {
-                throw new InvalidOperationException("Configuration Path doesn't exist: " + variable.ConfigPath);
-            }
-
-            var node = structure.FindNode(variable.ConfigPath);
-            
             return this;
         }
 
@@ -124,7 +98,7 @@ namespace Allard.Configinator.Core.Model
         public IHabitat AddHabitat(string habitatId, string baseHabitatId = null)
         {
             return AddHabitat(new HabitatId(habitatId), baseHabitatId == null ? null : new HabitatId(baseHabitatId));
-        }
+        }   
 
         public Habitat AddHabitat(HabitatId habitatId, HabitatId baseHabitatId = null)
         {
