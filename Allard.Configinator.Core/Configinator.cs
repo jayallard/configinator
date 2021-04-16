@@ -37,7 +37,7 @@ namespace Allard.Configinator.Core
             var current = habitat;
             var validator = new ConfigurationValidator(cs, Organization.SchemaTypes);
             var dtos = new List<Node>();
-            var modelDto = StructureBuilder.ToStructure(cs);
+            var modelDto = cs.ToStructure();
             var modelJson = modelDto.ToJson().RootElement.ToString();
             while (current != null)
             {
@@ -86,14 +86,14 @@ namespace Allard.Configinator.Core
             var (_, configDocument, configExists) = await configStore.GetValueAsync(path);
             var doc = configExists
                 ? configDocument
-                : StructureBuilder.ToStructure(cs).ToJson();
+                : cs.ToStructure().ToJson();
 
             // if validation is requested
             if (validate)
             {
                 var v = configExists
                     ? configDocument.ToObjectDto()
-                    : StructureBuilder.ToStructure(cs);
+                    : cs.ToStructure();
                 var results = new ConfigurationValidator(cs, Organization.SchemaTypes).Validate(habitat.HabitatId, v);
                 return new GetValueResponse(configurationId, configExists, results.ToList(), doc);
             }
@@ -150,16 +150,6 @@ namespace Allard.Configinator.Core
             return detail;
         }
 
-        private static SetValueResponse ToResponse(IEnumerable<State> states)
-        {
-            var habitats = states
-                .Select(h =>
-                    new SetValueResponseHabitat(h.IsChanged, h.IsSaved, h.Habitat.HabitatId.Id,
-                        h.Failures))
-                .ToList();
-            return new SetValueResponse(habitats);
-        }
-
         /// <summary>
         ///     Retrieve a value from the config store, if it exists.
         ///     If it doesn't exist, returns an empty document.
@@ -175,16 +165,6 @@ namespace Allard.Configinator.Core
             return exists
                 ? value
                 : JsonDocument.Parse("{}");
-        }
-
-        private class State
-        {
-            public Node Object { get; init; }
-            public IHabitat Habitat { get; init; }
-            public List<ValidationFailure> Failures { get; } = new();
-            public bool IsChanged { get; init; }
-            public bool IsSaved { get; set; }
-            public bool CanSave => IsChanged && Failures.Count == 0;
         }
     }
 }

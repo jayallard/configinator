@@ -1,12 +1,36 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using Allard.Configinator.Core.Model;
 using Allard.Configinator.Core.ObjectVersioning;
 
 namespace Allard.Configinator.Core
 {
     public static class ExtensionMethods
     {
+        public static Node ToStructure(this ConfigurationSection section)
+        {
+            var obj = Node.CreateObject();
+            Build(obj, section.Properties);
+            return obj;
+
+            static void Build(Node node, IEnumerable<SchemaTypePropertyExploded> properties)
+            {
+                foreach (var p in properties)
+                {
+                    if (p.SchemaTypeId.IsPrimitive)
+                    {
+                        var propertyDto = Node.CreateString(p.Name);
+                        node.Add(propertyDto);
+                        continue;
+                    }
+                
+                    var childObj = Node.CreateObject(p.Name);
+                    node.Items.Add(childObj);
+                    Build(childObj, p.Properties);
+                }
+            }
+        }
         public static Node ToObjectDto(this JsonDocument json)
         {
             if (json.RootElement.ValueKind != JsonValueKind.Object)

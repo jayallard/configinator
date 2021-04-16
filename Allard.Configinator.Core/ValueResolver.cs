@@ -54,7 +54,7 @@ namespace Allard.Configinator.Core
 
             // the model represents what the configuration value
             // looks like. it has structure and data types (currently only string)
-            configurationSectionModel = StructureBuilder.ToStructure(configurationSection);
+            configurationSectionModel = configurationSection.ToStructure();
 
             // does the heavy lifting of copying values from a habitat to
             // the descendent habitats.
