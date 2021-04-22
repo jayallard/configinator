@@ -10,7 +10,7 @@ namespace Allard.Configinator.Core.Infrastructure
     public record GetValueResponse(
         ConfigurationId ConfigurationId,
         bool Exists,
-        List<ValidationFailure> ValidationFailures,
+        List<SchemaValidationFailure> ValidationFailures,
         JsonDocument Value);
 
     public class GetDetailedValueResponse
@@ -22,7 +22,7 @@ namespace Allard.Configinator.Core.Infrastructure
         public class HabitatDetails
         {
             public string HabitatId { get; init; }
-            public List<ValidationFailure> ValidationFailures { get; } = new();
+            public List<SchemaValidationFailure> ValidationFailures { get; } = new();
             public bool Exists { get; init; }
             public string ConfigurationValue { get; init; }
         }
@@ -66,5 +66,9 @@ namespace Allard.Configinator.Core.Infrastructure
     public record SetValueResponse(List<SetValueResponseHabitat> Habitats);
 
     public record SetValueResponseHabitat(bool Changed, bool Saved, string HabitatId,
-        List<ValidationFailure> ValidationFailures);
+        List<SchemaValidationFailure> ValidationFailures);
+
+    public record SetVariableRequest(string Name, JsonDocument Value);
+
+    public record SetVariableResponse();
 }

@@ -76,6 +76,12 @@ namespace Allard.Configinator.Core
             return result;
         }
 
+        public async Task<SetVariableResponse> SetVariable(SetVariableRequest request)
+        {
+            new ConfigurationValidator()
+            return new();
+        }
+
         public async Task<GetValueResponse> GetValueAsync(GetValueRequest request)
         {
             var (configurationId, validate, _) = request;

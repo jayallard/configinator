@@ -33,7 +33,7 @@ namespace Allard.Configinator.Core.Model
         private readonly Dictionary<string, SchemaTypePropertyExploded> propertiesMap;
         public SchemaTypeId SchemaTypeId { get; }
         public IReadOnlyCollection<SchemaTypePropertyExploded> Properties => propertiesMap.Values;
-    
+
         public SchemaTypeExploded(SchemaTypeId schemaTypeId,
             IEnumerable<SchemaTypePropertyExploded> properties)
         {
@@ -60,11 +60,12 @@ namespace Allard.Configinator.Core.Model
     public class SchemaTypePropertyExploded
     {
         private readonly Dictionary<string, SchemaTypePropertyExploded> propertiesMap;
+
         public SchemaTypePropertyExploded(
-            string name, 
+            string name,
             SchemaTypeId schemaTypeId,
             IEnumerable<SchemaTypePropertyExploded> properties,
-            bool isSecret, 
+            bool isSecret,
             bool isOptional)
         {
             Name = name;
@@ -91,9 +92,9 @@ namespace Allard.Configinator.Core.Model
             return propertiesMap.ContainsKey(propertyName);
         }
     }
-    
 
-    public record RealmVariable(string Name, string SectionId, string ConfigPath,
-        List<RealmVariableAssignment> Assignments);
-    public record RealmVariableAssignment(string ConfigurationSectionId, string ConfigPath);
+
+    public record RealmVariable(string Name, SchemaTypeId SchemaTypeId, List<RealmVariableAssignment> Assignments);
+
+    public record RealmVariableAssignment(string SectionId, string ConfigPath);
 }

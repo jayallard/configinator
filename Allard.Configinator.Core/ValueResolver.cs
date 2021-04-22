@@ -161,7 +161,7 @@ namespace Allard.Configinator.Core
         {
             public Node Value { get; init; }
             public IHabitat Habitat { get; init; }
-            public List<ValidationFailure> Failures { get; } = new();
+            public List<SchemaValidationFailure> Failures { get; } = new();
             public bool IsChanged { get; init; }
             public bool IsSaved { get; set; }
             public bool CanSave => IsChanged && Failures.Count == 0;

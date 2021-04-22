@@ -8,7 +8,7 @@ namespace Allard.Configinator.Core.DocumentValidator
 {
     public class ConfigurationValidator
     {
-        private readonly ConfigurationSection configurationSection;
+        //private readonly ConfigurationSection configurationSection;
         private readonly Dictionary<SchemaTypeId, SchemaTypeExploded> schemas;
 
         public ConfigurationValidator(ConfigurationSection configurationSection, IEnumerable<SchemaTypeExploded> schemaTypes)
@@ -17,17 +17,17 @@ namespace Allard.Configinator.Core.DocumentValidator
             schemas = schemaTypes.EnsureValue(nameof(schemaTypes)).ToDictionary(st => st.SchemaTypeId);
         }
 
-        public IEnumerable<ValidationFailure> Validate(HabitatId habitatId, Node value)
+        public IEnumerable<SchemaValidationFailure> Validate(HabitatId habitatId, Node value)
         {
             habitatId.EnsureValue(nameof(habitatId));
             value.EnsureValue(nameof(value));
-            var results = new List<ValidationFailure>();
+            var results = new List<SchemaValidationFailure>();
             Validate(results, habitatId, configurationSection.Properties.ToList(), value, string.Empty);
             return results;
         }
 
         private void Validate(
-            ICollection<ValidationFailure> errors,
+            ICollection<SchemaValidationFailure> errors,
             HabitatId habitatId,
             IEnumerable<SchemaTypePropertyExploded> properties,
             Node obj,
@@ -35,11 +35,11 @@ namespace Allard.Configinator.Core.DocumentValidator
         {
             // TODO: only works if all expected objects and properties exist.
             // needs to be hardened. objects and properties might not exist.
-            var configId = new ConfigurationId(
-                configurationSection.Realm.Organization.OrganizationId.Id,
-                configurationSection.Realm.RealmId.Id,
-                configurationSection.SectionId.Id,
-                habitatId.Id);
+            // var configId = new ConfigurationId(
+            //     configurationSection.Realm.Organization.OrganizationId.Id,
+            //     configurationSection.Realm.RealmId.Id,
+            //     configurationSection.SectionId.Id,
+            //     habitatId.Id);
             foreach (var property in properties)
             {
                 var propertyPath = path + "/" + property.Name;
@@ -48,7 +48,7 @@ namespace Allard.Configinator.Core.DocumentValidator
                     // property
                     var value = obj.GetProperty(property.Name).Value;
                     if (string.IsNullOrWhiteSpace(value) && property.IsRequired)
-                        errors.Add(new ValidationFailure(configId, propertyPath,
+                        errors.Add(new SchemaValidationFailure(configId, propertyPath,
                             "RequiredValueMissing", "A value is required."));
 
                     continue;

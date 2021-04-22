@@ -17,45 +17,28 @@ namespace Allard.Configinator.Core.Model
 
         public void AddVariable(RealmVariable variable)
         {
-            ValidateVariable(variable);
+            ValidateNewVariable(variable);
             variables.Add(variable.Name, variable);
         }
-
-        private void ApplyVariable(RealmVariable variable)
+        
+        private void ValidateNewVariable(RealmVariable variable)
         {
-            var source = realm.GetConfigurationSection(variable.SectionId);
+            // schema type must exit
+            realm.Organization.GetSchemaType(variable.SchemaTypeId);
             
-        }
-
-        private void ValidateVariable(RealmVariable variable)
-        {
-            // make sure variable doesn't already exist
-            var cs = realm.GetConfigurationSection(variable.SectionId);
+            // variable can't already exist
             if (variables.ContainsKey(variable.Name))
             {
                 throw ModelExceptions.RealmVariableAlreadyExists(variable.Name);
             }
 
-            // make sure source path is valid.
-            if (string.IsNullOrWhiteSpace(variable.ConfigPath) || variable.ConfigPath
-                .Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Length == 0)
-            {
-                throw new InvalidOperationException("Invalid Configuration Path: " + variable.ConfigPath);
-            }
-
-            // make sure source path exists
-            if (!cs.PathExists(variable.ConfigPath))
-            {
-                throw new InvalidOperationException("Variable Source Path doesn't exist: " + variable.ConfigPath);
-            }
-
             // make sure all assignment paths exist
-            foreach (var target in variable.Assignments)
+            foreach (var assignment in variable.Assignments)
             {
-                var targetSection = realm.GetConfigurationSection(target.ConfigurationSectionId);
-                if (!targetSection.PathExists(target.ConfigPath))
+                var targetSection = realm.GetConfigurationSection(assignment.SectionId);
+                if (!targetSection.PathExists(assignment.ConfigPath))
                 {
-                    throw new InvalidOperationException("Variable Target Path doesn't exist: " + variable.ConfigPath);
+                    throw new InvalidOperationException("Variable Target Path doesn't exist: SectionId=" + assignment.SectionId + ", " + assignment.ConfigPath);
                 }
             }
         }

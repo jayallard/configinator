@@ -6,5 +6,6 @@ namespace Allard.Configinator.Core.Model
     {
         IReadOnlyCollection<IHabitat> Habitats { get; }
         ConfigurationSection GetConfigurationSection(string sectionId);
+        OrganizationAggregate Organization { get; }
     }
 }
