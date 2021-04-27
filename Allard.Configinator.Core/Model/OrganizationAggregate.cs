@@ -92,6 +92,11 @@ namespace Allard.Configinator.Core.Model
                 $"/{section.Realm.Organization.OrganizationId.Id}/{section.Realm.RealmId.Id}/{section.SectionId.Id}/{habitat.HabitatId.Id}";
         }
 
+        internal static string GetConfigurationPath(Realm realm, RealmVariable variable)
+        {
+            return $"/{realm.Organization.OrganizationId.Id}/{realm.RealmId.Id}/__variables__/{variable.Name}";
+        }
+
         internal void EnsureValidSchemaTypes(IEnumerable<SchemaTypeId> toValidate)
         {
             var invalid = toValidate
@@ -103,18 +108,8 @@ namespace Allard.Configinator.Core.Model
             var errors = string.Join(',', invalid);
             throw new InvalidOperationException("The SchemaTypeIds don't exist in the organization: " + errors);
         }
-
+        
         public Realm GetRealmById(string realmId)
-        {
-            var realm = realms
-                .Values
-                .SingleOrDefault(r => r.RealmId.Id == realmId);
-            if (realm == null) throw new InvalidOperationException("Realm doesn't exist. Id= " + realmId);
-
-            return realm;
-        }
-
-        public Realm GetRealmByName(string realmId)
         {
             var id = new RealmId(realmId);
             if (realms.TryGetValue(id, out var realm)) return realm;

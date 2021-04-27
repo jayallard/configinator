@@ -43,12 +43,12 @@ namespace Allard.Configinator.Core
         private async Task<Node> ConfigResolver(IHabitat h)
         {
             // delegate to get value from config store
-            return (await GetValueFromConfigstore(h)).ToObjectDto();
+            return (await GetValueFromConfigstore(h)).ToNode();
         }
 
         private void Setup()
         {
-            realm = organization.GetRealmByName(request.ConfigurationId.RealmId);
+            realm = organization.GetRealmById(request.ConfigurationId.RealmId);
             habitat = realm.GetHabitat(request.ConfigurationId.HabitatId);
             configurationSection = realm.GetConfigurationSection(request.ConfigurationId.SectionId);
 
@@ -80,7 +80,7 @@ namespace Allard.Configinator.Core
         {
             // overwrite the config store value with the new value.
             // this is the value that the user is saving.
-            var newValue = request.Value.ToObjectDto();
+            var newValue = request.Value.ToNode();
             habitatValueResolver.OverwriteValue(habitat, newValue, request.SettingsPath);
         }
 
@@ -95,8 +95,8 @@ namespace Allard.Configinator.Core
             // validate every habitat.
             foreach (var s in state)
             {
-                var failures = new ConfigurationValidator(configurationSection, organization.SchemaTypes)
-                    .Validate(s.Habitat.HabitatId, s.Value)
+                var failures = new ConfigurationValidator(configurationSection.Properties)
+                    .Validate(s.Value)
                     .ToList();
                 s.Failures.AddRange(failures);
             }

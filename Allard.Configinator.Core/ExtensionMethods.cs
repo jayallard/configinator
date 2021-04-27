@@ -31,7 +31,7 @@ namespace Allard.Configinator.Core
                 }
             }
         }
-        public static Node ToObjectDto(this JsonDocument json)
+        public static Node ToNode(this JsonDocument json)
         {
             if (json.RootElement.ValueKind != JsonValueKind.Object)
                 return Node.CreateString(null, json.RootElement.GetString());

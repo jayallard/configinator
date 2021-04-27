@@ -43,6 +43,13 @@ namespace Allard.Configinator.Core.Model
             return this;
         }
 
+        public RealmVariable GetVariable(string variableName)
+        {
+            if (variables.TryGetValue(variableName, out var v)) return v;
+            throw new InvalidOperationException("Variable doesn't exist. Realm=" + this.RealmId.Id + ", Variable=" +
+                                                variableName);
+        }
+
         /// <summary>
         ///     Used by the event handler.
         /// </summary>

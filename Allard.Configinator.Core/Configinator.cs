@@ -29,25 +29,25 @@ namespace Allard.Configinator.Core
         public async Task<GetDetailedValueResponse> GetValueDetailAsync(GetValueRequest request)
         {
             var (configurationId, needsValidation, _) = request;
-            var realm = Organization.GetRealmByName(configurationId.RealmId);
+            var realm = Organization.GetRealmById(configurationId.RealmId);
             var habitat = realm.GetHabitat(configurationId.HabitatId);
             var cs = realm.GetConfigurationSection(configurationId.SectionId);
 
             var result = new GetDetailedValueResponse();
-            var current = habitat;
-            var validator = new ConfigurationValidator(cs, Organization.SchemaTypes);
+            var currentHabitat = habitat;
+            var validator = new ConfigurationValidator(cs.Properties);
             var dtos = new List<Node>();
             var modelDto = cs.ToStructure();
             var modelJson = modelDto.ToJson().RootElement.ToString();
-            while (current != null)
+            while (currentHabitat != null)
             {
-                var path = OrganizationAggregate.GetConfigurationPath(cs, current);
+                var path = OrganizationAggregate.GetConfigurationPath(cs, currentHabitat);
                 var (_, currentValue, currentExists) = await configStore.GetValueAsync(path);
                 var json = currentExists
                     ? currentValue.RootElement.ToString()
                     : modelJson;
                 var dto = currentExists
-                    ? currentValue.ToObjectDto()
+                    ? currentValue.ToNode()
                     : modelDto;
                 dtos.Add(dto);
 
@@ -55,7 +55,7 @@ namespace Allard.Configinator.Core
                 {
                     Exists = currentExists,
                     ConfigurationValue = json,
-                    HabitatId = current.HabitatId.Id
+                    HabitatId = currentHabitat.HabitatId.Id
                 };
                 result.Habitats.Add(habitatDetails);
                 if (needsValidation)
@@ -63,10 +63,22 @@ namespace Allard.Configinator.Core
                     var toValidate = currentExists
                         ? dto
                         : modelDto;
-                    habitatDetails.ValidationFailures.AddRange(validator.Validate(habitat.HabitatId, toValidate));
+                    var configId = new ConfigurationId(
+                        realm.Organization.OrganizationId.Id,
+                        realm.RealmId.Id,
+                        cs.SectionId.Id,
+                        currentHabitat.HabitatId.Id);
+
+                    // Convert SchemaValidationFailure failures to ConfiginatorValidationFailure.
+                    // ConfiginatorValidationFailure has the id.
+                    habitatDetails.ValidationFailures.AddRange(
+                        validator
+                            .Validate(toValidate)
+                            .Select(v =>
+                                new ConfiginatorValidationFailure(configId, v.Path, v.Code, v.Message)));
                 }
 
-                current = current.BaseHabitat;
+                currentHabitat = currentHabitat.BaseHabitat;
             }
 
             dtos.Reverse();
@@ -78,14 +90,47 @@ namespace Allard.Configinator.Core
 
         public async Task<SetVariableResponse> SetVariable(SetVariableRequest request)
         {
-            new ConfigurationValidator()
+            var realm = Organization.GetRealmById(request.RealmId);
+            var variable = realm.GetVariable(request.VariableName);
+            var properties = Organization.GetSchemaType(variable.SchemaTypeId).Properties;
+            var value = request.Value.ToNode();
+            // TODO: validate structure
+            var path = OrganizationAggregate.GetConfigurationPath(realm, variable);
+            var configRequest = new SetConfigStoreValueRequest(path, request.Value);
+            var result = await configStore.SetValueAsync(configRequest);
+
+            // get base habitats; those without a parent.
+            var habitats = realm.Habitats.Where(h => h.BaseHabitat == null).ToList();
+
+            var variableValue = request.Value.ToNode();
+            foreach (var assignment in variable.Assignments)
+            {
+                var id = new ConfigurationId(
+                    Organization.OrganizationId.Id, 
+                    realm.RealmId.Id, 
+                    assignment.SectionId,
+                    "place holder");
+                foreach (var h in habitats)
+                {
+                    var resolver = new HabitatValueResolver(null, null, h);
+                    await resolver.LoadExistingValues();
+                    resolver.OverwriteValue(h, variableValue, assignment.ConfigPath);
+                    var i = id with {HabitatId = h.HabitatId.Id};
+                    var setRequest = new SetValueRequest(i, assignment.ConfigPath, )
+                    setter.SetValueAsync()
+                }
+
+                var setRequest = new SetValueRequest()
+                setter.SetValueAsync()
+            }
+
             return new();
         }
 
         public async Task<GetValueResponse> GetValueAsync(GetValueRequest request)
         {
             var (configurationId, validate, _) = request;
-            var realm = Organization.GetRealmByName(configurationId.RealmId);
+            var realm = Organization.GetRealmById(configurationId.RealmId);
             var habitat = realm.GetHabitat(configurationId.HabitatId);
             var cs = realm.GetConfigurationSection(configurationId.SectionId);
             var path = OrganizationAggregate.GetConfigurationPath(cs, habitat);
@@ -98,9 +143,9 @@ namespace Allard.Configinator.Core
             if (validate)
             {
                 var v = configExists
-                    ? configDocument.ToObjectDto()
+                    ? configDocument.ToNode()
                     : cs.ToStructure();
-                var results = new ConfigurationValidator(cs, Organization.SchemaTypes).Validate(habitat.HabitatId, v);
+                var results = new ConfigurationValidator(cs.Properties).Validate(v);
                 return new GetValueResponse(configurationId, configExists, results.ToList(), doc);
             }
 

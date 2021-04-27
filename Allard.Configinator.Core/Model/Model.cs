@@ -94,6 +94,7 @@ namespace Allard.Configinator.Core.Model
     }
 
 
+    // todo; validate name
     public record RealmVariable(string Name, SchemaTypeId SchemaTypeId, List<RealmVariableAssignment> Assignments);
 
     public record RealmVariableAssignment(string SectionId, string ConfigPath);

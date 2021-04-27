@@ -162,7 +162,7 @@ namespace Allard.Configinator.Core.Tests.Unit
         {
             var input = JsonDocument
                 .Parse(TestUtility.GetFile("FullDocumentPasses.json"))
-                .ToObjectDto();
+                .ToNode();
 
             var idDev = CreateConfigurationId("dev");
             var idDevAllard = CreateConfigurationId("dev-allard");
@@ -243,7 +243,7 @@ namespace Allard.Configinator.Core.Tests.Unit
         {
             var input = JsonDocument
                 .Parse(TestUtility.GetFile("FullDocumentPasses.json"))
-                .ToObjectDto();
+                .ToNode();
 
             var id1 = CreateConfigurationId("dev");
             var set1 = input

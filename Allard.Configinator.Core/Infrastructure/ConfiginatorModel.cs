@@ -22,7 +22,7 @@ namespace Allard.Configinator.Core.Infrastructure
         public class HabitatDetails
         {
             public string HabitatId { get; init; }
-            public List<SchemaValidationFailure> ValidationFailures { get; } = new();
+            public List<ConfiginatorValidationFailure> ValidationFailures { get; } = new();
             public bool Exists { get; init; }
             public string ConfigurationValue { get; init; }
         }
@@ -68,7 +68,7 @@ namespace Allard.Configinator.Core.Infrastructure
     public record SetValueResponseHabitat(bool Changed, bool Saved, string HabitatId,
         List<SchemaValidationFailure> ValidationFailures);
 
-    public record SetVariableRequest(string Name, JsonDocument Value);
+    public record SetVariableRequest(string RealmId, string VariableName, JsonDocument Value);
 
     public record SetVariableResponse();
 }

@@ -50,7 +50,6 @@ namespace Allard.Configinator.Core
          * the new value of its base.
          */
 
-
         private readonly IHabitat habitat;
         private readonly Dictionary<HabitatId, VersionTracker> habitatTrackers = new();
 

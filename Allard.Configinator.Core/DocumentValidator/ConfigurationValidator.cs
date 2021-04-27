@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Allard.Configinator.Core.Infrastructure;
 using Allard.Configinator.Core.Model;
 using Allard.Configinator.Core.ObjectVersioning;
 
@@ -8,39 +7,28 @@ namespace Allard.Configinator.Core.DocumentValidator
 {
     public class ConfigurationValidator
     {
-        //private readonly ConfigurationSection configurationSection;
-        private readonly Dictionary<SchemaTypeId, SchemaTypeExploded> schemas;
+        private readonly List<SchemaTypePropertyExploded> properties;
 
-        public ConfigurationValidator(ConfigurationSection configurationSection, IEnumerable<SchemaTypeExploded> schemaTypes)
+        public ConfigurationValidator(IEnumerable<SchemaTypePropertyExploded> properties)
         {
-            this.configurationSection = configurationSection.EnsureValue(nameof(ConfigurationSection));
-            schemas = schemaTypes.EnsureValue(nameof(schemaTypes)).ToDictionary(st => st.SchemaTypeId);
+            this.properties = properties.EnsureValue(nameof(properties)).ToList();
         }
 
-        public IEnumerable<SchemaValidationFailure> Validate(HabitatId habitatId, Node value)
+        public IEnumerable<SchemaValidationFailure> Validate(Node value)
         {
-            habitatId.EnsureValue(nameof(habitatId));
             value.EnsureValue(nameof(value));
             var results = new List<SchemaValidationFailure>();
-            Validate(results, habitatId, configurationSection.Properties.ToList(), value, string.Empty);
+            Validate(results, properties, value, string.Empty);
             return results;
         }
 
         private void Validate(
             ICollection<SchemaValidationFailure> errors,
-            HabitatId habitatId,
-            IEnumerable<SchemaTypePropertyExploded> properties,
+            IEnumerable<SchemaTypePropertyExploded> props,
             Node obj,
             string path)
         {
-            // TODO: only works if all expected objects and properties exist.
-            // needs to be hardened. objects and properties might not exist.
-            // var configId = new ConfigurationId(
-            //     configurationSection.Realm.Organization.OrganizationId.Id,
-            //     configurationSection.Realm.RealmId.Id,
-            //     configurationSection.SectionId.Id,
-            //     habitatId.Id);
-            foreach (var property in properties)
+            foreach (var property in props)
             {
                 var propertyPath = path + "/" + property.Name;
                 if (property.SchemaTypeId.IsPrimitive)
@@ -48,15 +36,13 @@ namespace Allard.Configinator.Core.DocumentValidator
                     // property
                     var value = obj.GetProperty(property.Name).Value;
                     if (string.IsNullOrWhiteSpace(value) && property.IsRequired)
-                        errors.Add(new SchemaValidationFailure(configId, propertyPath,
+                        errors.Add(new SchemaValidationFailure( propertyPath,
                             "RequiredValueMissing", "A value is required."));
-
                     continue;
                 }
 
-                var schemaType = schemas[property.SchemaTypeId];
                 var valueObject = obj.GetObject(property.Name);
-                Validate(errors, habitatId, schemaType.Properties.ToList(), valueObject, propertyPath);
+                Validate(errors, property.Properties, valueObject, propertyPath);
             }
         }
     }
