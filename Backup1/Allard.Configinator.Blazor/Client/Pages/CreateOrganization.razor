@@ -1,0 +1,37 @@
+@page "/CreateOrganization"
+@using Allard.Configinator.Blazor.Client.Services
+@using Allard.Configinator.Blazor.Shared.ViewModels.Organization
+@inject IOrganizationService service;
+@inject NavigationManager navigationManager;
+@inject IEventBus bus;
+<h3>CreateOrganization</h3>
+
+@code {
+
+    private readonly CreateOrganizationRequest request = new();
+
+    private async Task Create()
+    {
+        await service.CreateOrganizationAsync(request);
+        bus.Publish(new OrganizationCreatedClientEvent(request.OrganizationId));
+        navigationManager.NavigateTo("/organization/" + request.OrganizationId);
+    }
+
+}
+
+<EditForm Model="@request" OnValidSubmit="Create">
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+
+    <div class="container container-sm">
+        <div class="row">
+            <div class="col-sm">
+                Organization Id
+            </div>
+            <div>
+                <InputText id="id" @bind-Value="request.OrganizationId"></InputText>
+            </div>
+        </div>
+    </div>
+    <button type="submit">Create</button>
+</EditForm>

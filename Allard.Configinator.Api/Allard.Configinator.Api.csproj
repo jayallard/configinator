@@ -1,19 +1,18 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
-
-    <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
-        <Nullable>enable</Nullable>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <PackageReference Include="MediatR" Version="9.0.0" />
-        <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\Allard.Configinator.Core\Allard.Configinator.Core.csproj" />
-      <ProjectReference Include="..\Allard.Configinator.Infrastructure.MongoDb\Allard.Configinator.Infrastructure.MongoDb.csproj" />
-    </ItemGroup>
-
+<Project Sdk="Microsoft.NET.Sdk.Web" ToolsVersion="Current">
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <FileUpgradeFlags>40</FileUpgradeFlags>
+    <UpgradeBackupLocation>\\wsl$\Ubuntu-20.04\home\jallard\projects\configinator\Backup1\Allard.Configinator.Api\</UpgradeBackupLocation>
+    <OldToolsVersion>2.0</OldToolsVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="9.0.0" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Allard.Configinator.Core\Allard.Configinator.Core.csproj" />
+    <ProjectReference Include="..\Allard.Configinator.Infrastructure.MongoDb\Allard.Configinator.Infrastructure.MongoDb.csproj" />
+  </ItemGroup>
 </Project>

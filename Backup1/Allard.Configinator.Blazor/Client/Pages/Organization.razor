@@ -1,0 +1,80 @@
+@page "/Organization/{organizationid}"
+@using Allard.Configinator.Blazor.Client.Services
+@using Allard.Configinator.Blazor.Shared.ViewModels.Organization
+@inject IOrganizationService organizationService;
+
+@code {
+
+    [Parameter]
+    public string OrganizationId { get; set; }
+
+    private OrganizationViewModel organization;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        organization = await organizationService.GetOrganizationAsync(OrganizationId);
+        await base.OnInitializedAsync();
+    }
+
+}
+
+<h3>Organization: @OrganizationId</h3>
+@if (organization != null)
+{
+    <h4 style="padding:15px;background-color: black; color: white">
+        Realms
+        <a href="/organization/@OrganizationId/createrealm">
+            <span class="oi oi-plus"></span>
+        </a>
+    </h4>
+    @if (organization.Realms.Count == 0)
+    {
+        <p>This organization doesn't have any realms.</p>
+    }
+    @foreach (var realm in organization.Realms)
+    {
+        <h4>Realm: @realm.RealmId</h4>
+        @foreach (var cs in realm.ConfigurationSections)
+        {
+            <h4>Configuration Section: @cs.SectionId</h4>
+            <table style="margin-left:50px" class="table">
+                <tbody>
+                <tr>
+                    <td colspan="2">
+                        <h4>Habitats</h4>
+                        <ul>
+                            @foreach (var h in realm.Habitats)
+                            {
+                                <li>
+                                    @h.HabitatId: <a href="/configuration/@OrganizationId/@realm.RealmId/@cs.SectionId/@h.HabitatId">Configuration Values</a>
+                                </li>
+                            }
+                        </ul>
+                    </td>
+                    <td colspan="2">
+                        <b>Properties</b>
+                        <ul>
+                            @foreach (var property in cs.Properties)
+                            {
+                                <li>@property.Name : @property.SchemaTypeId</li>
+                            }
+                        </ul>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        }
+    }
+    <h4 style="padding:15px;background-color: black; color: white">Types</h4>
+    if (organization.SchemaTypes.Count == 0)
+    {
+        <p>This organization doesn't have any types.</p>
+    }
+    else
+    {
+        foreach (var t in organization.SchemaTypes)
+        {
+            <h2>@t.SchemaTypeId</h2>
+        }
+    }
+}

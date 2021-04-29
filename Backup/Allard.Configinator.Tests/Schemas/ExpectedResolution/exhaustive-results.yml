@@ -1,0 +1,34 @@
+---
+"id": "exhaustive"
+"paths":
+  "/x/y/z":
+    "properties":
+      "my-kafka":
+        "type": "exhaustive-types/kafka"
+        "properties":
+          "bootstrap-servers":
+            "type": "primitive-types/string"
+      "my-sql":
+        "type": "exhaustive-types/mssql"
+        "properties":
+          "user-id": 
+            "type": "primitive-types/string"
+            "is-secret": true
+          "password":
+            "type": "primitive-types/string"
+            "is-secret": true
+          "host":
+            "type": "primitive-types/string"
+      "other-kafka":
+        "type": "exhaustive-types/kafka-ssl"
+        "properties":
+          # from kafka
+          "bootstrap-servers":
+            "type": "primitive-types/string"
+          # from kafka-ssl
+          "something":
+            "type": "primitive-types/string"
+          "something-secret":
+            "type": "primitive-types/string"
+            "is-secret": true
+              

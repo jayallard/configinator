@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator", "Allard.Configinator\Allard.Configinator.csproj", "{D6EB324E-234E-4435-AB5E-507D7D306BFE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Tests", "Allard.Configinator.Tests\Allard.Configinator.Tests.csproj", "{007A22D3-EB48-46A6-86CD-63EC4ACB9697}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D6EB324E-234E-4435-AB5E-507D7D306BFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6EB324E-234E-4435-AB5E-507D7D306BFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6EB324E-234E-4435-AB5E-507D7D306BFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6EB324E-234E-4435-AB5E-507D7D306BFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{007A22D3-EB48-46A6-86CD-63EC4ACB9697}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{007A22D3-EB48-46A6-86CD-63EC4ACB9697}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{007A22D3-EB48-46A6-86CD-63EC4ACB9697}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{007A22D3-EB48-46A6-86CD-63EC4ACB9697}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

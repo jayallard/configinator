@@ -1,0 +1,47 @@
+@using Allard.Configinator.Blazor.Shared.ViewModels.Configuration
+@code {
+
+    [Parameter]
+    public ObjectViewModel ObjectViewModel { get; set; }
+
+    [Parameter]
+    public bool Edit { get; set; } = true;
+
+}
+
+<table class="table table-bordered">
+    <thead>
+    <tr>
+        <th colspan="2">
+            <h3>@ObjectViewModel.Name</h3>
+        </th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var p in ObjectViewModel.Properties)
+    {
+        <tr>
+            <td>@p.Name</td>
+            <td>
+                @if (Edit)
+                {
+                    <input @bind="p.Value" @bind:event="oninput"/>
+                }
+                else
+                {
+                    @p.Value
+                }
+                @if (p.BaseValues.Last().Transition == "Inherit")
+                {
+                    <span style="margin-left:15px" class="badge-pill badge-primary">Inherited</span>
+                }
+            </td>
+        </tr>
+    }
+
+    @foreach (var o in ObjectViewModel.Objects)
+    {
+        <ConfigurationSectionControl Edit=@Edit ObjectViewModel=@o/>
+    }
+    </tbody>
+</table>

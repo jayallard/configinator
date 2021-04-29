@@ -92,7 +92,7 @@ namespace Allard.Configinator.Core.Model
                 $"/{section.Realm.Organization.OrganizationId.Id}/{section.Realm.RealmId.Id}/{section.SectionId.Id}/{habitat.HabitatId.Id}";
         }
 
-        internal static string GetConfigurationPath(Realm realm, RealmVariable variable)
+        internal static string GetVariablePath(Realm realm, RealmVariable variable)
         {
             return $"/{realm.Organization.OrganizationId.Id}/{realm.RealmId.Id}/__variables__/{variable.Name}";
         }

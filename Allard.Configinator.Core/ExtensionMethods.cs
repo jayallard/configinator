@@ -31,6 +31,17 @@ namespace Allard.Configinator.Core
                 }
             }
         }
+
+        public static IEnumerable<IHabitat> RootHabitats(this IEnumerable<IHabitat> habitats)
+        {
+            return habitats.Where(h => h.BaseHabitat == null);
+        }
+
+        public static IEnumerable<IHabitat> BottomHabitats(this IEnumerable<IHabitat> habitats)
+        {
+            return habitats.Where(h => !h.Children.Any());
+        }
+        
         public static Node ToNode(this JsonDocument json)
         {
             if (json.RootElement.ValueKind != JsonValueKind.Object)

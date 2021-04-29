@@ -1,0 +1,203 @@
+@page "/configuration/{organizationId}/{realmId}/{sectionId}/{habitatId}"
+@using Allard.Configinator.Blazor.Client.Services
+@using Allard.Configinator.Blazor.Shared.ViewModels.Configuration
+@using Allard.Configinator.Blazor.Shared.ViewModels.Organization
+@using System.Text.Json
+@inject HttpClient client;
+@inject IOrganizationService orgService;
+<h3>Configuration</h3>
+
+@code {
+
+    [Parameter]
+    public string OrganizationId { get; set; }
+
+    [Parameter]
+    public string RealmId { get; set; }
+
+    [Parameter]
+    public string SectionId { get; set; }
+
+    [Parameter]
+    public string HabitatId { get; set; }
+
+    public bool Edit { get; set; }
+
+    private ObjectViewModel explained;
+    private SaveResponseViewModel saveResponse;
+    private string Json { get; set; }
+    private OrganizationViewModel organization;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        var org = orgService.GetOrganizationAsync(OrganizationId);
+        var url = $"/api/v1/configuration/{OrganizationId}/{RealmId}/{SectionId}/{HabitatId}/value-explained";
+        var config = client.GetFromJsonAsync<ObjectViewModel>(url);
+
+        await Task.WhenAll(org, config);
+        organization = await org;
+        explained = await config;
+        Json = JsonSerializer.Serialize(explained);
+    }
+
+    private async Task CancelEdit()
+    {
+    // todo: this should be a FORM RESET or something. brute force for now.
+        Edit = false;
+        await Load();
+    }
+
+    private async Task Save()
+    {
+        Edit = false;
+        var result = new Dictionary<string, object>();
+
+        foreach (var property in explained.Properties)
+        {
+            result[property.Name] = GetJsonValue(property.Value);
+        }
+
+        foreach (var p in explained.Objects)
+        {
+            result[p.Name] = ToDictionary(p);
+        }
+
+        var url = $"/api/v1/configuration/{OrganizationId}/{RealmId}/{SectionId}/{HabitatId}/value-resolved";
+        var x = await client.PutAsJsonAsync(url, result);
+        saveResponse = await x.Content.ReadFromJsonAsync<SaveResponseViewModel>();
+        if (saveResponse is {Success: true })
+        {
+            await Load();
+            return;
+        }
+
+        Edit = true;
+    }
+
+    private static Dictionary<string, object> ToDictionary(ObjectViewModel obj)
+    {
+        var result = new Dictionary<string, object>();
+        foreach (var p in obj.Properties)
+        {
+    // if the value is null, don't set it.
+    // the lack of the property will allow
+    // it to inherit from the base.
+    // if its explicitly set to anything,
+    // including null, the value isn't inherited.
+            var value = GetJsonValue(p.Value);
+            if (value != null)
+            {
+                result[p.Name] = value;
+            }
+        }
+
+        foreach (var o in obj.Objects)
+        {
+            result[o.Name] = ToDictionary(o);
+        }
+
+        return result;
+    }
+
+    private static object GetJsonValue(object value)
+    {
+        return value switch
+        {
+            null => null,
+            string s => string.IsNullOrWhiteSpace(s) ? null : s,
+            _ => value
+            };
+    }
+
+}
+
+<h1>@OrganizationId/@RealmId/@SectionId/@HabitatId</h1>
+@if (organization != null)
+{
+    var realm = organization.GetRealm(RealmId);
+    var habitat = realm.GetHabitat(HabitatId);
+    if (habitat.BaseHabitatId != null)
+    {
+        <div>
+            Base Habitat:&nbsp;<i>None</i>
+        </div>
+    }
+    else
+    {
+        <div>
+            Base Habitat:&nbsp;
+            <span>
+                <a href="/configuration/@OrganizationId/@RealmId/@SectionId/@habitat.BaseHabitatId">@habitat.BaseHabitatId</a> &nbsp;&nbsp;
+            </span>
+        </div>
+    }
+
+    var children = realm.Habitats.Where(h => h.BaseHabitatId == habitat.HabitatId).ToList();
+    if (children.Count == 0)
+    {
+        <div>
+            Child Habitats:&nbsp;<i>None</i>
+        </div>
+    }
+    else
+    {
+        <div>
+            Child Habitats:&nbsp;
+            @foreach (var b in children)
+            {
+                <span><a href="/configuration/@OrganizationId/@RealmId/@SectionId/@b">@b</a> &nbsp;&nbsp;</span>
+            }
+        </div>
+    }
+}
+
+@if (saveResponse != null)
+{
+    <ul>
+        @foreach (var error in saveResponse.Failures)
+        {
+            <li>@(error.Code == "RequiredPropertyValueMissing" ? "Required" : error.Code) : @error.ObjectPath</li>
+        }
+    </ul>
+}
+
+@if (explained != null)
+{
+    @foreach (var p in explained.Properties)
+    {
+        <tr>
+            <td>@p.Name</td>
+            <td>
+                @if (Edit)
+                {
+                    <input @bind="p.Value" @bind:event="oninput"/>
+                }
+                else
+                {
+                    @p.Value
+                }
+                @if (p.BaseValues.Last().Transition == "Inherit")
+                {
+                    <span style="margin-left:15px" class="badge-pill badge-primary">Inherited</span>
+                }
+            </td>
+        </tr>
+    }
+    foreach (var obj in explained.Objects)
+    {
+        <ConfigurationSectionControl Edit=@Edit ObjectViewModel=@obj/>
+    }
+
+    <button hidden="@(!Edit)" @onclick="Save">Save</button>
+    <h1 hidden>@Json</h1>
+    <button hidden="@Edit" @onclick="@(() => Edit = true)">Edit</button>
+    <button hidden="@(!Edit)" @onclick="CancelEdit">Cancel</button>
+}
+<p>
+    @Json
+</p>

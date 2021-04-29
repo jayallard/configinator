@@ -1,5 +1,10 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31129.286
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Blazor", "Blazor", "{76A58CEC-730D-4753-B5D0-7ECAE6F21BB4}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Api", "Allard.Configinator.Api\Allard.Configinator.Api.csproj", "{E32439D2-6494-46CD-8272-0EFE0130446F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.AwsSecretsManager", "Allard.Configinator.AwsSecretsManager\Allard.Configinator.AwsSecretsManager.csproj", "{3D8EFF0C-8A20-4958-8E34-A96601621967}"
@@ -19,8 +24,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Blazor.Server", "Allard.Configinator.Blazor\Server\Allard.Configinator.Blazor.Server.csproj", "{DE7FE9C0-814B-43A3-93EE-78F2339EE251}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Blazor.Shared", "Allard.Configinator.Blazor\Shared\Allard.Configinator.Blazor.Shared.csproj", "{39F4ACD8-F27E-4068-9CF2-13907896A523}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Blazor", "Blazor", "{76A58CEC-730D-4753-B5D0-7ECAE6F21BB4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -69,9 +72,15 @@ Global
 		{39F4ACD8-F27E-4068-9CF2-13907896A523}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{39F4ACD8-F27E-4068-9CF2-13907896A523}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A5A25DC9-0F1D-4B97-87E8-A19E363D7C5E} = {76A58CEC-730D-4753-B5D0-7ECAE6F21BB4}
 		{DE7FE9C0-814B-43A3-93EE-78F2339EE251} = {76A58CEC-730D-4753-B5D0-7ECAE6F21BB4}
 		{39F4ACD8-F27E-4068-9CF2-13907896A523} = {76A58CEC-730D-4753-B5D0-7ECAE6F21BB4}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C80110D6-32D6-4013-80B3-79596EDB7FA4}
 	EndGlobalSection
 EndGlobal

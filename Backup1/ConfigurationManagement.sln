@@ -1,0 +1,77 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Api", "Allard.Configinator.Api\Allard.Configinator.Api.csproj", "{E32439D2-6494-46CD-8272-0EFE0130446F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.AwsSecretsManager", "Allard.Configinator.AwsSecretsManager\Allard.Configinator.AwsSecretsManager.csproj", "{3D8EFF0C-8A20-4958-8E34-A96601621967}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.AwsSecretsManager.Tests", "Allard.Configinator.AwsSecretsManager.Tests\Allard.Configinator.AwsSecretsManager.Tests.csproj", "{52742313-F970-41E4-A62B-0426308BF9EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Infrastructure.MongoDb", "Allard.Configinator.Infrastructure.MongoDb\Allard.Configinator.Infrastructure.MongoDb.csproj", "{8646E8C4-2874-4D5B-B4B5-C0ADF5D408BF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Core", "Allard.Configinator.Core\Allard.Configinator.Core.csproj", "{7047BB0F-B29F-4CCA-88EA-EDD1F29D7FE2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Core.Tests", "Allard.Configinator.Core.Tests\Allard.Configinator.Core.Tests.csproj", "{AA8F4058-A20A-4B49-9888-D49BE4D00F5F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Infrastructure.MongoDb.Tests", "Allard.Configinator.Infrastructure.MongoDb.Tests\Allard.Configinator.Infrastructure.MongoDb.Tests.csproj", "{A870290C-0BDD-4A3B-853C-4511E4CF75E4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Blazor.Client", "Allard.Configinator.Blazor\Client\Allard.Configinator.Blazor.Client.csproj", "{A5A25DC9-0F1D-4B97-87E8-A19E363D7C5E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Blazor.Server", "Allard.Configinator.Blazor\Server\Allard.Configinator.Blazor.Server.csproj", "{DE7FE9C0-814B-43A3-93EE-78F2339EE251}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allard.Configinator.Blazor.Shared", "Allard.Configinator.Blazor\Shared\Allard.Configinator.Blazor.Shared.csproj", "{39F4ACD8-F27E-4068-9CF2-13907896A523}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Blazor", "Blazor", "{76A58CEC-730D-4753-B5D0-7ECAE6F21BB4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E32439D2-6494-46CD-8272-0EFE0130446F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E32439D2-6494-46CD-8272-0EFE0130446F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E32439D2-6494-46CD-8272-0EFE0130446F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E32439D2-6494-46CD-8272-0EFE0130446F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D8EFF0C-8A20-4958-8E34-A96601621967}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D8EFF0C-8A20-4958-8E34-A96601621967}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D8EFF0C-8A20-4958-8E34-A96601621967}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D8EFF0C-8A20-4958-8E34-A96601621967}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52742313-F970-41E4-A62B-0426308BF9EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52742313-F970-41E4-A62B-0426308BF9EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52742313-F970-41E4-A62B-0426308BF9EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52742313-F970-41E4-A62B-0426308BF9EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8646E8C4-2874-4D5B-B4B5-C0ADF5D408BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8646E8C4-2874-4D5B-B4B5-C0ADF5D408BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8646E8C4-2874-4D5B-B4B5-C0ADF5D408BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8646E8C4-2874-4D5B-B4B5-C0ADF5D408BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7047BB0F-B29F-4CCA-88EA-EDD1F29D7FE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7047BB0F-B29F-4CCA-88EA-EDD1F29D7FE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7047BB0F-B29F-4CCA-88EA-EDD1F29D7FE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7047BB0F-B29F-4CCA-88EA-EDD1F29D7FE2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA8F4058-A20A-4B49-9888-D49BE4D00F5F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA8F4058-A20A-4B49-9888-D49BE4D00F5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA8F4058-A20A-4B49-9888-D49BE4D00F5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA8F4058-A20A-4B49-9888-D49BE4D00F5F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A870290C-0BDD-4A3B-853C-4511E4CF75E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A870290C-0BDD-4A3B-853C-4511E4CF75E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A870290C-0BDD-4A3B-853C-4511E4CF75E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A870290C-0BDD-4A3B-853C-4511E4CF75E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5A25DC9-0F1D-4B97-87E8-A19E363D7C5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5A25DC9-0F1D-4B97-87E8-A19E363D7C5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5A25DC9-0F1D-4B97-87E8-A19E363D7C5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5A25DC9-0F1D-4B97-87E8-A19E363D7C5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE7FE9C0-814B-43A3-93EE-78F2339EE251}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE7FE9C0-814B-43A3-93EE-78F2339EE251}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE7FE9C0-814B-43A3-93EE-78F2339EE251}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE7FE9C0-814B-43A3-93EE-78F2339EE251}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39F4ACD8-F27E-4068-9CF2-13907896A523}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39F4ACD8-F27E-4068-9CF2-13907896A523}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39F4ACD8-F27E-4068-9CF2-13907896A523}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39F4ACD8-F27E-4068-9CF2-13907896A523}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A5A25DC9-0F1D-4B97-87E8-A19E363D7C5E} = {76A58CEC-730D-4753-B5D0-7ECAE6F21BB4}
+		{DE7FE9C0-814B-43A3-93EE-78F2339EE251} = {76A58CEC-730D-4753-B5D0-7ECAE6F21BB4}
+		{39F4ACD8-F27E-4068-9CF2-13907896A523} = {76A58CEC-730D-4753-B5D0-7ECAE6F21BB4}
+	EndGlobalSection
+EndGlobal

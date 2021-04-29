@@ -50,6 +50,11 @@ namespace Allard.Configinator.Core.Model
                                                 variableName);
         }
 
+        public IEnumerable<RealmVariable> GetVariables()
+        {
+            return variables.Values;
+        }
+
         /// <summary>
         ///     Used by the event handler.
         /// </summary>

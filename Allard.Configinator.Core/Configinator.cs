@@ -1,5 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Net.Http.Headers;
+using System.Security;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Allard.Configinator.Core.DocumentValidator;
@@ -88,40 +92,74 @@ namespace Allard.Configinator.Core
             return result;
         }
 
+        private async void ResolveAll(ConfigurationSection cs)
+        {
+            var sectionModel = cs.ToStructure();
+            var trackers = new VersionTrackers(sectionModel);
+
+            var variableTasks = cs
+                .Realm
+                .GetVariables()
+                .Select(v => new
+                {
+                    Variable = v,
+                    VariableTask = 
+                })
+
+
+                var valuesPerHabitatTasks = cs
+                .Realm
+                .Habitats
+                .Select(h => new
+                {
+                    Habitat = h,
+                    ValueTask = GetValueFromConfigStore(cs, h)
+                })
+                .ToList();
+            await Task.WhenAll(valuesPerHabitatTasks.Select(v => v.ValueTask));
+            var valuesPerHabitat = valuesPerHabitatTasks
+                .Select(t => new
+                {
+                    t.Habitat,
+                    Value = t.ValueTask.Result.ToNode()
+                })
+                .ToDictionary(h => h.Habitat.HabitatId.Id);
+
+            foreach (var h in cs.Realm.Habitats)
+            {
+                var habitatLine = new List<IHabitat>();
+                var current = h;
+                while (current != null)
+                {
+                    habitatLine.Add(current);
+                    current = current.BaseHabitat;
+                }
+
+                for (var i = habitatLine.Count - 1; i >= 0; i--)
+                {
+                    var toAdd = habitatLine[i];
+                    var versionName = "Habitat=" + toAdd.HabitatId.Id;
+                    trackers.AddVersion(h.HabitatId.Id, versionName, valuesPerHabitat[toAdd.HabitatId.Id].Value);
+                }
+            }
+        }
+
         public async Task<SetVariableResponse> SetVariable(SetVariableRequest request)
         {
             var realm = Organization.GetRealmById(request.RealmId);
             var variable = realm.GetVariable(request.VariableName);
-            var properties = Organization.GetSchemaType(variable.SchemaTypeId).Properties;
-            var value = request.Value.ToNode();
-            // TODO: validate structure
-            var path = OrganizationAggregate.GetConfigurationPath(realm, variable);
+
+            // store the variable value in the store.
+            var path = OrganizationAggregate.GetVariablePath(realm, variable);
             var configRequest = new SetConfigStoreValueRequest(path, request.Value);
-            var result = await configStore.SetValueAsync(configRequest);
-
-            // get base habitats; those without a parent.
-            var habitats = realm.Habitats.Where(h => h.BaseHabitat == null).ToList();
-
-            var variableValue = request.Value.ToNode();
-            foreach (var assignment in variable.Assignments)
+            await configStore.SetValueAsync(configRequest);
+            
+            // apply the variable value to all habitats.
+            var assignmentsBySection = variable.Assignments.GroupBy(g => g.SectionId).ToList();
+            foreach (var assignment in assignmentsBySection)
             {
-                var id = new ConfigurationId(
-                    Organization.OrganizationId.Id, 
-                    realm.RealmId.Id, 
-                    assignment.SectionId,
-                    "place holder");
-                foreach (var h in habitats)
-                {
-                    var resolver = new HabitatValueResolver(null, null, h);
-                    await resolver.LoadExistingValues();
-                    resolver.OverwriteValue(h, variableValue, assignment.ConfigPath);
-                    var i = id with {HabitatId = h.HabitatId.Id};
-                    var setRequest = new SetValueRequest(i, assignment.ConfigPath, )
-                    setter.SetValueAsync()
-                }
-
-                var setRequest = new SetValueRequest()
-                setter.SetValueAsync()
+                var section = realm.GetConfigurationSection(assignment.Key);
+                await ResolveAll(section);
             }
 
             return new();
@@ -208,7 +246,7 @@ namespace Allard.Configinator.Core
         /// <param name="cs">The configuration section of the value.</param>
         /// <param name="habitat">The habitat of the value.</param>
         /// <returns></returns>
-        private async Task<JsonDocument> GetValueFromConfigstore(
+        private async Task<JsonDocument> GetValueFromConfigStore(
             ConfigurationSection cs, IHabitat habitat)
         {
             var path = OrganizationAggregate.GetConfigurationPath(cs, habitat);
